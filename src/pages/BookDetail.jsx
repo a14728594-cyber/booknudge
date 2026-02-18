@@ -170,10 +170,66 @@ export default function BookDetail() {
                         )}
                     </div>
 
+                    {book.one_liner && (
+                        <div className="mb-8 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border-l-4 border-indigo-600">
+                            <p className="text-lg font-medium text-gray-900">
+                                {book.one_liner}
+                            </p>
+                        </div>
+                    )}
+
+                    {book.pain_points && book.pain_points.length > 0 && (
+                        <div className="mb-8">
+                            <h2 className="text-xl font-bold text-gray-900 mb-4">こんな悩みの人におすすめ</h2>
+                            <div className="space-y-3">
+                                {book.pain_points.map((point, idx) => (
+                                    <div key={idx} className="flex items-start gap-3 bg-amber-50 p-4 rounded-xl">
+                                        <div className="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                                            !
+                                        </div>
+                                        <p className="text-gray-800">{point}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {book.outcomes && book.outcomes.length > 0 && (
+                        <div className="mb-8">
+                            <h2 className="text-xl font-bold text-gray-900 mb-4">読んだ後こうなれる</h2>
+                            <div className="space-y-3">
+                                {book.outcomes.map((outcome, idx) => (
+                                    <div key={idx} className="flex items-start gap-3 bg-green-50 p-4 rounded-xl">
+                                        <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                                            ✓
+                                        </div>
+                                        <p className="text-gray-800">{outcome}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {book.not_for && book.not_for.length > 0 && (
+                        <div className="mb-8">
+                            <h2 className="text-xl font-bold text-gray-900 mb-4">合わないかも</h2>
+                            <div className="space-y-3">
+                                {book.not_for.map((note, idx) => (
+                                    <div key={idx} className="flex items-start gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                        <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                                            ⓘ
+                                        </div>
+                                        <p className="text-gray-700">{note}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {book.description && (
                         <div className="mb-8">
                             <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                                この本について
+                                詳細説明
                             </h2>
                             <p className="text-gray-700 leading-relaxed whitespace-pre-line">
                                 {book.description}
