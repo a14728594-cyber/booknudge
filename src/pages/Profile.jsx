@@ -162,24 +162,7 @@ export default function Profile() {
         );
     }
 
-    // 非公開プロフィール表示
-    if (!isOwnProfile && profileUser?.profile_visibility === 'private') {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-6">
-                <div className="max-w-5xl mx-auto">
-                    <Card className="text-center py-16">
-                        <Lock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                            このプロフィールは非公開です
-                        </h2>
-                        <p className="text-gray-600">
-                            このユーザーはプロフィールを非公開に設定しています
-                        </p>
-                    </Card>
-                </div>
-            </div>
-        );
-    }
+    const isPrivateProfile = !isOwnProfile && profileUser?.profile_visibility === 'private';
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-6">
