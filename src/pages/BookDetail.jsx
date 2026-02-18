@@ -174,6 +174,101 @@ export default function BookDetail() {
                             ISBN: {book.isbn}
                         </div>
                     )}
+
+                    {/* 購入ボタン */}
+                    {book.amazon_url && (
+                        <div className="mt-8 pt-8 border-t border-gray-200">
+                            <Sheet open={purchaseSheetOpen} onOpenChange={setPurchaseSheetOpen}>
+                                <SheetTrigger asChild>
+                                    <Button 
+                                        size="lg" 
+                                        className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 rounded-xl"
+                                    >
+                                        <ShoppingCart className="w-5 h-5 mr-2" />
+                                        本を購入する
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent side="bottom" className="rounded-t-3xl">
+                                    <SheetHeader className="mb-6">
+                                        <SheetTitle className="text-2xl">購入先を選択</SheetTitle>
+                                        <SheetDescription>
+                                            {book.title}
+                                        </SheetDescription>
+                                    </SheetHeader>
+                                    <div className="grid gap-3 pb-6">
+                                        {book.amazon_url && (
+                                            <a
+                                                href={book.amazon_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50 transition-all"
+                                                onClick={() => setPurchaseSheetOpen(false)}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                        <ShoppingCart className="w-5 h-5 text-orange-600" />
+                                                    </div>
+                                                    <span className="font-medium text-gray-900">Amazon</span>
+                                                </div>
+                                                <ExternalLink className="w-5 h-5 text-gray-400" />
+                                            </a>
+                                        )}
+                                        {book.rakuten_url && (
+                                            <a
+                                                href={book.rakuten_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50 transition-all"
+                                                onClick={() => setPurchaseSheetOpen(false)}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                                        <ShoppingCart className="w-5 h-5 text-red-600" />
+                                                    </div>
+                                                    <span className="font-medium text-gray-900">楽天ブックス</span>
+                                                </div>
+                                                <ExternalLink className="w-5 h-5 text-gray-400" />
+                                            </a>
+                                        )}
+                                        {book.ehon_url && (
+                                            <a
+                                                href={book.ehon_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50 transition-all"
+                                                onClick={() => setPurchaseSheetOpen(false)}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                        <ShoppingCart className="w-5 h-5 text-blue-600" />
+                                                    </div>
+                                                    <span className="font-medium text-gray-900">e-hon</span>
+                                                </div>
+                                                <ExternalLink className="w-5 h-5 text-gray-400" />
+                                            </a>
+                                        )}
+                                        {book.honyaclub_url && (
+                                            <a
+                                                href={book.honyaclub_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50 transition-all"
+                                                onClick={() => setPurchaseSheetOpen(false)}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                                        <ShoppingCart className="w-5 h-5 text-green-600" />
+                                                    </div>
+                                                    <span className="font-medium text-gray-900">honyaclub</span>
+                                                </div>
+                                                <ExternalLink className="w-5 h-5 text-gray-400" />
+                                            </a>
+                                        )}
+                                    </div>
+                                </SheetContent>
+                            </Sheet>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
