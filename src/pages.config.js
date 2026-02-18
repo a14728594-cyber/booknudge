@@ -65,6 +65,7 @@ import Search from './pages/Search';
 import Share from './pages/Share';
 import Support from './pages/Support';
 import genreDomain from './pages/genre[domain]';
+import bookId from './pages/Book[id]';
 import __Layout from './Layout.jsx';
 
 
@@ -87,6 +88,7 @@ export const PAGES = {
     "Share": Share,
     "Support": Support,
     "genre[domain]": genreDomain,
+    "Book[id]": bookId,
 }
 
 export const pagesConfig = {

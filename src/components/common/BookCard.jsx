@@ -5,7 +5,7 @@ import { Star, Users } from 'lucide-react';
 
 export default function BookCard({ book, reason }) {
     return (
-        <Link to={createPageUrl(`book/${book.id}`)}>
+        <Link to={`/book/${book.id}`}>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-lg hover:border-indigo-200 transition-all duration-300 h-full flex flex-col">
                 <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
