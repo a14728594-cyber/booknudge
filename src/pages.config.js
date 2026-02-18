@@ -68,6 +68,7 @@ import Support from './pages/Support';
 import genreDomain from './pages/genre[domain]';
 import DM from './pages/DM';
 import DMChat from './pages/DMChat';
+import Connect from './pages/Connect';
 import __Layout from './Layout.jsx';
 
 
@@ -93,6 +94,7 @@ export const PAGES = {
     "genre[domain]": genreDomain,
     "DM": DM,
     "DMChat": DMChat,
+    "Connect": Connect,
 }
 
 export const pagesConfig = {

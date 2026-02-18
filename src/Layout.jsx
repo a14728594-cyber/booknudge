@@ -49,6 +49,7 @@ export default function Layout({ children, currentPageName }) {
     const userNavItems = [
         { label: 'ホーム', path: 'home', icon: Home },
         { label: 'クイズ', path: 'quiz', icon: Calendar },
+        { label: 'つながる', path: 'connect', icon: Users },
         { label: 'DM', path: 'dm', icon: Send },
         { label: 'プロフィール', path: 'profile', icon: User },
         { label: 'URL共有', path: 'share', icon: Share2 },
