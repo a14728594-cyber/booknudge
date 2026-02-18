@@ -49,8 +49,12 @@ export default function Profile() {
             setDisplayName(targetUser.display_name || '');
             setBio(targetUser.bio || '');
 
-            // お気に入り
-            const favs = await base44.entities.Favorite.filter({ user_id: targetUserId });
+            // お気に入り（プライバシー設定を確認）
+            const canViewFavorites = isOwn || targetUser.favorites_visibility === 'public';
+            let favs = [];
+            if (canViewFavorites) {
+                favs = await base44.entities.Favorite.filter({ user_id: targetUserId });
+            }
             setFavorites(favs);
             
             const booksData = [];
@@ -221,7 +225,11 @@ export default function Profile() {
                     </TabsList>
 
                     <TabsContent value="favorites">
-                        {favoritesBooks.length > 0 ? (
+                        {!isOwnProfile && profileUser?.favorites_visibility === 'private' ? (
+                            <div className="text-center py-12 text-gray-600">
+                                このユーザーのお気に入りは非公開です
+                            </div>
+                        ) : favoritesBooks.length > 0 ? (
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {favoritesBooks.map(book => (
                                     <BookCard key={book.id} book={book} />

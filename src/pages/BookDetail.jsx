@@ -65,12 +65,24 @@ export default function BookDetail() {
                     await base44.entities.Favorite.delete(favs[0].id);
                 }
                 setIsFavorite(false);
+                
+                await base44.functions.invoke('trackEvent', {
+                    event_name: 'favorite_remove',
+                    event_value: { book_id: id },
+                    update_last_active: true
+                });
             } else {
                 await base44.entities.Favorite.create({
                     user_id: user.id,
                     book_id: id
                 });
                 setIsFavorite(true);
+                
+                await base44.functions.invoke('trackEvent', {
+                    event_name: 'favorite_add',
+                    event_value: { book_id: id },
+                    update_last_active: true
+                });
             }
         } catch (error) {
             console.error('Error toggling favorite:', error);
