@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import BookCard from '@/components/common/BookCard';
 import DomainBadge from '@/components/common/DomainBadge';
-import { Search, ArrowRight, TrendingUp } from 'lucide-react';
+import { Search, ArrowRight, TrendingUp, ChevronRight } from 'lucide-react';
 
 const domains = ['sales', 'marketing', 'relationships', 'mindset', 'habits'];
 
@@ -51,14 +51,14 @@ export default function Home() {
                 setMainDomain(user.profile_json.focus_domains[0]);
             }
 
-            // 各ジャンルの人気本を取得
+            // 各ジャンルの人気本を取得（カルーセル用に多めに取得）
             const booksByDomain = {};
+            const allBooks = await base44.entities.Book.list('-google_ratings_count', 200);
+            
             for (const domain of domains) {
-                const domainBooks = await base44.entities.Book.filter(
-                    { tags: domain },
-                    '-google_ratings_count',
-                    6
-                );
+                const domainBooks = allBooks.filter(book => 
+                    book.tags && book.tags.includes(domain)
+                ).slice(0, 15);
                 booksByDomain[domain] = domainBooks;
             }
             setTopBooks(booksByDomain);
@@ -73,6 +73,28 @@ export default function Home() {
         e.preventDefault();
         if (searchQuery.trim()) {
             window.location.href = createPageUrl('search') + `?q=${encodeURIComponent(searchQuery)}`;
+        }
+    };
+
+    const handleBookClick = async (bookId, domain) => {
+        try {
+            await base44.functions.invoke('trackEvent', {
+                event_name: 'book_card_click',
+                event_value: { book_id: bookId, domain }
+            });
+        } catch (error) {
+            console.error('Error tracking book click:', error);
+        }
+    };
+
+    const handleCarouselScroll = async (domain) => {
+        try {
+            await base44.functions.invoke('trackEvent', {
+                event_name: 'carousel_scroll',
+                event_value: { domain }
+            });
+        } catch (error) {
+            console.error('Error tracking carousel scroll:', error);
         }
     };
 
@@ -95,7 +117,7 @@ export default function Home() {
                     </form>
                 </div>
 
-                {/* Main Domain Top 3 */}
+                {/* Main Domain Carousel */}
                 {!loading && topBooks[mainDomain]?.length > 0 && (
                     <div className="mb-16">
                         <div className="flex items-center justify-between mb-6">
@@ -106,22 +128,54 @@ export default function Home() {
                                 </h2>
                                 <DomainBadge domain={mainDomain} />
                             </div>
-                            <Link to={createPageUrl(`genre/${mainDomain}`)}>
-                                <Button variant="outline" className="rounded-xl">
-                                    もっと見る
-                                    <ArrowRight className="w-4 h-4 ml-2" />
-                                </Button>
-                            </Link>
+                            <div className="flex items-center gap-2 text-gray-500 text-sm">
+                                <ChevronRight className="w-4 h-4" />
+                                <span>スライドで見る</span>
+                            </div>
                         </div>
-                        <div className="grid md:grid-cols-3 gap-6">
-                            {topBooks[mainDomain].slice(0, 3).map(book => (
-                                <BookCard key={book.id} book={book} />
+                        <div 
+                            className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing"
+                            style={{ 
+                                scrollbarWidth: 'none',
+                                msOverflowStyle: 'none'
+                            }}
+                            onScroll={() => handleCarouselScroll(mainDomain)}
+                            onMouseDown={(e) => {
+                                const slider = e.currentTarget;
+                                slider.style.cursor = 'grabbing';
+                                let startX = e.pageX - slider.offsetLeft;
+                                let scrollLeft = slider.scrollLeft;
+                                
+                                const handleMouseMove = (e) => {
+                                    const x = e.pageX - slider.offsetLeft;
+                                    const walk = (x - startX) * 2;
+                                    slider.scrollLeft = scrollLeft - walk;
+                                };
+                                
+                                const handleMouseUp = () => {
+                                    slider.style.cursor = 'grab';
+                                    document.removeEventListener('mousemove', handleMouseMove);
+                                    document.removeEventListener('mouseup', handleMouseUp);
+                                };
+                                
+                                document.addEventListener('mousemove', handleMouseMove);
+                                document.addEventListener('mouseup', handleMouseUp);
+                            }}
+                        >
+                            {topBooks[mainDomain].map(book => (
+                                <div 
+                                    key={book.id} 
+                                    className="flex-shrink-0 w-72 snap-start"
+                                    onClick={() => handleBookClick(book.id, mainDomain)}
+                                >
+                                    <BookCard book={book} />
+                                </div>
                             ))}
                         </div>
                     </div>
                 )}
 
-                {/* All Domains */}
+                {/* All Domains Carousels */}
                 {domains.map(domain => (
                     topBooks[domain]?.length > 0 && (
                         <div key={domain} className="mb-16">
@@ -132,16 +186,48 @@ export default function Home() {
                                     </h2>
                                     <DomainBadge domain={domain} />
                                 </div>
-                                <Link to={createPageUrl(`genre/${domain}`)}>
-                                    <Button variant="outline" className="rounded-xl">
-                                        もっと見る
-                                        <ArrowRight className="w-4 h-4 ml-2" />
-                                    </Button>
-                                </Link>
+                                <div className="flex items-center gap-2 text-gray-500 text-sm">
+                                    <ChevronRight className="w-4 h-4" />
+                                    <span>スライドで見る</span>
+                                </div>
                             </div>
-                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {topBooks[domain].slice(0, 6).map(book => (
-                                    <BookCard key={book.id} book={book} />
+                            <div 
+                                className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing"
+                                style={{ 
+                                    scrollbarWidth: 'none',
+                                    msOverflowStyle: 'none'
+                                }}
+                                onScroll={() => handleCarouselScroll(domain)}
+                                onMouseDown={(e) => {
+                                    const slider = e.currentTarget;
+                                    slider.style.cursor = 'grabbing';
+                                    let startX = e.pageX - slider.offsetLeft;
+                                    let scrollLeft = slider.scrollLeft;
+                                    
+                                    const handleMouseMove = (e) => {
+                                        const x = e.pageX - slider.offsetLeft;
+                                        const walk = (x - startX) * 2;
+                                        slider.scrollLeft = scrollLeft - walk;
+                                    };
+                                    
+                                    const handleMouseUp = () => {
+                                        slider.style.cursor = 'grab';
+                                        document.removeEventListener('mousemove', handleMouseMove);
+                                        document.removeEventListener('mouseup', handleMouseUp);
+                                    };
+                                    
+                                    document.addEventListener('mousemove', handleMouseMove);
+                                    document.addEventListener('mouseup', handleMouseUp);
+                                }}
+                            >
+                                {topBooks[domain].map(book => (
+                                    <div 
+                                        key={book.id} 
+                                        className="flex-shrink-0 w-72 snap-start"
+                                        onClick={() => handleBookClick(book.id, domain)}
+                                    >
+                                        <BookCard book={book} />
+                                    </div>
                                 ))}
                             </div>
                         </div>
