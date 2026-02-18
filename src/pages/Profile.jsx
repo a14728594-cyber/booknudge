@@ -407,6 +407,86 @@ export default function Profile() {
                         </p>
                     </Card>
                 )}
+
+                {/* フォロワー一覧モーダル */}
+                <Dialog open={showFollowersModal} onOpenChange={setShowFollowersModal}>
+                    <DialogContent className="max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>フォロワー</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-3 max-h-96 overflow-y-auto">
+                            {followersList.length > 0 ? (
+                                followersList.map(user => (
+                                    <Link 
+                                        key={user.id}
+                                        to={createPageUrl(`u/${user.id}`)}
+                                        onClick={() => setShowFollowersModal(false)}
+                                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                                    >
+                                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                            {(user.display_name || user.email || 'U')[0].toUpperCase()}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="font-medium text-gray-900">
+                                                {user.display_name || user.email || 'ユーザー'}
+                                            </div>
+                                            {user.profile_visibility === 'private' && (
+                                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                                    <Lock className="w-3 h-3" />
+                                                    <span>非公開</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Link>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">
+                                    フォロワーがいません
+                                </div>
+                            )}
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                {/* フォロー中一覧モーダル */}
+                <Dialog open={showFollowingModal} onOpenChange={setShowFollowingModal}>
+                    <DialogContent className="max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>フォロー中</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-3 max-h-96 overflow-y-auto">
+                            {followingList.length > 0 ? (
+                                followingList.map(user => (
+                                    <Link 
+                                        key={user.id}
+                                        to={createPageUrl(`u/${user.id}`)}
+                                        onClick={() => setShowFollowingModal(false)}
+                                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                                    >
+                                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                            {(user.display_name || user.email || 'U')[0].toUpperCase()}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="font-medium text-gray-900">
+                                                {user.display_name || user.email || 'ユーザー'}
+                                            </div>
+                                            {user.profile_visibility === 'private' && (
+                                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                                    <Lock className="w-3 h-3" />
+                                                    <span>非公開</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Link>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">
+                                    フォロー中のユーザーがいません
+                                </div>
+                            )}
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </div>
         </div>
     );
