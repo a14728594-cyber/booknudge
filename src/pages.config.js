@@ -62,6 +62,8 @@ import Result from './pages/Result';
 import Search from './pages/Search';
 import Share from './pages/Share';
 import Support from './pages/Support';
+import AdminBooks from './pages/AdminBooks';
+import AdminBookEdit from './pages/AdminBookEdit';
 import __Layout from './Layout.jsx';
 
 
@@ -81,6 +83,8 @@ export const PAGES = {
     "Search": Search,
     "Share": Share,
     "Support": Support,
+    "AdminBooks": AdminBooks,
+    "AdminBookEdit": AdminBookEdit,
 }
 
 export const pagesConfig = {

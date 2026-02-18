@@ -56,6 +56,7 @@ export default function Layout({ children, currentPageName }) {
     const adminNavItems = [
         { label: 'ダッシュボード', path: 'admin/dashboard', icon: BarChart3 },
         { label: 'ユーザー管理', path: 'admin/users', icon: UserCog },
+        { label: '本管理', path: 'admin/books', icon: BookOpen },
         { label: '問い合わせ', path: 'admin/inquiries', icon: MessageSquare }
     ];
 
