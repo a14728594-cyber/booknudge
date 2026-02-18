@@ -6,30 +6,72 @@ import { Button } from '@/components/ui/button';
 
 export default function Landing() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 overflow-hidden">
             {/* Hero */}
-            <div className="max-w-5xl mx-auto px-6 py-20 text-center">
-                <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-                    <Sparkles className="w-4 h-4" />
-                    <span>ビジネス特化の学習体験</span>
+            <div className="max-w-7xl mx-auto px-6 py-20 lg:py-28">
+                <div className="grid lg:grid-cols-2 gap-12 items-center">
+                    {/* Left: Content */}
+                    <div className="text-center lg:text-left">
+                        <div className="inline-flex items-center gap-2 bg-white border border-indigo-200 px-5 py-2.5 rounded-full text-sm font-medium mb-8 shadow-sm">
+                            <Sparkles className="w-4 h-4 text-indigo-600" />
+                            <span className="text-gray-700">ビジネス特化の学習体験</span>
+                        </div>
+                        
+                        <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-tight">
+                            あなた専用の<br />
+                            ビジネス学習<br className="hidden lg:block" />サービス
+                        </h1>
+                        
+                        <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                            診断からスタートして、あなたに最適な本を見つけ、毎日ちょっとずつ、楽しく実践しながら学べる
+                        </p>
+                        
+                        <Link to={createPageUrl('onboarding')}>
+                            <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-lg px-10 py-7 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+                                無料で診断を始める
+                                <ArrowRight className="w-5 h-5 ml-2" />
+                            </Button>
+                        </Link>
+                    </div>
+
+                    {/* Right: Illustration */}
+                    <div className="hidden lg:flex items-center justify-center relative">
+                        <div className="relative w-full max-w-lg">
+                            {/* Background decoration */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-200 to-purple-200 rounded-full blur-3xl opacity-30" />
+                            
+                            {/* SVG Illustration */}
+                            <svg viewBox="0 0 400 400" className="relative z-10 drop-shadow-xl">
+                                {/* Book */}
+                                <rect x="120" y="150" width="160" height="200" rx="12" fill="#6366f1" opacity="0.9" />
+                                <rect x="130" y="160" width="140" height="180" rx="8" fill="white" />
+                                <line x1="200" y1="160" x2="200" y2="340" stroke="#e5e7eb" strokeWidth="2" />
+                                <rect x="145" y="180" width="45" height="6" rx="3" fill="#e5e7eb" />
+                                <rect x="145" y="200" width="35" height="6" rx="3" fill="#e5e7eb" />
+                                <rect x="145" y="220" width="40" height="6" rx="3" fill="#e5e7eb" />
+                                <rect x="210" y="180" width="45" height="6" rx="3" fill="#e5e7eb" />
+                                <rect x="210" y="200" width="35" height="6" rx="3" fill="#e5e7eb" />
+                                
+                                {/* Slider icon */}
+                                <circle cx="80" cy="100" r="40" fill="#a855f7" opacity="0.2" />
+                                <rect x="50" y="95" width="60" height="10" rx="5" fill="#a855f7" />
+                                <circle cx="90" cy="100" r="15" fill="white" stroke="#a855f7" strokeWidth="3" />
+                                
+                                {/* Chart icon */}
+                                <circle cx="320" cy="280" r="45" fill="#ec4899" opacity="0.2" />
+                                <rect x="295" y="290" width="10" height="30" rx="5" fill="#ec4899" />
+                                <rect x="310" y="275" width="10" height="45" rx="5" fill="#ec4899" />
+                                <rect x="325" y="285" width="10" height="35" rx="5" fill="#ec4899" />
+                                
+                                {/* Sparkles */}
+                                <circle cx="60" cy="250" r="3" fill="#fbbf24" />
+                                <circle cx="340" cy="120" r="3" fill="#fbbf24" />
+                                <circle cx="180" cy="90" r="2" fill="#fbbf24" />
+                                <circle cx="320" cy="350" r="2" fill="#fbbf24" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
-                
-                <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                    あなた専用の<br />
-                    ビジネス学習サービス
-                </h1>
-                
-                <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-                    診断からスタートして、あなたに最適な本を見つけ、<br />
-                    Duolingo的に楽しくアウトプットしながら学べる
-                </p>
-                
-                <Link to={createPageUrl('onboarding')}>
-                    <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-lg px-8 py-6 rounded-2xl">
-                        無料で診断を始める
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                    </Button>
-                </Link>
             </div>
             
             {/* Features */}

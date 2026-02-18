@@ -47,40 +47,40 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AdminDashboard from './pages/AdminDashboard';
+import AdminInquiries from './pages/AdminInquiries';
+import AdminUsers from './pages/AdminUsers';
+import BookDetail from './pages/BookDetail';
+import Daily from './pages/Daily';
+import Genre from './pages/Genre';
+import Home from './pages/Home';
 import Landing from './pages/Landing';
 import Onboarding from './pages/Onboarding';
 import Recommend from './pages/Recommend';
-import Home from './pages/Home';
-import Genre from './pages/Genre';
-import BookDetail from './pages/BookDetail';
-import Search from './pages/Search';
-import Daily from './pages/Daily';
 import Result from './pages/Result';
-import Timeline from './pages/Timeline';
+import Search from './pages/Search';
 import Share from './pages/Share';
 import Support from './pages/Support';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminUsers from './pages/AdminUsers';
-import AdminInquiries from './pages/AdminInquiries';
+import Timeline from './pages/Timeline';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdminDashboard": AdminDashboard,
+    "AdminInquiries": AdminInquiries,
+    "AdminUsers": AdminUsers,
+    "BookDetail": BookDetail,
+    "Daily": Daily,
+    "Genre": Genre,
+    "Home": Home,
     "Landing": Landing,
     "Onboarding": Onboarding,
     "Recommend": Recommend,
-    "Home": Home,
-    "Genre": Genre,
-    "BookDetail": BookDetail,
-    "Search": Search,
-    "Daily": Daily,
     "Result": Result,
-    "Timeline": Timeline,
+    "Search": Search,
     "Share": Share,
     "Support": Support,
-    "AdminDashboard": AdminDashboard,
-    "AdminUsers": AdminUsers,
-    "AdminInquiries": AdminInquiries,
+    "Timeline": Timeline,
 }
 
 export const pagesConfig = {

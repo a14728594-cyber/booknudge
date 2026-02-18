@@ -79,49 +79,61 @@ export default function Layout({ children, currentPageName }) {
 
                         {/* Desktop Nav */}
                         {user && (
-                            <nav className="hidden md:flex items-center gap-6">
+                            <nav className="hidden md:flex items-center gap-2">
                                 {navItems.map(item => (
                                     <Link
                                         key={item.path}
                                         to={createPageUrl(item.path)}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
+                                        className={`group relative p-3 rounded-xl transition-all duration-200 ${
                                             currentPageName === item.path || currentPageName.startsWith(item.path)
-                                                ? 'bg-indigo-50 text-indigo-600 font-medium'
-                                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                                ? 'bg-indigo-50 text-indigo-600'
+                                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                                         }`}
                                     >
-                                        <item.icon className="w-4 h-4" />
-                                        <span>{item.label}</span>
+                                        <item.icon className="w-5 h-5" />
+                                        <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                                            {item.label}
+                                        </span>
                                     </Link>
                                 ))}
                                 
-                                {user.role === 'admin' && !isAdminPage && (
-                                    <Link to={createPageUrl('admin/dashboard')}>
-                                        <Button variant="outline" size="sm" className="rounded-xl">
-                                            <BarChart3 className="w-4 h-4 mr-2" />
-                                            管理画面
-                                        </Button>
-                                    </Link>
-                                )}
-                                
-                                {isAdminPage && (
-                                    <Link to={createPageUrl('home')}>
-                                        <Button variant="outline" size="sm" className="rounded-xl">
-                                            <Home className="w-4 h-4 mr-2" />
-                                            ユーザー画面
-                                        </Button>
-                                    </Link>
+                                {user.role === 'admin' && (
+                                    <>
+                                        <div className="w-px h-6 bg-gray-200 mx-2" />
+                                        {!isAdminPage ? (
+                                            <Link 
+                                                to={createPageUrl('admin/dashboard')}
+                                                className="group relative p-3 rounded-xl text-amber-600 hover:bg-amber-50 transition-all duration-200"
+                                            >
+                                                <BarChart3 className="w-5 h-5" />
+                                                <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                                                    管理画面
+                                                </span>
+                                            </Link>
+                                        ) : (
+                                            <Link 
+                                                to={createPageUrl('home')}
+                                                className="group relative p-3 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all duration-200"
+                                            >
+                                                <Home className="w-5 h-5" />
+                                                <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                                                    ユーザー画面
+                                                </span>
+                                            </Link>
+                                        )}
+                                    </>
                                 )}
 
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
+                                <div className="w-px h-6 bg-gray-200 mx-2" />
+                                <button
                                     onClick={handleLogout}
-                                    className="rounded-xl"
+                                    className="group relative p-3 rounded-xl text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
                                 >
-                                    <LogOut className="w-4 h-4 mr-2" />
-                                    ログアウト
-                                </Button>
+                                    <LogOut className="w-5 h-5" />
+                                    <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                                        ログアウト
+                                    </span>
+                                </button>
                             </nav>
                         )}
 
