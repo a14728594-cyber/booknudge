@@ -66,6 +66,8 @@ import Search from './pages/Search';
 import Share from './pages/Share';
 import Support from './pages/Support';
 import genreDomain from './pages/genre[domain]';
+import DM from './pages/DM';
+import DMChat from './pages/DMChat';
 import __Layout from './Layout.jsx';
 
 
@@ -89,6 +91,8 @@ export const PAGES = {
     "Share": Share,
     "Support": Support,
     "genre[domain]": genreDomain,
+    "DM": DM,
+    "DMChat": DMChat,
 }
 
 export const pagesConfig = {

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Menu, X, BookOpen, Home, Calendar, Users, Share2, Mail, BarChart3, UserCog, MessageSquare, LogOut, User } from 'lucide-react';
+import { Menu, X, BookOpen, Home, Calendar, Users, Share2, Mail, BarChart3, UserCog, MessageSquare, LogOut, User, Send } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
     const navigate = useNavigate();
@@ -49,6 +49,7 @@ export default function Layout({ children, currentPageName }) {
     const userNavItems = [
         { label: 'ホーム', path: 'home', icon: Home },
         { label: 'クイズ', path: 'quiz', icon: Calendar },
+        { label: 'DM', path: 'dm', icon: Send },
         { label: 'プロフィール', path: 'profile', icon: User },
         { label: 'URL共有', path: 'share', icon: Share2 },
         { label: 'お問い合わせ', path: 'support', icon: Mail }
