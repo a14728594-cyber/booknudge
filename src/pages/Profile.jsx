@@ -9,7 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Card from '@/components/common/Card';
 import BookCard from '@/components/common/BookCard';
 import DomainBadge from '@/components/common/DomainBadge';
-import { User as UserIcon, Heart, Users, Edit2, Check, X, Loader2 } from 'lucide-react';
+import { User as UserIcon, Heart, Users, Edit2, Check, X, Loader2, Lock, Globe } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export default function Profile() {
     const { userId } = useParams();
@@ -22,6 +24,7 @@ export default function Profile() {
     
     const [displayName, setDisplayName] = useState('');
     const [bio, setBio] = useState('');
+    const [profileVisibility, setProfileVisibility] = useState('public');
     
     const [favorites, setFavorites] = useState([]);
     const [favoritesBooks, setFavoritesBooks] = useState([]);
@@ -48,6 +51,7 @@ export default function Profile() {
             setProfileUser(targetUser);
             setDisplayName(targetUser.display_name || '');
             setBio(targetUser.bio || '');
+            setProfileVisibility(targetUser.profile_visibility || 'public');
 
             // お気に入り（プライバシー設定を確認）
             const canViewFavorites = isOwn || targetUser.favorites_visibility === 'public';
@@ -106,6 +110,25 @@ export default function Profile() {
         }
     };
 
+    const handleVisibilityToggle = async (checked) => {
+        const newVisibility = checked ? 'public' : 'private';
+        try {
+            await base44.auth.updateMe({
+                profile_visibility: newVisibility
+            });
+            setProfileVisibility(newVisibility);
+            
+            await base44.functions.invoke('trackEvent', {
+                event_name: 'profile_visibility_change',
+                event_value: { visibility: newVisibility },
+                update_last_active: true
+            });
+        } catch (error) {
+            console.error('Error updating visibility:', error);
+            alert('公開設定の変更に失敗しました');
+        }
+    };
+
     const handleFollowToggle = async () => {
         try {
             if (isFollowing) {
@@ -135,6 +158,25 @@ export default function Profile() {
         return (
             <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
                 <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
+            </div>
+        );
+    }
+
+    // 非公開プロフィール表示
+    if (!isOwnProfile && profileUser?.profile_visibility === 'private') {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-6">
+                <div className="max-w-5xl mx-auto">
+                    <Card className="text-center py-16">
+                        <Lock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                            このプロフィールは非公開です
+                        </h2>
+                        <p className="text-gray-600">
+                            このユーザーはプロフィールを非公開に設定しています
+                        </p>
+                    </Card>
+                </div>
             </div>
         );
     }
@@ -216,6 +258,36 @@ export default function Profile() {
                         )}
                     </div>
                 </Card>
+
+                {/* プロフィール公開設定（自分のプロフィールのみ） */}
+                {isOwnProfile && (
+                    <Card className="mb-8">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                {profileVisibility === 'public' ? (
+                                    <Globe className="w-5 h-5 text-indigo-600" />
+                                ) : (
+                                    <Lock className="w-5 h-5 text-gray-400" />
+                                )}
+                                <div>
+                                    <Label htmlFor="profile-visibility" className="font-medium text-gray-900 cursor-pointer">
+                                        プロフィールを公開する
+                                    </Label>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        {profileVisibility === 'public' 
+                                            ? '他のユーザーがあなたのプロフィールを見ることができます'
+                                            : 'プロフィールは非公開です'}
+                                    </p>
+                                </div>
+                            </div>
+                            <Switch
+                                id="profile-visibility"
+                                checked={profileVisibility === 'public'}
+                                onCheckedChange={handleVisibilityToggle}
+                            />
+                        </div>
+                    </Card>
+                )}
 
                 {/* Tabs */}
                 <Tabs defaultValue="favorites" className="w-full">
