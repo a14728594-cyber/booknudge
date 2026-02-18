@@ -47,8 +47,28 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import Landing from './pages/Landing';
+import Onboarding from './pages/Onboarding';
+import Recommend from './pages/Recommend';
+import Home from './pages/Home';
+import Genre from './pages/Genre';
+import BookDetail from './pages/BookDetail';
+import Search from './pages/Search';
+import Daily from './pages/Daily';
 
-export const pagesConfig = {
-	Pages: {}
+
+export const PAGES = {
+    "Landing": Landing,
+    "Onboarding": Onboarding,
+    "Recommend": Recommend,
+    "Home": Home,
+    "Genre": Genre,
+    "BookDetail": BookDetail,
+    "Search": Search,
+    "Daily": Daily,
 }
 
+export const pagesConfig = {
+    mainPage: "Landing",
+    Pages: PAGES,
+};
