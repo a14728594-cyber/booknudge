@@ -5,7 +5,9 @@ import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import Card from '@/components/common/Card';
 import DomainBadge from '@/components/common/DomainBadge';
-import { ArrowLeft, Heart, Star, ExternalLink, Loader2, Edit } from 'lucide-react';
+import { ArrowLeft, Heart, Star, ExternalLink, Loader2, Edit, MessageSquare, Trash2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Link } from 'react-router-dom';
 
 export default function BookDetail() {
     const navigate = useNavigate();
@@ -13,6 +15,9 @@ export default function BookDetail() {
     const [loading, setLoading] = useState(true);
     const [isFavorite, setIsFavorite] = useState(false);
     const [user, setUser] = useState(null);
+    const [comments, setComments] = useState([]);
+    const [commentText, setCommentText] = useState('');
+    const [submitting, setSubmitting] = useState(false);
     
     // Extract ID from URL query parameter
     const urlParams = new URLSearchParams(window.location.search);
@@ -48,11 +53,108 @@ export default function BookDetail() {
                 event_name: 'book_view',
                 event_value: { book_id: id }
             });
+
+            // コメントを読み込み
+            await loadComments();
+
+            await base44.functions.invoke('trackEvent', {
+                event_name: 'comment_view',
+                event_value: { book_id: id }
+            });
         } catch (error) {
             console.error('Failed to load book:', error);
             setBook(null);
         }
         setLoading(false);
+    };
+
+    const loadComments = async () => {
+        try {
+            const allComments = await base44.entities.BookComment.filter({
+                book_id: id,
+                deleted_at: null
+            });
+
+            // ユーザー情報を取得
+            const userIds = [...new Set(allComments.map(c => c.user_id))];
+            const users = await Promise.all(
+                userIds.map(userId => base44.entities.User.filter({ id: userId }))
+            );
+            const userMap = {};
+            users.forEach(userArray => {
+                if (userArray.length > 0) {
+                    userMap[userArray[0].id] = userArray[0];
+                }
+            });
+
+            // コメントにユーザー情報を追加
+            const commentsWithUsers = allComments.map(comment => ({
+                ...comment,
+                user: userMap[comment.user_id]
+            }));
+
+            setComments(commentsWithUsers.sort((a, b) => 
+                new Date(b.created_date) - new Date(a.created_date)
+            ));
+        } catch (error) {
+            console.error('Failed to load comments:', error);
+        }
+    };
+
+    const handleSubmitComment = async () => {
+        if (!user) {
+            base44.auth.redirectToLogin();
+            return;
+        }
+
+        if (!commentText.trim() || commentText.length > 500) {
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            await base44.entities.BookComment.create({
+                book_id: id,
+                user_id: user.id,
+                content: commentText.trim()
+            });
+
+            await base44.functions.invoke('trackEvent', {
+                event_name: 'comment_create',
+                event_value: { book_id: id, user_id: user.id }
+            });
+
+            setCommentText('');
+            await loadComments();
+        } catch (error) {
+            console.error('Failed to submit comment:', error);
+            alert('コメントの投稿に失敗しました');
+        }
+        setSubmitting(false);
+    };
+
+    const handleDeleteComment = async (commentId) => {
+        if (!confirm('このコメントを削除しますか？')) {
+            return;
+        }
+
+        try {
+            await base44.entities.BookComment.update(commentId, {
+                deleted_at: new Date().toISOString()
+            });
+            await loadComments();
+        } catch (error) {
+            console.error('Failed to delete comment:', error);
+            alert('コメントの削除に失敗しました');
+        }
+    };
+
+    const handleProfileClick = async (userId) => {
+        await base44.functions.invoke('trackEvent', {
+            event_name: 'profile_click_from_comment',
+            event_value: { from_book_id: id, to_user_id: userId }
+        });
+        navigate(createPageUrl('profile') + '?userId=' + userId);
     };
 
     const toggleFavorite = async () => {
@@ -311,6 +413,100 @@ export default function BookDetail() {
                             購入リンク未設定
                         </div>
                     )}
+                </div>
+            </Card>
+
+            {/* コメントセクション */}
+            <Card className="mt-6">
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                        <MessageSquare className="w-6 h-6" />
+                        みんなのコメント
+                    </h2>
+
+                    {/* コメント投稿フォーム */}
+                    {user ? (
+                        <div className="space-y-3">
+                            <Textarea
+                                value={commentText}
+                                onChange={(e) => setCommentText(e.target.value)}
+                                placeholder="この本についてコメントを書く..."
+                                maxLength={500}
+                                rows={3}
+                            />
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-500">
+                                    {commentText.length} / 500
+                                </span>
+                                <Button
+                                    onClick={handleSubmitComment}
+                                    disabled={!commentText.trim() || commentText.length > 500 || submitting}
+                                >
+                                    {submitting ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            投稿中...
+                                        </>
+                                    ) : (
+                                        '投稿する'
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="bg-gray-50 rounded-lg p-6 text-center">
+                            <p className="text-gray-600 mb-4">
+                                コメントを投稿するにはログインが必要です
+                            </p>
+                            <Button onClick={() => base44.auth.redirectToLogin()}>
+                                ログイン
+                            </Button>
+                        </div>
+                    )}
+
+                    {/* コメント一覧 */}
+                    <div className="space-y-4 pt-4 border-t">
+                        {comments.length > 0 ? (
+                            comments.map(comment => (
+                                <div key={comment.id} className="bg-gray-50 rounded-lg p-4 space-y-2">
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => handleProfileClick(comment.user_id)}
+                                                className="font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                                            >
+                                                {comment.user?.display_name || comment.user?.full_name || '匿名ユーザー'}
+                                            </button>
+                                            <span className="text-sm text-gray-500">
+                                                {new Date(comment.created_date).toLocaleDateString('ja-JP', {
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: 'numeric'
+                                                })}
+                                            </span>
+                                        </div>
+                                        {user?.id === comment.user_id && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleDeleteComment(comment.id)}
+                                                className="text-gray-400 hover:text-red-600"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <p className="text-gray-700 whitespace-pre-wrap">
+                                        {comment.content}
+                                    </p>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-center text-gray-500 py-8">
+                                まだコメントがありません
+                            </p>
+                        )}
+                    </div>
                 </div>
             </Card>
         </div>
