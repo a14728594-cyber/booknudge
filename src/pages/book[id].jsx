@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,6 @@ export default function BookDetail() {
             const userData = await base44.auth.me();
             setUser(userData);
 
-            // 本の取得
             const books = await base44.entities.Book.filter({ id });
             if (books.length === 0) {
                 setBook(null);
@@ -34,7 +33,6 @@ export default function BookDetail() {
             }
             setBook(books[0]);
 
-            // お気に入り状態の確認
             if (userData) {
                 const favorites = await base44.entities.Favorite.filter({
                     user_id: userData.id,
@@ -43,7 +41,6 @@ export default function BookDetail() {
                 setIsFavorite(favorites.length > 0);
             }
 
-            // book_viewイベント記録
             await base44.functions.invoke('trackEvent', {
                 event_name: 'book_view',
                 event_value: { book_id: id }
@@ -63,7 +60,6 @@ export default function BookDetail() {
 
         try {
             if (isFavorite) {
-                // お気に入り解除
                 const favorites = await base44.entities.Favorite.filter({
                     user_id: user.id,
                     book_id: id
@@ -73,22 +69,19 @@ export default function BookDetail() {
                 }
                 setIsFavorite(false);
 
-                // イベント記録
                 await base44.functions.invoke('trackEvent', {
-                    event_name: 'book_like_toggle',
+                    event_name: 'favorite_toggle',
                     event_value: { book_id: id, action: 'off' }
                 });
             } else {
-                // お気に入り追加
                 await base44.entities.Favorite.create({
                     user_id: user.id,
                     book_id: id
                 });
                 setIsFavorite(true);
 
-                // イベント記録
                 await base44.functions.invoke('trackEvent', {
-                    event_name: 'book_like_toggle',
+                    event_name: 'favorite_toggle',
                     event_value: { book_id: id, action: 'on' }
                 });
             }
@@ -97,11 +90,10 @@ export default function BookDetail() {
         }
     };
 
-    const handlePurchaseClick = async (store) => {
-        // イベント記録
+    const handlePurchaseClick = async () => {
         await base44.functions.invoke('trackEvent', {
             event_name: 'purchase_click',
-            event_value: { book_id: id, store }
+            event_value: { book_id: id, store: 'amazon' }
         });
     };
 
@@ -126,13 +118,11 @@ export default function BookDetail() {
         );
     }
 
-    // ドメインの抽出（tagsから）
     const domains = ['sales', 'marketing', 'relationships', 'mindset', 'habits'];
     const bookDomains = book.tags?.filter(tag => domains.includes(tag)) || [];
 
     return (
         <div className="max-w-4xl mx-auto px-6 py-8">
-            {/* 戻るボタン */}
             <Button
                 variant="ghost"
                 onClick={() => navigate(-1)}
@@ -143,7 +133,6 @@ export default function BookDetail() {
             </Button>
 
             <Card className="space-y-6">
-                {/* カバー画像 */}
                 {book.cover_url && (
                     <div className="flex justify-center">
                         <img
@@ -154,7 +143,6 @@ export default function BookDetail() {
                     </div>
                 )}
 
-                {/* タイトルと著者 */}
                 <div className="space-y-3">
                     <h1 className="text-3xl font-bold text-gray-900">{book.title}</h1>
                     {book.authors && book.authors.length > 0 && (
@@ -164,7 +152,6 @@ export default function BookDetail() {
                     )}
                 </div>
 
-                {/* ドメインとタグ */}
                 <div className="flex flex-wrap gap-2">
                     {bookDomains.map(domain => (
                         <DomainBadge key={domain} domain={domain} />
@@ -179,7 +166,6 @@ export default function BookDetail() {
                     ))}
                 </div>
 
-                {/* 評価 */}
                 {book.google_rating && (
                     <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1">
@@ -196,7 +182,6 @@ export default function BookDetail() {
                     </div>
                 )}
 
-                {/* 説明 */}
                 {book.description && (
                     <div className="space-y-2">
                         <h2 className="text-xl font-semibold text-gray-900">概要</h2>
@@ -206,7 +191,6 @@ export default function BookDetail() {
                     </div>
                 )}
 
-                {/* ワンライナー */}
                 {book.one_liner && (
                     <div className="bg-indigo-50 border-l-4 border-indigo-600 p-4 rounded">
                         <p className="text-indigo-900 font-medium italic">
@@ -215,7 +199,6 @@ export default function BookDetail() {
                     </div>
                 )}
 
-                {/* こんな悩みの人におすすめ */}
                 {book.pain_points && book.pain_points.length > 0 && (
                     <div className="space-y-3">
                         <h2 className="text-xl font-semibold text-gray-900">
@@ -235,7 +218,6 @@ export default function BookDetail() {
                     </div>
                 )}
 
-                {/* 読んだ後こうなれる */}
                 {book.outcomes && book.outcomes.length > 0 && (
                     <div className="space-y-3">
                         <h2 className="text-xl font-semibold text-gray-900">
@@ -255,7 +237,6 @@ export default function BookDetail() {
                     </div>
                 )}
 
-                {/* 合わない人/注意点 */}
                 {book.not_for && book.not_for.length > 0 && (
                     <div className="space-y-3">
                         <h2 className="text-xl font-semibold text-gray-900">
@@ -275,9 +256,7 @@ export default function BookDetail() {
                     </div>
                 )}
 
-                {/* アクションボタン */}
                 <div className="flex flex-wrap gap-3 pt-4 border-t">
-                    {/* いいねボタン */}
                     <Button
                         variant={isFavorite ? "default" : "outline"}
                         onClick={toggleFavorite}
@@ -289,12 +268,11 @@ export default function BookDetail() {
                         {isFavorite ? 'お気に入り済み' : 'お気に入りに追加'}
                     </Button>
 
-                    {/* 購入ボタン */}
                     {book.amazon_url && (
                         <Button
                             variant="default"
                             className="flex-1 min-w-[200px] bg-indigo-600 hover:bg-indigo-700"
-                            onClick={() => handlePurchaseClick('amazon')}
+                            onClick={handlePurchaseClick}
                             asChild
                         >
                             <a
@@ -302,7 +280,7 @@ export default function BookDetail() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                本を購入
+                                Amazonで見る
                                 <ExternalLink className="w-4 h-4 ml-2" />
                             </a>
                         </Button>
