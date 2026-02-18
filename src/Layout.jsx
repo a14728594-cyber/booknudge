@@ -48,8 +48,7 @@ export default function Layout({ children, currentPageName }) {
 
     const userNavItems = [
         { label: 'ホーム', path: 'home', icon: Home },
-        { label: '今日の1問', path: 'daily', icon: Calendar },
-        { label: 'みんなの回答', path: 'timeline', icon: Users },
+        { label: 'クイズ', path: 'quiz', icon: Calendar },
         { label: 'URL共有', path: 'share', icon: Share2 },
         { label: 'お問い合わせ', path: 'support', icon: Mail }
     ];

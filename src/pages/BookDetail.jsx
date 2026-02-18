@@ -4,12 +4,14 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import DomainBadge from '@/components/common/DomainBadge';
-import { Star, Users, ArrowLeft, Loader2 } from 'lucide-react';
+import { Star, Users, ArrowLeft, Loader2, Heart } from 'lucide-react';
 
 export default function BookDetail() {
     const { id } = useParams();
     const [book, setBook] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [favoriteLoading, setFavoriteLoading] = useState(false);
 
     useEffect(() => {
         loadBook();
@@ -17,6 +19,8 @@ export default function BookDetail() {
 
     const loadBook = async () => {
         try {
+            const user = await base44.auth.me();
+            
             await base44.functions.invoke('trackEvent', {
                 event_name: 'book_view',
                 event_value: { book_id: id }
@@ -24,10 +28,45 @@ export default function BookDetail() {
 
             const bookData = await base44.entities.Book.get(id);
             setBook(bookData);
+
+            // お気に入りチェック
+            const favs = await base44.entities.Favorite.filter({
+                user_id: user.id,
+                book_id: id
+            });
+            setIsFavorite(favs.length > 0);
         } catch (error) {
             console.error('Error loading book:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleFavoriteToggle = async () => {
+        setFavoriteLoading(true);
+        try {
+            const user = await base44.auth.me();
+            
+            if (isFavorite) {
+                const favs = await base44.entities.Favorite.filter({
+                    user_id: user.id,
+                    book_id: id
+                });
+                if (favs.length > 0) {
+                    await base44.entities.Favorite.delete(favs[0].id);
+                }
+                setIsFavorite(false);
+            } else {
+                await base44.entities.Favorite.create({
+                    user_id: user.id,
+                    book_id: id
+                });
+                setIsFavorite(true);
+            }
+        } catch (error) {
+            console.error('Error toggling favorite:', error);
+        } finally {
+            setFavoriteLoading(false);
         }
     };
 
@@ -66,9 +105,20 @@ export default function BookDetail() {
                 </Link>
 
                 <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 md:p-12">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                        {book.title}
-                    </h1>
+                    <div className="flex items-start justify-between mb-4">
+                        <h1 className="text-4xl font-bold text-gray-900 flex-1">
+                            {book.title}
+                        </h1>
+                        <Button
+                            onClick={handleFavoriteToggle}
+                            disabled={favoriteLoading}
+                            variant={isFavorite ? 'default' : 'outline'}
+                            size="lg"
+                            className={`rounded-xl ${isFavorite ? 'bg-pink-600 hover:bg-pink-700' : ''}`}
+                        >
+                            <Heart className={`w-5 h-5 ${isFavorite ? 'fill-white' : ''}`} />
+                        </Button>
+                    </div>
                     
                     <p className="text-lg text-gray-600 mb-6">
                         {book.authors?.join(', ') || '著者不明'}

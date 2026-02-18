@@ -51,7 +51,6 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminInquiries from './pages/AdminInquiries';
 import AdminUsers from './pages/AdminUsers';
 import BookDetail from './pages/BookDetail';
-import Daily from './pages/Daily';
 import Genre from './pages/Genre';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
@@ -61,7 +60,8 @@ import Result from './pages/Result';
 import Search from './pages/Search';
 import Share from './pages/Share';
 import Support from './pages/Support';
-import Timeline from './pages/Timeline';
+import Quiz from './pages/Quiz';
+import Profile from './pages/Profile';
 import __Layout from './Layout.jsx';
 
 
@@ -70,7 +70,6 @@ export const PAGES = {
     "AdminInquiries": AdminInquiries,
     "AdminUsers": AdminUsers,
     "BookDetail": BookDetail,
-    "Daily": Daily,
     "Genre": Genre,
     "Home": Home,
     "Landing": Landing,
@@ -80,7 +79,8 @@ export const PAGES = {
     "Search": Search,
     "Share": Share,
     "Support": Support,
-    "Timeline": Timeline,
+    "Quiz": Quiz,
+    "Profile": Profile,
 }
 
 export const pagesConfig = {
