@@ -6,6 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import Card from '@/components/common/Card';
 import BookCard from '@/components/common/BookCard';
 import DomainBadge from '@/components/common/DomainBadge';
@@ -32,6 +38,11 @@ export default function Profile() {
     const [followersCount, setFollowersCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
     const [isFollowing, setIsFollowing] = useState(false);
+    
+    const [showFollowersModal, setShowFollowersModal] = useState(false);
+    const [showFollowingModal, setShowFollowingModal] = useState(false);
+    const [followersList, setFollowersList] = useState([]);
+    const [followingList, setFollowingList] = useState([]);
 
     useEffect(() => {
         loadProfile();
@@ -154,6 +165,44 @@ export default function Profile() {
         }
     };
 
+    const loadFollowers = async () => {
+        try {
+            const follows = await base44.entities.Follow.filter({ 
+                following_user_id: profileUser.id 
+            });
+            const users = [];
+            for (const follow of follows) {
+                try {
+                    const user = await base44.entities.User.get(follow.follower_user_id);
+                    users.push(user);
+                } catch (e) {}
+            }
+            setFollowersList(users);
+            setShowFollowersModal(true);
+        } catch (error) {
+            console.error('Error loading followers:', error);
+        }
+    };
+
+    const loadFollowing = async () => {
+        try {
+            const follows = await base44.entities.Follow.filter({ 
+                follower_user_id: profileUser.id 
+            });
+            const users = [];
+            for (const follow of follows) {
+                try {
+                    const user = await base44.entities.User.get(follow.following_user_id);
+                    users.push(user);
+                } catch (e) {}
+            }
+            setFollowingList(users);
+            setShowFollowingModal(true);
+        } catch (error) {
+            console.error('Error loading following:', error);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
@@ -224,14 +273,20 @@ export default function Profile() {
                                         </p>
                                     )}
                                     <div className="flex gap-6 text-sm">
-                                        <div>
+                                        <button 
+                                            onClick={loadFollowing}
+                                            className="hover:underline"
+                                        >
                                             <span className="font-semibold text-gray-900">{followingCount}</span>
                                             <span className="text-gray-600 ml-1">フォロー中</span>
-                                        </div>
-                                        <div>
+                                        </button>
+                                        <button 
+                                            onClick={loadFollowers}
+                                            className="hover:underline"
+                                        >
                                             <span className="font-semibold text-gray-900">{followersCount}</span>
                                             <span className="text-gray-600 ml-1">フォロワー</span>
-                                        </div>
+                                        </button>
                                     </div>
                                 </>
                             )}
