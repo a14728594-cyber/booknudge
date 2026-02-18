@@ -64,6 +64,7 @@ import Share from './pages/Share';
 import Support from './pages/Support';
 import AdminBooks from './pages/AdminBooks';
 import AdminBookEdit from './pages/AdminBookEdit';
+import MyProfile from './pages/MyProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -85,6 +86,7 @@ export const PAGES = {
     "Support": Support,
     "AdminBooks": AdminBooks,
     "AdminBookEdit": AdminBookEdit,
+    "MyProfile": MyProfile,
 }
 
 export const pagesConfig = {
