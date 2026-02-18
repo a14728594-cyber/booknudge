@@ -2,355 +2,283 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import DomainBadge from '@/components/common/DomainBadge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, Send, RefreshCw, Clock } from 'lucide-react';
 import Card from '@/components/common/Card';
-import { Loader2, Sparkles, User } from 'lucide-react';
-
-const domains = [
-    { id: 'sales', label: 'セールス' },
-    { id: 'marketing', label: 'マーケティング' },
-    { id: 'relationships', label: '人間関係' },
-    { id: 'mindset', label: 'マインドセット' },
-    { id: 'habits', label: '習慣' }
-];
 
 export default function Quiz() {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('today');
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [generating, setGenerating] = useState(false);
     
-    // Today's Question
-    const [step, setStep] = useState('select');
-    const [selectedDomain, setSelectedDomain] = useState('');
-    const [question, setQuestion] = useState(null);
-    const [sliderValue, setSliderValue] = useState([50]);
-    const [reasonText, setReasonText] = useState('');
-    const [shareEnabled, setShareEnabled] = useState(false);
-    const [loading, setLoading] = useState(false);
-
-    // Timeline
-    const [sharedAnswers, setSharedAnswers] = useState([]);
-    const [domainFilter, setDomainFilter] = useState('all');
-    const [questionFilter, setQuestionFilter] = useState('all');
-    const [questions, setQuestions] = useState([]);
-    const [timelineLoading, setTimelineLoading] = useState(false);
+    const [currentQuizSet, setCurrentQuizSet] = useState(null);
+    const [currentQuestions, setCurrentQuestions] = useState([]);
+    const [pastQuizSets, setPastQuizSets] = useState([]);
+    
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [sliderValue, setSliderValue] = useState(50);
+    const [requestText, setRequestText] = useState('');
 
     useEffect(() => {
-        if (activeTab === 'timeline') {
-            loadTimeline();
-        }
-    }, [activeTab, domainFilter, questionFilter]);
+        loadData();
+    }, []);
 
-    const loadTimeline = async () => {
-        setTimelineLoading(true);
-        try {
-            let filter = {};
-            if (domainFilter !== 'all') {
-                filter.domain = domainFilter;
-            }
-            if (questionFilter !== 'all') {
-                filter.question_id = questionFilter;
-            }
-
-            const answers = await base44.entities.SharedAnswer.filter(filter, '-created_date', 100);
-            setSharedAnswers(answers);
-
-            // 問題ID一覧を取得（フィルタ用）
-            if (domainFilter !== 'all') {
-                const uniqueQuestions = [...new Set(answers.map(a => a.question_id))];
-                setQuestions(uniqueQuestions);
-            }
-        } catch (error) {
-            console.error('Error loading timeline:', error);
-        } finally {
-            setTimelineLoading(false);
-        }
-    };
-
-    const handleSelectDomain = async (domain) => {
-        setSelectedDomain(domain);
+    const loadData = async () => {
         setLoading(true);
         try {
-            const { data } = await base44.functions.invoke('generateQuestion', { domain });
-            setQuestion(data);
-            setStep('question');
-        } catch (error) {
-            console.error('Error generating question:', error);
-            alert('問題の生成に失敗しました');
-        } finally {
-            setLoading(false);
-        }
-    };
+            const userData = await base44.auth.me();
+            setUser(userData);
 
-    const handleSubmitAnswer = async () => {
-        if (!reasonText.trim()) {
-            alert('理由を入力してください');
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const user = await base44.auth.me();
-
-            // 回答を保存
-            const answer = await base44.entities.Answer.create({
-                user_id: user.id,
-                domain: question.domain,
-                question_id: question.question_id,
-                question_text: question.question_text,
-                slider_value: sliderValue[0],
-                reason_text: reasonText
-            });
-
-            // 共有が有効な場合、SharedAnswerも作成
-            if (shareEnabled) {
-                await base44.entities.SharedAnswer.create({
-                    user_id: user.id,
-                    domain: question.domain,
-                    question_id: question.question_id,
-                    question_text: question.question_text,
-                    shared_slider_value: sliderValue[0],
-                    visibility: user.default_share_level || 'anonymous'
-                });
+            // オンボーディング未完了ならリダイレクト
+            const users = await base44.entities.User.filter({ id: userData.id });
+            if (users.length > 0 && !users[0].onboarding_completed) {
+                navigate(createPageUrl('onboarding'));
+                return;
             }
 
-            // イベント記録
-            await base44.functions.invoke('trackEvent', {
-                event_name: 'quiz_answer',
-                event_value: {
-                    domain: question.domain,
-                    question_id: question.question_id,
-                    slider_value: sliderValue[0],
-                    shared: shareEnabled
-                },
-                update_last_active: true
+            // アクティブなクイズセットを取得
+            const activeQuizSets = await base44.entities.QuizSet.filter({
+                user_id: userData.id,
+                is_active: true
             });
 
-            // 結果ページへ
-            navigate(createPageUrl('result') + `?answer_id=${answer.id}`);
+            if (activeQuizSets.length > 0) {
+                const quizSet = activeQuizSets[0];
+                setCurrentQuizSet(quizSet);
+                await loadQuestions(quizSet.id);
+            }
+
+            // 過去のクイズセット一覧を取得
+            const allQuizSets = await base44.entities.QuizSet.filter({
+                user_id: userData.id
+            });
+            setPastQuizSets(allQuizSets.sort((a, b) => 
+                new Date(b.created_date) - new Date(a.created_date)
+            ));
+
         } catch (error) {
-            console.error('Error submitting answer:', error);
-            alert('回答の送信に失敗しました');
-        } finally {
-            setLoading(false);
+            console.error('Failed to load quiz:', error);
+        }
+        setLoading(false);
+    };
+
+    const loadQuestions = async (quizSetId) => {
+        const questions = await base44.entities.QuizQuestion.filter({
+            quiz_set_id: quizSetId
+        });
+        setCurrentQuestions(questions.sort((a, b) => a.order_index - b.order_index));
+        setCurrentQuestionIndex(0);
+        setSliderValue(50);
+    };
+
+    const handleGenerateQuiz = async () => {
+        setGenerating(true);
+        try {
+            await base44.functions.invoke('generateQuizSet', {
+                request_text: requestText || null
+            });
+            setRequestText('');
+            await loadData();
+        } catch (error) {
+            console.error('Failed to generate quiz:', error);
+            alert('クイズの生成に失敗しました');
+        }
+        setGenerating(false);
+    };
+
+    const handleNext = () => {
+        if (currentQuestionIndex < currentQuestions.length - 1) {
+            setCurrentQuestionIndex(currentQuestionIndex + 1);
+            setSliderValue(50);
         }
     };
 
-    if (loading && step !== 'question') {
+    const handlePrevious = () => {
+        if (currentQuestionIndex > 0) {
+            setCurrentQuestionIndex(currentQuestionIndex - 1);
+            setSliderValue(50);
+        }
+    };
+
+    const handleSelectPastQuiz = async (quizSet) => {
+        setCurrentQuizSet(quizSet);
+        await loadQuestions(quizSet.id);
+    };
+
+    if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
-                    <p className="text-gray-600">問題を生成中...</p>
-                </div>
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-6">
-            <div className="max-w-4xl mx-auto">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-8">
-                        <TabsTrigger value="today">今日の1問</TabsTrigger>
-                        <TabsTrigger value="timeline">みんなの回答</TabsTrigger>
-                    </TabsList>
+        <div className="max-w-4xl mx-auto px-6 py-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">クイズ</h1>
 
-                    {/* Today's Question Tab */}
-                    <TabsContent value="today">
-                        {step === 'select' && (
-                            <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 md:p-12">
-                                <div className="text-center mb-8">
-                                    <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-                                        <Sparkles className="w-4 h-4" />
-                                        <span>今日の1問</span>
-                                    </div>
-                                    <h1 className="text-3xl font-bold text-gray-900 mb-3">
-                                        ジャンルを選んでください
-                                    </h1>
-                                    <p className="text-gray-600">
-                                        あなた専用の問題を生成します
-                                    </p>
-                                </div>
+            <Tabs defaultValue="current" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="current">今回のクイズ</TabsTrigger>
+                    <TabsTrigger value="past">過去のクイズ</TabsTrigger>
+                </TabsList>
 
+                {/* 今回のクイズ */}
+                <TabsContent value="current" className="space-y-6">
+                    {currentQuizSet && currentQuestions.length > 0 ? (
+                        <>
+                            <Card>
                                 <div className="space-y-4">
-                                    {domains.map(domain => (
-                                        <button
-                                            key={domain.id}
-                                            onClick={() => handleSelectDomain(domain.id)}
-                                            className="w-full p-6 border-2 border-gray-200 rounded-2xl hover:border-indigo-300 hover:bg-indigo-50 transition-all text-left"
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-lg font-medium text-gray-900">
-                                                    {domain.label}
-                                                </span>
-                                                <DomainBadge domain={domain.id} />
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {step === 'question' && question && (
-                            <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 md:p-12">
-                                <div className="mb-8">
-                                    <DomainBadge domain={question.domain} className="mb-4" />
-                                    <h2 className="text-2xl font-bold text-gray-900 mb-6 leading-relaxed">
-                                        {question.question_text}
-                                    </h2>
-                                </div>
-
-                                <div className="mb-8">
-                                    <div className="flex justify-between text-sm text-gray-600 mb-4">
-                                        <span>{question.label_left}</span>
-                                        <span>{question.label_right}</span>
+                                    <div className="flex items-center justify-between text-sm text-gray-500">
+                                        <span>質問 {currentQuestionIndex + 1} / {currentQuestions.length}</span>
+                                        <span>{currentQuizSet.title}</span>
                                     </div>
-                                    <Slider
-                                        value={sliderValue}
-                                        onValueChange={setSliderValue}
-                                        max={100}
-                                        step={1}
-                                        className="mb-4"
-                                    />
-                                    <div className="text-center">
-                                        <span className="text-4xl font-bold text-indigo-600">
-                                            {sliderValue[0]}
-                                        </span>
-                                    </div>
-                                </div>
 
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        あなたの理由を教えてください
-                                    </label>
-                                    <Textarea
-                                        placeholder="なぜこの値を選んだのか、あなたの考えを入力してください..."
-                                        value={reasonText}
-                                        onChange={(e) => setReasonText(e.target.value)}
-                                        className="min-h-[120px] rounded-xl"
-                                    />
-                                </div>
-
-                                <div className="mb-8 p-4 bg-gray-50 rounded-xl">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <Label htmlFor="share-toggle" className="font-medium text-gray-900 cursor-pointer">
-                                                スライダー値をみんなに共有する
-                                            </Label>
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                共有されるのはスライダー値のみです（理由は非公開）
+                                    {currentQuestions[currentQuestionIndex]?.question_json?.case_study && (
+                                        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                                            <p className="text-sm text-blue-900">
+                                                {currentQuestions[currentQuestionIndex].question_json.case_study}
                                             </p>
                                         </div>
-                                        <Switch
-                                            id="share-toggle"
-                                            checked={shareEnabled}
-                                            onCheckedChange={setShareEnabled}
-                                        />
-                                    </div>
-                                </div>
-
-                                <Button
-                                    onClick={handleSubmitAnswer}
-                                    disabled={!reasonText.trim() || loading}
-                                    className="w-full bg-indigo-600 hover:bg-indigo-700 py-6 text-lg rounded-xl"
-                                >
-                                    {loading ? '送信中...' : '回答を送信'}
-                                </Button>
-                            </div>
-                        )}
-                    </TabsContent>
-
-                    {/* Timeline Tab */}
-                    <TabsContent value="timeline">
-                        <div className="space-y-6">
-                            <Card>
-                                <div className="flex flex-col md:flex-row gap-4">
-                                    <Select value={domainFilter} onValueChange={setDomainFilter}>
-                                        <SelectTrigger className="rounded-xl">
-                                            <SelectValue placeholder="ジャンルで絞り込み" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">全てのジャンル</SelectItem>
-                                            {domains.map(d => (
-                                                <SelectItem key={d.id} value={d.id}>{d.label}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-
-                                    {domainFilter !== 'all' && questions.length > 0 && (
-                                        <Select value={questionFilter} onValueChange={setQuestionFilter}>
-                                            <SelectTrigger className="rounded-xl">
-                                                <SelectValue placeholder="問題で絞り込み" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all">全ての問題</SelectItem>
-                                                {questions.map(qid => (
-                                                    <SelectItem key={qid} value={qid}>
-                                                        {qid.substring(0, 20)}...
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
                                     )}
+
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                            {currentQuestions[currentQuestionIndex]?.question_json?.question_text}
+                                        </h3>
+
+                                        <div className="space-y-4">
+                                            <Slider
+                                                value={[sliderValue]}
+                                                onValueChange={(value) => setSliderValue(value[0])}
+                                                min={0}
+                                                max={100}
+                                                step={1}
+                                            />
+                                            <div className="flex justify-between text-sm text-gray-600">
+                                                <span>{currentQuestions[currentQuestionIndex]?.question_json?.slider_label_left || '0'}</span>
+                                                <span className="font-semibold text-indigo-600">{sliderValue}</span>
+                                                <span>{currentQuestions[currentQuestionIndex]?.question_json?.slider_label_right || '100'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-between pt-4">
+                                        <Button
+                                            variant="outline"
+                                            onClick={handlePrevious}
+                                            disabled={currentQuestionIndex === 0}
+                                        >
+                                            前へ
+                                        </Button>
+                                        <Button
+                                            onClick={handleNext}
+                                            disabled={currentQuestionIndex === currentQuestions.length - 1}
+                                        >
+                                            次へ
+                                        </Button>
+                                    </div>
                                 </div>
                             </Card>
 
-                            {timelineLoading ? (
-                                <div className="flex justify-center py-12">
-                                    <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
-                                </div>
-                            ) : sharedAnswers.length > 0 ? (
+                            {/* リクエスト欄 */}
+                            <Card>
                                 <div className="space-y-4">
-                                    {sharedAnswers.map(answer => (
-                                        <Card key={answer.id}>
-                                            <div className="flex items-start gap-4">
-                                                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                                    <User className="w-5 h-5 text-gray-400" />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <span className="text-sm font-medium text-gray-700">
-                                                            {answer.visibility === 'nickname' ? '表示名' : '匿名'}
-                                                        </span>
-                                                        <DomainBadge domain={answer.domain} />
-                                                        <span className="text-sm text-gray-500">
-                                                            {new Date(answer.created_date).toLocaleDateString('ja-JP')}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-gray-700 mb-3 line-clamp-2">
-                                                        {answer.question_text}
-                                                    </p>
-                                                    <div className="bg-indigo-50 rounded-xl p-4">
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="text-sm font-medium text-gray-600">
-                                                                スライダー値
-                                                            </span>
-                                                            <span className="text-2xl font-bold text-indigo-600">
-                                                                {answer.shared_slider_value}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    ))}
+                                    <h3 className="font-semibold text-gray-900">
+                                        クイズを再生成する
+                                    </h3>
+                                    <p className="text-sm text-gray-600">
+                                        希望のクイズ形式やテーマがあれば入力してください（任意）
+                                    </p>
+                                    <Input
+                                        value={requestText}
+                                        onChange={(e) => setRequestText(e.target.value)}
+                                        placeholder="例：マーケティング寄りの内容で、実践的なケースを多めに"
+                                    />
+                                    <Button
+                                        onClick={handleGenerateQuiz}
+                                        disabled={generating}
+                                        className="w-full"
+                                    >
+                                        {generating ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                生成中...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <RefreshCw className="w-4 h-4 mr-2" />
+                                                新しいクイズを生成
+                                            </>
+                                        )}
+                                    </Button>
                                 </div>
-                            ) : (
-                                <div className="text-center py-12 text-gray-600">
-                                    共有された回答がまだありません
-                                </div>
-                            )}
-                        </div>
-                    </TabsContent>
-                </Tabs>
-            </div>
+                            </Card>
+                        </>
+                    ) : (
+                        <Card>
+                            <div className="text-center py-12 space-y-4">
+                                <p className="text-gray-600">まだクイズがありません</p>
+                                <Button onClick={handleGenerateQuiz} disabled={generating}>
+                                    {generating ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            生成中...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Send className="w-4 h-4 mr-2" />
+                                            最初のクイズを生成
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </Card>
+                    )}
+                </TabsContent>
+
+                {/* 過去のクイズ */}
+                <TabsContent value="past">
+                    <div className="space-y-4">
+                        {pastQuizSets.length > 0 ? (
+                            pastQuizSets.map(quizSet => (
+                                <Card
+                                    key={quizSet.id}
+                                    className="cursor-pointer hover:border-indigo-300 transition-colors"
+                                    onClick={() => handleSelectPastQuiz(quizSet)}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="font-semibold text-gray-900">
+                                                {quizSet.title}
+                                            </h3>
+                                            {quizSet.request_text && (
+                                                <p className="text-sm text-gray-600 mt-1">
+                                                    {quizSet.request_text}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                                            <Clock className="w-4 h-4" />
+                                            {new Date(quizSet.created_date).toLocaleDateString('ja-JP')}
+                                        </div>
+                                    </div>
+                                </Card>
+                            ))
+                        ) : (
+                            <Card>
+                                <p className="text-center text-gray-600 py-8">
+                                    過去のクイズはまだありません
+                                </p>
+                            </Card>
+                        )}
+                    </div>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }

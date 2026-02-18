@@ -52,6 +52,7 @@ import AdminBooks from './pages/AdminBooks';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminInquiries from './pages/AdminInquiries';
 import AdminUsers from './pages/AdminUsers';
+import Book from './pages/Book';
 import BookDetail from './pages/BookDetail';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
@@ -65,7 +66,6 @@ import Search from './pages/Search';
 import Share from './pages/Share';
 import Support from './pages/Support';
 import genreDomain from './pages/genre[domain]';
-import Book from './pages/Book';
 import __Layout from './Layout.jsx';
 
 
@@ -75,6 +75,7 @@ export const PAGES = {
     "AdminDashboard": AdminDashboard,
     "AdminInquiries": AdminInquiries,
     "AdminUsers": AdminUsers,
+    "Book": Book,
     "BookDetail": BookDetail,
     "Home": Home,
     "Landing": Landing,
@@ -88,7 +89,6 @@ export const PAGES = {
     "Share": Share,
     "Support": Support,
     "genre[domain]": genreDomain,
-    "Book": Book,
 }
 
 export const pagesConfig = {
