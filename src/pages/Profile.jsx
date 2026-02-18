@@ -15,7 +15,7 @@ import {
 import Card from '@/components/common/Card';
 import BookCard from '@/components/common/BookCard';
 import DomainBadge from '@/components/common/DomainBadge';
-import { User as UserIcon, Heart, Users, Edit2, Check, X, Loader2, Lock, Globe } from 'lucide-react';
+import { User as UserIcon, Heart, Users, Edit2, Check, X, Loader2, Lock, Globe, Send } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
@@ -43,6 +43,7 @@ export default function Profile() {
     const [showFollowingModal, setShowFollowingModal] = useState(false);
     const [followersList, setFollowersList] = useState([]);
     const [followingList, setFollowingList] = useState([]);
+    const [isMutualFollow, setIsMutualFollow] = useState(false);
 
     useEffect(() => {
         loadProfile();
@@ -99,6 +100,13 @@ export default function Profile() {
                     following_user_id: targetUserId
                 });
                 setIsFollowing(followCheck.length > 0);
+
+                // 相互フォローチェック
+                const reverseFollowCheck = await base44.entities.Follow.filter({
+                    follower_user_id: targetUserId,
+                    following_user_id: current.id
+                });
+                setIsMutualFollow(followCheck.length > 0 && reverseFollowCheck.length > 0);
             }
         } catch (error) {
             console.error('Error loading profile:', error);
@@ -203,6 +211,23 @@ export default function Profile() {
         }
     };
 
+    const handleMessageClick = async () => {
+        try {
+            const response = await base44.functions.invoke('startOrGetConversation', {
+                other_user_id: profileUser.id
+            });
+
+            if (response.data.error) {
+                alert(response.data.error);
+            } else {
+                navigate(createPageUrl('dmchat') + '?id=' + response.data.conversation_id);
+            }
+        } catch (error) {
+            console.error('Error starting conversation:', error);
+            alert('会話の開始に失敗しました');
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
@@ -293,14 +318,26 @@ export default function Profile() {
                         </div>
 
                         {!isOwnProfile && (
-                            <Button
-                                onClick={handleFollowToggle}
-                                variant={isFollowing ? 'outline' : 'default'}
-                                className={`rounded-xl ${isFollowing ? '' : 'bg-indigo-600 hover:bg-indigo-700'}`}
-                            >
-                                <Users className="w-4 h-4 mr-2" />
-                                {isFollowing ? 'フォロー中' : 'フォローする'}
-                            </Button>
+                            <div className="flex gap-2">
+                                {isMutualFollow && (
+                                    <Button
+                                        onClick={handleMessageClick}
+                                        variant="outline"
+                                        className="rounded-xl"
+                                    >
+                                        <Send className="w-4 h-4 mr-2" />
+                                        メッセージ
+                                    </Button>
+                                )}
+                                <Button
+                                    onClick={handleFollowToggle}
+                                    variant={isFollowing ? 'outline' : 'default'}
+                                    className={`rounded-xl ${isFollowing ? '' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                                >
+                                    <Users className="w-4 h-4 mr-2" />
+                                    {isFollowing ? 'フォロー中' : 'フォローする'}
+                                </Button>
+                            </div>
                         )}
                     </div>
                 </Card>
