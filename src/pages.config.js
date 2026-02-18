@@ -55,6 +55,14 @@ import Genre from './pages/Genre';
 import BookDetail from './pages/BookDetail';
 import Search from './pages/Search';
 import Daily from './pages/Daily';
+import Result from './pages/Result';
+import Timeline from './pages/Timeline';
+import Share from './pages/Share';
+import Support from './pages/Support';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminUsers from './pages/AdminUsers';
+import AdminInquiries from './pages/AdminInquiries';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -66,9 +74,17 @@ export const PAGES = {
     "BookDetail": BookDetail,
     "Search": Search,
     "Daily": Daily,
+    "Result": Result,
+    "Timeline": Timeline,
+    "Share": Share,
+    "Support": Support,
+    "AdminDashboard": AdminDashboard,
+    "AdminUsers": AdminUsers,
+    "AdminInquiries": AdminInquiries,
 }
 
 export const pagesConfig = {
     mainPage: "Landing",
     Pages: PAGES,
+    Layout: __Layout,
 };
