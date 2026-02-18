@@ -211,10 +211,18 @@ export default function Profile() {
                                                 <Edit2 className="w-4 h-4" />
                                             </Button>
                                         )}
+                                        {isPrivateProfile && (
+                                            <div className="flex items-center gap-1 text-gray-500 text-sm">
+                                                <Lock className="w-4 h-4" />
+                                                <span>非公開</span>
+                                            </div>
+                                        )}
                                     </div>
-                                    <p className="text-gray-600 mb-4">
-                                        {profileUser?.bio || '自己紹介がありません'}
-                                    </p>
+                                    {!isPrivateProfile && (
+                                        <p className="text-gray-600 mb-4">
+                                            {profileUser?.bio || '自己紹介がありません'}
+                                        </p>
+                                    )}
                                     <div className="flex gap-6 text-sm">
                                         <div>
                                             <span className="font-semibold text-gray-900">{followingCount}</span>
@@ -272,69 +280,78 @@ export default function Profile() {
                     </Card>
                 )}
 
-                {/* Tabs */}
-                <Tabs defaultValue="favorites" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-6">
-                        <TabsTrigger value="favorites">お気に入りの本</TabsTrigger>
-                        <TabsTrigger value="answers">共有した回答</TabsTrigger>
-                    </TabsList>
+                {/* Tabs - 非公開プロフィールの場合は非表示 */}
+                {!isPrivateProfile ? (
+                    <Tabs defaultValue="favorites" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2 mb-6">
+                            <TabsTrigger value="favorites">お気に入りの本</TabsTrigger>
+                            <TabsTrigger value="answers">共有した回答</TabsTrigger>
+                        </TabsList>
 
-                    <TabsContent value="favorites">
-                        {!isOwnProfile && profileUser?.favorites_visibility === 'private' ? (
-                            <div className="text-center py-12 text-gray-600">
-                                このユーザーのお気に入りは非公開です
-                            </div>
-                        ) : favoritesBooks.length > 0 ? (
-                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {favoritesBooks.map(book => (
-                                    <BookCard key={book.id} book={book} />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12 text-gray-600">
-                                お気に入りの本がまだありません
-                            </div>
-                        )}
-                    </TabsContent>
+                        <TabsContent value="favorites">
+                            {!isOwnProfile && profileUser?.favorites_visibility === 'private' ? (
+                                <div className="text-center py-12 text-gray-600">
+                                    このユーザーのお気に入りは非公開です
+                                </div>
+                            ) : favoritesBooks.length > 0 ? (
+                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {favoritesBooks.map(book => (
+                                        <BookCard key={book.id} book={book} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 text-gray-600">
+                                    お気に入りの本がまだありません
+                                </div>
+                            )}
+                        </TabsContent>
 
-                    <TabsContent value="answers">
-                        {sharedAnswers.length > 0 ? (
-                            <div className="space-y-4">
-                                {sharedAnswers.map(answer => (
-                                    <Card key={answer.id}>
-                                        <div className="flex items-start gap-4">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <DomainBadge domain={answer.domain} />
-                                                    <span className="text-sm text-gray-500">
-                                                        {new Date(answer.created_date).toLocaleDateString('ja-JP')}
-                                                    </span>
-                                                </div>
-                                                <p className="text-gray-700 mb-3">
-                                                    {answer.question_text}
-                                                </p>
-                                                <div className="bg-indigo-50 rounded-xl p-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-sm font-medium text-gray-600">
-                                                            スライダー値
+                        <TabsContent value="answers">
+                            {sharedAnswers.length > 0 ? (
+                                <div className="space-y-4">
+                                    {sharedAnswers.map(answer => (
+                                        <Card key={answer.id}>
+                                            <div className="flex items-start gap-4">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <DomainBadge domain={answer.domain} />
+                                                        <span className="text-sm text-gray-500">
+                                                            {new Date(answer.created_date).toLocaleDateString('ja-JP')}
                                                         </span>
-                                                        <span className="text-2xl font-bold text-indigo-600">
-                                                            {answer.shared_slider_value}
-                                                        </span>
+                                                    </div>
+                                                    <p className="text-gray-700 mb-3">
+                                                        {answer.question_text}
+                                                    </p>
+                                                    <div className="bg-indigo-50 rounded-xl p-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-sm font-medium text-gray-600">
+                                                                スライダー値
+                                                            </span>
+                                                            <span className="text-2xl font-bold text-indigo-600">
+                                                                {answer.shared_slider_value}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </Card>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12 text-gray-600">
-                                共有した回答がまだありません
-                            </div>
-                        )}
-                    </TabsContent>
-                </Tabs>
+                                        </Card>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 text-gray-600">
+                                    共有した回答がまだありません
+                                </div>
+                            )}
+                        </TabsContent>
+                    </Tabs>
+                ) : (
+                    <Card className="text-center py-12">
+                        <Lock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-600">
+                            このユーザーはプロフィールを非公開に設定しています
+                        </p>
+                    </Card>
+                )}
             </div>
         </div>
     );
