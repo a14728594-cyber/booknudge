@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
@@ -8,12 +8,14 @@ import DomainBadge from '@/components/common/DomainBadge';
 import { ArrowLeft, Heart, Star, ExternalLink, Loader2, Edit } from 'lucide-react';
 
 export default function BookDetail() {
-    const { id } = useParams();
     const navigate = useNavigate();
     const [book, setBook] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isFavorite, setIsFavorite] = useState(false);
     const [user, setUser] = useState(null);
+    
+    // Extract ID from URL path
+    const id = window.location.pathname.split('/').pop();
 
     useEffect(() => {
         loadData();
