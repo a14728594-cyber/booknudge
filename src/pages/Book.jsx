@@ -14,8 +14,9 @@ export default function BookDetail() {
     const [isFavorite, setIsFavorite] = useState(false);
     const [user, setUser] = useState(null);
     
-    // Extract ID from URL path
-    const id = window.location.pathname.split('/').pop();
+    // Extract ID from URL query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
 
     useEffect(() => {
         loadData();
