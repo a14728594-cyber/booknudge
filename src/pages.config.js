@@ -47,12 +47,15 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AdminBookEdit from './pages/AdminBookEdit';
+import AdminBooks from './pages/AdminBooks';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminInquiries from './pages/AdminInquiries';
 import AdminUsers from './pages/AdminUsers';
 import BookDetail from './pages/BookDetail';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
+import MyProfile from './pages/MyProfile';
 import Onboarding from './pages/Onboarding';
 import Profile from './pages/Profile';
 import Quiz from './pages/Quiz';
@@ -61,20 +64,21 @@ import Result from './pages/Result';
 import Search from './pages/Search';
 import Share from './pages/Share';
 import Support from './pages/Support';
-import AdminBooks from './pages/AdminBooks';
-import AdminBookEdit from './pages/AdminBookEdit';
-import MyProfile from './pages/MyProfile';
 import genreDomain from './pages/genre[domain]';
+import bookId from './pages/book[id]';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdminBookEdit": AdminBookEdit,
+    "AdminBooks": AdminBooks,
     "AdminDashboard": AdminDashboard,
     "AdminInquiries": AdminInquiries,
     "AdminUsers": AdminUsers,
     "BookDetail": BookDetail,
     "Home": Home,
     "Landing": Landing,
+    "MyProfile": MyProfile,
     "Onboarding": Onboarding,
     "Profile": Profile,
     "Quiz": Quiz,
@@ -83,10 +87,8 @@ export const PAGES = {
     "Search": Search,
     "Share": Share,
     "Support": Support,
-    "AdminBooks": AdminBooks,
-    "AdminBookEdit": AdminBookEdit,
-    "MyProfile": MyProfile,
     "genre[domain]": genreDomain,
+    "book[id]": bookId,
 }
 
 export const pagesConfig = {
