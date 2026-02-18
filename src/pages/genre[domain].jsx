@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import BookCard from '@/components/common/BookCard';
@@ -9,7 +9,7 @@ import { Loader2, Search } from 'lucide-react';
 
 const VALID_DOMAINS = ['sales', 'marketing', 'relationships', 'mindset', 'habits'];
 
-export default function Genre() {
+export default function GenrePage() {
     const { domain } = useParams();
     const navigate = useNavigate();
     const [books, setBooks] = useState([]);
@@ -32,16 +32,23 @@ export default function Genre() {
                 event_value: { domain }
             });
 
-            const genreBooks = await base44.entities.Book.filter(
-                { tags: domain },
-                '-google_ratings_count',
-                50
+            // tagsフィールドにdomainが含まれる本を検索
+            const allBooks = await base44.entities.Book.list('-google_ratings_count', 200);
+            const genreBooks = allBooks.filter(book => 
+                book.tags && book.tags.includes(domain)
             );
+            
             setBooks(genreBooks);
         } catch (error) {
             console.error('Error loading genre books:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSearch = () => {
+        if (searchQuery.trim()) {
+            navigate(createPageUrl(`search?q=${encodeURIComponent(searchQuery)}`));
         }
     };
 
@@ -53,21 +60,15 @@ export default function Genre() {
         );
     }
 
-    const handleSearch = () => {
-        if (searchQuery.trim()) {
-            navigate(createPageUrl(`search?q=${encodeURIComponent(searchQuery)}`));
-        }
-    };
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-6">
             <div className="max-w-7xl mx-auto">
-                <div className="mb-8 flex items-center justify-between gap-4">
+                <div className="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <h1 className="text-4xl font-bold text-gray-900">ジャンル別</h1>
                         <DomainBadge domain={domain} />
                     </div>
-                    <div className="relative w-full max-w-md">
+                    <div className="relative w-full md:w-96">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <Input
                             value={searchQuery}
