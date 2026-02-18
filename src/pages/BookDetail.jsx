@@ -4,7 +4,15 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import DomainBadge from '@/components/common/DomainBadge';
-import { Star, Users, ArrowLeft, Loader2, Heart } from 'lucide-react';
+import { Star, Users, ArrowLeft, Loader2, Heart, ShoppingCart, ExternalLink } from 'lucide-react';
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet";
 
 export default function BookDetail() {
     const { id } = useParams();
@@ -12,6 +20,7 @@ export default function BookDetail() {
     const [loading, setLoading] = useState(true);
     const [isFavorite, setIsFavorite] = useState(false);
     const [favoriteLoading, setFavoriteLoading] = useState(false);
+    const [purchaseSheetOpen, setPurchaseSheetOpen] = useState(false);
 
     useEffect(() => {
         loadBook();

@@ -55,13 +55,13 @@ import Genre from './pages/Genre';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import Onboarding from './pages/Onboarding';
+import Profile from './pages/Profile';
+import Quiz from './pages/Quiz';
 import Recommend from './pages/Recommend';
 import Result from './pages/Result';
 import Search from './pages/Search';
 import Share from './pages/Share';
 import Support from './pages/Support';
-import Quiz from './pages/Quiz';
-import Profile from './pages/Profile';
 import __Layout from './Layout.jsx';
 
 
@@ -74,13 +74,13 @@ export const PAGES = {
     "Home": Home,
     "Landing": Landing,
     "Onboarding": Onboarding,
+    "Profile": Profile,
+    "Quiz": Quiz,
     "Recommend": Recommend,
     "Result": Result,
     "Search": Search,
     "Share": Share,
     "Support": Support,
-    "Quiz": Quiz,
-    "Profile": Profile,
 }
 
 export const pagesConfig = {
