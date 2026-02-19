@@ -26,25 +26,25 @@ export default function Tokushoho() {
                         </div>
 
                         <div className="border-b border-gray-200 pb-4">
-                            <h3 className="">河野慎吾</h3>
-                            <p>（後で追記）</p>
+                            <h3 className="">事業責任者</h3>
+                            <p className="">河野慎吾</p>
                         </div>
 
                         <div className="border-b border-gray-200 pb-4">
-                            <h3 className="">東京都板橋区南町７−８
+                            <h3 className="text-slate-950 text-base font-normal">住所
               </h3>
-                            <p>（後で追記）</p>
+                            <p className="">東京都板橋区南町７−８</p>
                         </div>
 
                         <div className="border-b border-gray-200 pb-4">
                             <h3 className="font-semibold text-gray-900 mb-2">電話番号</h3>
-                            <p>（後で追記）</p>
+                            <p className="">08046971393</p>
                             <p className="text-sm text-gray-500 mt-1">※お問い合わせはサービス内のお問い合わせフォームをご利用ください</p>
                         </div>
 
                         <div className="border-b border-gray-200 pb-4">
                             <h3 className="font-semibold text-gray-900 mb-2">メールアドレス</h3>
-                            <p>（後で追記）</p>
+                            <p className="">momosin0515@icloud.com</p>
                         </div>
 
                         <div className="border-b border-gray-200 pb-4">
