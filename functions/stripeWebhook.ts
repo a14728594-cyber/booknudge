@@ -59,10 +59,15 @@ Deno.serve(async (req) => {
                         current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
                     });
 
-                    if (subscription.status === 'active') {
-                        await base44.asServiceRole.entities.User.update(sub.user_id, {
-                            plan_status: 'paid'
+                    // User の subscription_status を更新
+                    const userUpdates = await base44.asServiceRole.entities.User.filter({ id: sub.user_id });
+                    if (userUpdates.length > 0) {
+                        await base44.asServiceRole.auth.updateUser(sub.user_id, {
+                            subscription_status: subscription.status
                         });
+                    }
+
+                    if (subscription.status === 'active') {
                         
                         await base44.asServiceRole.entities.Event.create({
                             user_id: sub.user_id,
@@ -81,6 +86,11 @@ Deno.serve(async (req) => {
                             status: subscription.status,
                             current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
                             current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
+                        });
+
+                        // User の subscription_status を更新
+                        await base44.asServiceRole.auth.updateUser(userId, {
+                            subscription_status: subscription.status
                         });
                     }
                 }
@@ -101,8 +111,9 @@ Deno.serve(async (req) => {
                         status: 'canceled'
                     });
 
-                    await base44.asServiceRole.entities.User.update(sub.user_id, {
-                        plan_status: 'free'
+                    // User の subscription_status を更新
+                    await base44.asServiceRole.auth.updateUser(sub.user_id, {
+                        subscription_status: 'canceled'
                     });
                     
                     await base44.asServiceRole.entities.Event.create({
