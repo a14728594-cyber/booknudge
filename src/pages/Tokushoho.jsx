@@ -4,13 +4,13 @@ import { createPageUrl } from '@/utils';
 import { ArrowLeft } from 'lucide-react';
 
 export default function Tokushoho() {
-    return (
-        <div className="min-h-screen bg-gray-50 py-12 px-6">
+  return (
+    <div className="min-h-screen bg-gray-50 py-12 px-6">
             <div className="max-w-4xl mx-auto">
-                <Link 
-                    to={createPageUrl('landing')}
-                    className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 mb-8"
-                >
+                <Link
+          to={createPageUrl('landing')}
+          className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 mb-8">
+
                     <ArrowLeft className="w-4 h-4" />
                     トップに戻る
                 </Link>
@@ -21,16 +21,18 @@ export default function Tokushoho() {
                     <div className="space-y-6 text-gray-700">
                         <div className="border-b border-gray-200 pb-4">
                             <h3 className="font-semibold text-gray-900 mb-2">販売事業者名</h3>
+                            <p className="">河野慎吾
+              </p>
+                        </div>
+
+                        <div className="border-b border-gray-200 pb-4">
+                            <h3 className="">河野慎吾</h3>
                             <p>（後で追記）</p>
                         </div>
 
                         <div className="border-b border-gray-200 pb-4">
-                            <h3 className="font-semibold text-gray-900 mb-2">運営統括責任者</h3>
-                            <p>（後で追記）</p>
-                        </div>
-
-                        <div className="border-b border-gray-200 pb-4">
-                            <h3 className="font-semibold text-gray-900 mb-2">所在地</h3>
+                            <h3 className="">東京都板橋区南町７−８
+              </h3>
                             <p>（後で追記）</p>
                         </div>
 
@@ -83,6 +85,4 @@ export default function Tokushoho() {
                     </div>
                 </div>
             </div>
-        </div>
-    );
-}
+        </div>);}
