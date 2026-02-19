@@ -8,8 +8,17 @@ import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Send, RefreshCw, Clock } from 'lucide-react';
 import Card from '@/components/common/Card';
+import SubscriptionGuard from '@/components/common/SubscriptionGuard';
 
 export default function Quiz() {
+    return (
+        <SubscriptionGuard pagePath="/quiz">
+            <QuizPageContent />
+        </SubscriptionGuard>
+    );
+}
+
+function QuizPageContent() {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
