@@ -48,7 +48,7 @@ export default function Layout({ children, currentPageName }) {
 
     const isPremium = user?.subscription_status === 'active';
     
-    const allNavItems = [
+    const userNavItems = [
         { label: 'ホーム', path: 'home', icon: Home, requiresPremium: false },
         { label: 'クイズ', path: 'quiz', icon: Calendar, requiresPremium: true },
         { label: 'つながる', path: 'connect', icon: Users, requiresPremium: true },
@@ -58,7 +58,12 @@ export default function Layout({ children, currentPageName }) {
         { label: 'お問い合わせ', path: 'support', icon: Mail, requiresPremium: false }
     ];
 
-    const userNavItems = allNavItems.filter(item => !item.requiresPremium || isPremium);
+    const handleNavClick = (e, item) => {
+        if (item.requiresPremium && !isPremium) {
+            e.preventDefault();
+            navigate(createPageUrl('paywall') + '?next=' + encodeURIComponent('/' + item.path) + '&from=' + item.path);
+        }
+    };
 
     const adminNavItems = [
         { label: 'ダッシュボード', path: 'admin/dashboard', icon: BarChart3 },
@@ -91,6 +96,7 @@ export default function Layout({ children, currentPageName }) {
                                     <Link
                                         key={item.path}
                                         to={createPageUrl(item.path)}
+                                        onClick={(e) => handleNavClick(e, item)}
                                         className={`group relative p-3 rounded-xl transition-all duration-200 ${
                                             currentPageName === item.path || currentPageName.startsWith(item.path)
                                                 ? 'bg-indigo-50 text-indigo-600'
@@ -98,6 +104,11 @@ export default function Layout({ children, currentPageName }) {
                                         }`}
                                     >
                                         <item.icon className="w-5 h-5" />
+                                        {item.requiresPremium && !isPremium && (
+                                            <span className="absolute -top-1 -right-1 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                                                PRO
+                                            </span>
+                                        )}
                                         <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
                                             {item.label}
                                         </span>
@@ -166,15 +177,23 @@ export default function Layout({ children, currentPageName }) {
                                 <Link
                                     key={item.path}
                                     to={createPageUrl(item.path)}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors relative ${
                                         currentPageName === item.path || currentPageName.startsWith(item.path)
                                             ? 'bg-indigo-50 text-indigo-600 font-medium'
                                             : 'text-gray-600 hover:bg-gray-50'
                                     }`}
-                                    onClick={() => setIsMenuOpen(false)}
+                                    onClick={(e) => {
+                                        handleNavClick(e, item);
+                                        setIsMenuOpen(false);
+                                    }}
                                 >
                                     <item.icon className="w-5 h-5" />
                                     <span>{item.label}</span>
+                                    {item.requiresPremium && !isPremium && (
+                                        <span className="ml-auto bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                            PRO
+                                        </span>
+                                    )}
                                 </Link>
                             ))}
                             
