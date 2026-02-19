@@ -52,6 +52,7 @@ import AdminBooks from './pages/AdminBooks';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminInquiries from './pages/AdminInquiries';
 import AdminUsers from './pages/AdminUsers';
+import BillingSuccess from './pages/BillingSuccess';
 import Book from './pages/Book';
 import BookDetail from './pages/BookDetail';
 import Connect from './pages/Connect';
@@ -61,6 +62,7 @@ import Home from './pages/Home';
 import Landing from './pages/Landing';
 import MyProfile from './pages/MyProfile';
 import Onboarding from './pages/Onboarding';
+import Paywall from './pages/Paywall';
 import Profile from './pages/Profile';
 import Quiz from './pages/Quiz';
 import Recommend from './pages/Recommend';
@@ -69,8 +71,10 @@ import Search from './pages/Search';
 import Share from './pages/Share';
 import Support from './pages/Support';
 import genreDomain from './pages/genre[domain]';
-import Paywall from './pages/Paywall';
-import BillingSuccess from './pages/BillingSuccess';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import Tokushoho from './pages/Tokushoho';
+import Refund from './pages/Refund';
 import __Layout from './Layout.jsx';
 
 
@@ -80,6 +84,7 @@ export const PAGES = {
     "AdminDashboard": AdminDashboard,
     "AdminInquiries": AdminInquiries,
     "AdminUsers": AdminUsers,
+    "BillingSuccess": BillingSuccess,
     "Book": Book,
     "BookDetail": BookDetail,
     "Connect": Connect,
@@ -89,6 +94,7 @@ export const PAGES = {
     "Landing": Landing,
     "MyProfile": MyProfile,
     "Onboarding": Onboarding,
+    "Paywall": Paywall,
     "Profile": Profile,
     "Quiz": Quiz,
     "Recommend": Recommend,
@@ -97,8 +103,10 @@ export const PAGES = {
     "Share": Share,
     "Support": Support,
     "genre[domain]": genreDomain,
-    "Paywall": Paywall,
-    "BillingSuccess": BillingSuccess,
+    "Terms": Terms,
+    "Privacy": Privacy,
+    "Tokushoho": Tokushoho,
+    "Refund": Refund,
 }
 
 export const pagesConfig = {
