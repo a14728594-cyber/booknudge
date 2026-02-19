@@ -70,6 +70,7 @@ import Share from './pages/Share';
 import Support from './pages/Support';
 import genreDomain from './pages/genre[domain]';
 import Paywall from './pages/Paywall';
+import BillingSuccess from './pages/BillingSuccess';
 import __Layout from './Layout.jsx';
 
 
@@ -97,6 +98,7 @@ export const PAGES = {
     "Support": Support,
     "genre[domain]": genreDomain,
     "Paywall": Paywall,
+    "BillingSuccess": BillingSuccess,
 }
 
 export const pagesConfig = {

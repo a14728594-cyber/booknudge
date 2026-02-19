@@ -44,17 +44,37 @@ export default function Paywall() {
         }
     };
 
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const canceled = urlParams.get('canceled');
+        if (canceled === 'true') {
+            trackCancel();
+        }
+    }, []);
+
+    const trackCancel = async () => {
+        try {
+            await base44.functions.invoke('trackEvent', {
+                event_name: 'checkout_cancel',
+                event_value: { next: nextUrl }
+            });
+        } catch (error) {
+            console.error('Failed to track checkout cancel:', error);
+        }
+    };
+
     const handleCheckout = async () => {
         setLoading(true);
         try {
             await base44.functions.invoke('trackEvent', {
                 event_name: 'checkout_start',
-                event_value: { from }
+                event_value: { from: 'paywall', next: nextUrl }
             });
 
             const response = await base44.functions.invoke('createCheckoutSession', {
-                success_url: window.location.origin + createPageUrl('home') + '?checkout=success&next=' + encodeURIComponent(nextUrl),
-                cancel_url: window.location.origin + createPageUrl('paywall') + '?next=' + encodeURIComponent(nextUrl)
+                success_url: window.location.origin + createPageUrl('billingsuccess') + '?next=' + encodeURIComponent(nextUrl),
+                cancel_url: window.location.origin + createPageUrl('paywall') + '?next=' + encodeURIComponent(nextUrl) + '&canceled=true',
+                next: nextUrl
             });
 
             if (response.data.url) {

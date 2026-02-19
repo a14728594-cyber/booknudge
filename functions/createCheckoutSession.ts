@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { success_url, cancel_url } = await req.json();
+        const { success_url, cancel_url, next } = await req.json();
 
         // 既存のSubscriptionを取得
         const subscriptions = await base44.entities.Subscription.filter({ user_id: user.id });
@@ -36,30 +36,26 @@ Deno.serve(async (req) => {
         }
 
         // Checkout Session作成
+        const priceId = Deno.env.get('STRIPE_PRICE_ID');
+        if (!priceId) {
+            return Response.json({ error: 'STRIPE_PRICE_ID not configured' }, { status: 500 });
+        }
+
         const session = await stripe.checkout.sessions.create({
             customer: customerId,
             mode: 'subscription',
             payment_method_types: ['card'],
             line_items: [
                 {
-                    price_data: {
-                        currency: 'jpy',
-                        product_data: {
-                            name: 'BusinessLearn プレミアムプラン',
-                            description: 'パーソナライズドクイズ、マッチング、DM機能'
-                        },
-                        unit_amount: 1200,
-                        recurring: {
-                            interval: 'month'
-                        }
-                    },
+                    price: priceId,
                     quantity: 1
                 }
             ],
             success_url: success_url || `${req.headers.get('origin')}/home`,
             cancel_url: cancel_url || `${req.headers.get('origin')}/paywall`,
             metadata: {
-                user_id: user.id
+                user_id: user.id,
+                next: next || '/'
             }
         });
 

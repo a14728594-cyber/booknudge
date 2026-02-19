@@ -23,6 +23,28 @@ Deno.serve(async (req) => {
         );
 
         switch (event.type) {
+            case 'checkout.session.completed': {
+                const session = event.data.object;
+                const userId = session.metadata?.user_id;
+                const customerId = session.customer;
+
+                if (userId && customerId) {
+                    // Subscriptionの作成または更新
+                    const subs = await base44.asServiceRole.entities.Subscription.filter({
+                        user_id: userId
+                    });
+
+                    if (subs.length === 0) {
+                        await base44.asServiceRole.entities.Subscription.create({
+                            user_id: userId,
+                            stripe_customer_id: customerId,
+                            status: 'incomplete'
+                        });
+                    }
+                }
+                break;
+            }
+
             case 'invoice.paid': {
                 const invoice = event.data.object;
                 const customerId = invoice.customer;
