@@ -18,7 +18,27 @@ export default function Home() {
 
     useEffect(() => {
         loadData();
+        checkCheckoutSuccess();
     }, []);
+
+    const checkCheckoutSuccess = async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const checkoutSuccess = urlParams.get('checkout');
+        const nextUrl = urlParams.get('next');
+
+        if (checkoutSuccess === 'success') {
+            await base44.functions.invoke('trackEvent', {
+                event_name: 'checkout_success',
+                event_value: { from: 'paywall' }
+            });
+
+            // nextUrlがあれば遷移
+            if (nextUrl) {
+                window.history.replaceState({}, '', window.location.pathname);
+                navigate(nextUrl);
+            }
+        }
+    };
 
     const loadData = async () => {
         try {

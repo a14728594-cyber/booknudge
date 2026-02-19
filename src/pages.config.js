@@ -54,6 +54,9 @@ import AdminInquiries from './pages/AdminInquiries';
 import AdminUsers from './pages/AdminUsers';
 import Book from './pages/Book';
 import BookDetail from './pages/BookDetail';
+import Connect from './pages/Connect';
+import DM from './pages/DM';
+import DMChat from './pages/DMChat';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import MyProfile from './pages/MyProfile';
@@ -66,9 +69,7 @@ import Search from './pages/Search';
 import Share from './pages/Share';
 import Support from './pages/Support';
 import genreDomain from './pages/genre[domain]';
-import DM from './pages/DM';
-import DMChat from './pages/DMChat';
-import Connect from './pages/Connect';
+import Paywall from './pages/Paywall';
 import __Layout from './Layout.jsx';
 
 
@@ -80,6 +81,9 @@ export const PAGES = {
     "AdminUsers": AdminUsers,
     "Book": Book,
     "BookDetail": BookDetail,
+    "Connect": Connect,
+    "DM": DM,
+    "DMChat": DMChat,
     "Home": Home,
     "Landing": Landing,
     "MyProfile": MyProfile,
@@ -92,9 +96,7 @@ export const PAGES = {
     "Share": Share,
     "Support": Support,
     "genre[domain]": genreDomain,
-    "DM": DM,
-    "DMChat": DMChat,
-    "Connect": Connect,
+    "Paywall": Paywall,
 }
 
 export const pagesConfig = {

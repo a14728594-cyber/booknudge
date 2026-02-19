@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import SubscriptionGuard from '@/components/common/SubscriptionGuard';
 import { ArrowLeft, Send, Loader2, AlertTriangle, Ban } from 'lucide-react';
 import {
     Dialog,
@@ -15,6 +16,17 @@ import {
 } from '@/components/ui/dialog';
 
 export default function DMChat() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const conversationId = urlParams.get('id');
+    
+    return (
+        <SubscriptionGuard pagePath={`/dmchat?id=${conversationId}`}>
+            <DMChatContent />
+        </SubscriptionGuard>
+    );
+}
+
+function DMChatContent() {
     const navigate = useNavigate();
     const messagesEndRef = useRef(null);
     const [user, setUser] = useState(null);

@@ -4,9 +4,18 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import Card from '@/components/common/Card';
 import { Button } from '@/components/ui/button';
+import SubscriptionGuard from '@/components/common/SubscriptionGuard';
 import { MessageSquare, Loader2 } from 'lucide-react';
 
 export default function DM() {
+    return (
+        <SubscriptionGuard pagePath="/dm">
+            <DMContent />
+        </SubscriptionGuard>
+    );
+}
+
+function DMContent() {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [conversations, setConversations] = useState([]);

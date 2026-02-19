@@ -46,15 +46,19 @@ export default function Layout({ children, currentPageName }) {
         return <>{children}</>;
     }
 
-    const userNavItems = [
-        { label: 'ホーム', path: 'home', icon: Home },
-        { label: 'クイズ', path: 'quiz', icon: Calendar },
-        { label: 'つながる', path: 'connect', icon: Users },
-        { label: 'DM', path: 'dm', icon: Send },
-        { label: 'プロフィール', path: 'profile', icon: User },
-        { label: 'URL共有', path: 'share', icon: Share2 },
-        { label: 'お問い合わせ', path: 'support', icon: Mail }
+    const isPremium = user?.subscription_status === 'active';
+    
+    const allNavItems = [
+        { label: 'ホーム', path: 'home', icon: Home, requiresPremium: false },
+        { label: 'クイズ', path: 'quiz', icon: Calendar, requiresPremium: true },
+        { label: 'つながる', path: 'connect', icon: Users, requiresPremium: true },
+        { label: 'DM', path: 'dm', icon: Send, requiresPremium: true },
+        { label: 'プロフィール', path: 'profile', icon: User, requiresPremium: false },
+        { label: 'URL共有', path: 'share', icon: Share2, requiresPremium: false },
+        { label: 'お問い合わせ', path: 'support', icon: Mail, requiresPremium: false }
     ];
+
+    const userNavItems = allNavItems.filter(item => !item.requiresPremium || isPremium);
 
     const adminNavItems = [
         { label: 'ダッシュボード', path: 'admin/dashboard', icon: BarChart3 },

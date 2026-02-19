@@ -4,9 +4,18 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import Card from '@/components/common/Card';
 import { Button } from '@/components/ui/button';
+import SubscriptionGuard from '@/components/common/SubscriptionGuard';
 import { Users, Send, Plus, Loader2, RefreshCw, UserPlus, UserCheck } from 'lucide-react';
 
 export default function Connect() {
+    return (
+        <SubscriptionGuard pagePath="/connect">
+            <ConnectContent />
+        </SubscriptionGuard>
+    );
+}
+
+function ConnectContent() {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [matches, setMatches] = useState([]);
