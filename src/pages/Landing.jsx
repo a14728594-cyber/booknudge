@@ -132,6 +132,32 @@ export default function Landing() {
                     </Link>
                 </div>
             </div>
+
+            {/* Footer */}
+            <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-16">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600">
+                        <Link to={createPageUrl('terms')} className="hover:text-indigo-600 transition-colors">
+                            利用規約
+                        </Link>
+                        <span className="text-gray-300">|</span>
+                        <Link to={createPageUrl('privacy')} className="hover:text-indigo-600 transition-colors">
+                            プライバシーポリシー
+                        </Link>
+                        <span className="text-gray-300">|</span>
+                        <Link to={createPageUrl('tokushoho')} className="hover:text-indigo-600 transition-colors">
+                            特定商取引法
+                        </Link>
+                        <span className="text-gray-300">|</span>
+                        <Link to={createPageUrl('refund')} className="hover:text-indigo-600 transition-colors">
+                            返金・解約
+                        </Link>
+                    </div>
+                    <p className="text-center text-xs text-gray-500 mt-4">
+                        © 2026 BookFit. All rights reserved.
+                    </p>
+                </div>
+            </footer>
         </div>
     );
 }
