@@ -63,18 +63,18 @@ import Landing from './pages/Landing';
 import MyProfile from './pages/MyProfile';
 import Onboarding from './pages/Onboarding';
 import Paywall from './pages/Paywall';
+import Privacy from './pages/Privacy';
 import Profile from './pages/Profile';
 import Quiz from './pages/Quiz';
 import Recommend from './pages/Recommend';
+import Refund from './pages/Refund';
 import Result from './pages/Result';
 import Search from './pages/Search';
 import Share from './pages/Share';
 import Support from './pages/Support';
-import genreDomain from './pages/genre[domain]';
 import Terms from './pages/Terms';
-import Privacy from './pages/Privacy';
 import Tokushoho from './pages/Tokushoho';
-import Refund from './pages/Refund';
+import genreDomain from './pages/genre[domain]';
 import __Layout from './Layout.jsx';
 
 
@@ -95,18 +95,18 @@ export const PAGES = {
     "MyProfile": MyProfile,
     "Onboarding": Onboarding,
     "Paywall": Paywall,
+    "Privacy": Privacy,
     "Profile": Profile,
     "Quiz": Quiz,
     "Recommend": Recommend,
+    "Refund": Refund,
     "Result": Result,
     "Search": Search,
     "Share": Share,
     "Support": Support,
-    "genre[domain]": genreDomain,
     "Terms": Terms,
-    "Privacy": Privacy,
     "Tokushoho": Tokushoho,
-    "Refund": Refund,
+    "genre[domain]": genreDomain,
 }
 
 export const pagesConfig = {
