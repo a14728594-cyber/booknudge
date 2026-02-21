@@ -211,7 +211,7 @@ export default function AdminBookEdit() {
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-3">
                         <Button
-                            onClick={() => navigate(createPageUrl('admin/books'))}
+                            onClick={() => navigate(createPageUrl('AdminBooks'))}
                             variant="outline"
                             size="sm"
                             className="gap-2"
@@ -481,7 +481,7 @@ export default function AdminBookEdit() {
 
                     <div className="flex justify-end gap-3 pt-6 border-t">
                         <Button
-                            onClick={() => navigate(createPageUrl('admin/books'))}
+                            onClick={() => navigate(createPageUrl('AdminBooks'))}
                             variant="outline"
                         >
                             キャンセル
