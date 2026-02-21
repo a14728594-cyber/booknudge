@@ -17,6 +17,7 @@ export default function AdminBookEdit() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [generating, setGenerating] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -91,6 +92,22 @@ export default function AdminBookEdit() {
     const removeArrayItem = (field, index) => {
         const newArray = formData[field].filter((_, i) => i !== index);
         setFormData({ ...formData, [field]: newArray.length > 0 ? newArray : [''] });
+    };
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            setFormData({ ...formData, cover_url: file_url });
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            alert('画像のアップロードに失敗しました');
+        } finally {
+            setUploading(false);
+        }
     };
 
     const handleGenerateAI = async () => {
@@ -313,21 +330,42 @@ export default function AdminBookEdit() {
                                 />
                             </div>
 
-                            <div className="grid md:grid-cols-2 gap-4">
-                                <div>
-                                    <Label>ISBN</Label>
-                                    <Input
-                                        value={formData.isbn}
-                                        onChange={(e) => setFormData({ ...formData, isbn: e.target.value })}
-                                        placeholder="ISBN"
-                                    />
-                                </div>
-                                <div>
-                                    <Label>表紙URL</Label>
+                            <div>
+                                <Label>ISBN</Label>
+                                <Input
+                                    value={formData.isbn}
+                                    onChange={(e) => setFormData({ ...formData, isbn: e.target.value })}
+                                    placeholder="ISBN"
+                                />
+                            </div>
+
+                            <div>
+                                <Label>表紙画像</Label>
+                                <div className="space-y-3">
+                                    <div className="flex gap-3">
+                                        <Input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageUpload}
+                                            disabled={uploading}
+                                            className="flex-1"
+                                        />
+                                        {uploading && <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />}
+                                    </div>
+                                    {formData.cover_url && (
+                                        <div className="relative w-32 h-48">
+                                            <img
+                                                src={formData.cover_url}
+                                                alt="表紙プレビュー"
+                                                className="w-full h-full object-cover rounded-lg border border-gray-200"
+                                            />
+                                        </div>
+                                    )}
                                     <Input
                                         value={formData.cover_url}
                                         onChange={(e) => setFormData({ ...formData, cover_url: e.target.value })}
-                                        placeholder="表紙画像URL"
+                                        placeholder="または画像URLを直接入力"
+                                        className="text-sm"
                                     />
                                 </div>
                             </div>
