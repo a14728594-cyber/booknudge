@@ -66,8 +66,7 @@ export default function Paywall() {
     };
 
     const handleCheckout = () => {
-        setLoading(true);
-        window.location.href = 'https://buy.stripe.com/bJe8wOa1WcqigLI5OV8Ra00';
+        window.open('https://buy.stripe.com/bJe8wOa1WcqigLI5OV8Ra00', '_blank');
     };
 
     const features = [
