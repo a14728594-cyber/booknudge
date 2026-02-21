@@ -240,7 +240,7 @@ export default function BookDetail() {
                 {user?.role === 'admin' && (
                     <Button
                         variant="outline"
-                        onClick={() => navigate(`/AdminBookEdit/${id}`)}
+                        onClick={() => navigate(createPageUrl('AdminBookEdit') + `?bookId=${id}`)}
                     >
                         <Edit className="w-4 h-4 mr-2" />
                         編集

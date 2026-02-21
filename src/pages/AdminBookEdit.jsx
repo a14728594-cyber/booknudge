@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -10,8 +10,10 @@ import Card from '@/components/common/Card';
 import { Save, ArrowLeft, Plus, X, Loader2, Sparkles } from 'lucide-react';
 
 export default function AdminBookEdit() {
-    const { bookId } = useParams();
     const navigate = useNavigate();
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookId = urlParams.get('bookId');
+    
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [generating, setGenerating] = useState(false);
