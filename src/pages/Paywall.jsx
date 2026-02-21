@@ -71,8 +71,17 @@ export default function Paywall() {
                 event_value: { from: 'paywall', next: nextUrl }
             });
 
-            // 直接Stripeの決済リンクに遷移
-            window.location.href = 'https://buy.stripe.com/bJe8wOa1WcqigLI5OV8Ra00';
+            const response = await base44.functions.invoke('createCheckoutSession', {
+                success_url: window.location.origin + createPageUrl('billingsuccess') + '?next=' + encodeURIComponent(nextUrl),
+                cancel_url: window.location.origin + createPageUrl('paywall') + '?next=' + encodeURIComponent(nextUrl) + '&canceled=true',
+                next: nextUrl
+            });
+
+            if (response.data.url) {
+                window.location.href = response.data.url;
+            } else {
+                alert('チェックアウトの開始に失敗しました');
+            }
         } catch (error) {
             console.error('Failed to start checkout:', error);
             alert('チェックアウトの開始に失敗しました');
