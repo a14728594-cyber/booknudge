@@ -38,7 +38,7 @@ export default function Layout({ children, currentPageName }) {
     navigate(createPageUrl('landing'));
   };
 
-  const isAdminPage = currentPageName.startsWith('admin');
+  const isAdminPage = currentPageName.startsWith('Admin');
   const isLandingPage = currentPageName === 'landing';
 
   // ランディングページはレイアウトなし
@@ -66,10 +66,10 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const adminNavItems = [
-  { label: 'ダッシュボード', path: 'admin/dashboard', icon: BarChart3 },
-  { label: 'ユーザー管理', path: 'admin/users', icon: UserCog },
-  { label: '本管理', path: 'admin/books', icon: BookOpen },
-  { label: '問い合わせ', path: 'admin/inquiries', icon: MessageSquare }];
+  { label: 'ダッシュボード', path: 'AdminDashboard', icon: BarChart3 },
+  { label: 'ユーザー管理', path: 'AdminUsers', icon: UserCog },
+  { label: '本管理', path: 'AdminBooks', icon: BookOpen },
+  { label: '問い合わせ', path: 'AdminInquiries', icon: MessageSquare }];
 
 
   const navItems = isAdminPage ? adminNavItems : userNavItems;
@@ -120,7 +120,7 @@ export default function Layout({ children, currentPageName }) {
                                         <div className="w-px h-6 bg-gray-200 mx-2" />
                                         {!isAdminPage ?
                 <Link
-                  to={createPageUrl('admin/dashboard')}
+                  to={createPageUrl('AdminDashboard')}
                   className="group relative p-3 rounded-xl text-amber-600 hover:bg-amber-50 transition-all duration-200">
 
                                                 <BarChart3 className="w-5 h-5" />
@@ -199,7 +199,7 @@ export default function Layout({ children, currentPageName }) {
                             
                             {user.role === 'admin' && !isAdminPage &&
             <Link
-              to={createPageUrl('admin/dashboard')}
+              to={createPageUrl('AdminDashboard')}
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50"
               onClick={() => setIsMenuOpen(false)}>
 
