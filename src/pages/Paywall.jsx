@@ -69,7 +69,7 @@ export default function Paywall() {
         setLoading(true);
         setError(null);
         
-        // タイムアウト設定（10秒）
+        // タイムアウト設定（15秒）
         const timeoutId = setTimeout(() => {
             setLoading(false);
             setError({
@@ -77,20 +77,28 @@ export default function Paywall() {
                 message: 'チェックアウトの開始に時間がかかりすぎています。もう一度お試しください。'
             });
             toast.error('タイムアウトしました。もう一度お試しください。');
-        }, 10000);
+        }, 15000);
 
         try {
-            await base44.functions.invoke('trackEvent', {
-                event_name: 'checkout_start',
-                event_value: { from: 'paywall', next: nextUrl }
-            });
+            // trackEventは失敗しても続行
+            try {
+                await base44.functions.invoke('trackEvent', {
+                    event_name: 'checkout_start',
+                    event_value: { from: 'paywall', next: nextUrl }
+                });
+            } catch (trackError) {
+                console.warn('Failed to track event:', trackError);
+            }
 
+            console.log('Calling createCheckoutSession...');
+            
             const response = await base44.functions.invoke('createCheckoutSession', {
                 success_url: window.location.origin + createPageUrl('billingsuccess') + '?next=' + encodeURIComponent(nextUrl),
                 cancel_url: window.location.origin + createPageUrl('paywall') + '?next=' + encodeURIComponent(nextUrl) + '&canceled=true',
                 next: nextUrl
             });
 
+            console.log('Response:', response);
             clearTimeout(timeoutId);
 
             // APIからのレスポンス確認
@@ -107,6 +115,7 @@ export default function Paywall() {
 
             if (response.data.url) {
                 // 成功 - Stripeへリダイレクト
+                console.log('Redirecting to:', response.data.url);
                 window.location.href = response.data.url;
             } else {
                 // URLが無い場合
@@ -120,16 +129,30 @@ export default function Paywall() {
             }
         } catch (error) {
             clearTimeout(timeoutId);
-            console.error('Failed to start checkout:', error);
+            console.error('Checkout error details:', {
+                message: error.message,
+                response: error.response,
+                stack: error.stack
+            });
             setLoading(false);
             
-            const errorMessage = error.response?.data?.message || 
-                                'チェックアウトの開始に失敗しました。もう一度お試しください。問題が続く場合はお問い合わせください。';
-            const errorCode = error.response?.data?.code || 'NETWORK_ERROR';
+            let errorMessage = 'チェックアウトの開始に失敗しました。';
+            let errorCode = 'NETWORK_ERROR';
+            
+            if (error.message?.includes('Failed to fetch')) {
+                errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。';
+                errorCode = 'NETWORK_ERROR';
+            } else if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+                errorCode = error.response.data.code || 'API_ERROR';
+            } else if (error.message) {
+                errorMessage = `エラー: ${error.message}`;
+            }
             
             setError({
                 code: errorCode,
-                message: errorMessage
+                message: errorMessage,
+                details: error.message
             });
             toast.error(errorMessage);
         }
