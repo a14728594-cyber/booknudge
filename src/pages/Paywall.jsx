@@ -66,7 +66,7 @@ export default function Paywall() {
     };
 
     const handleCheckout = () => {
-        window.location.href = 'https://buy.stripe.com/bJe8wOa1WcqigLI5OV8Ra00';
+        window.open('https://buy.stripe.com/bJe8wOa1WcqigLI5OV8Ra00', '_self');
     };
 
     const features = [
@@ -130,25 +130,10 @@ export default function Paywall() {
 
                     <Button
                         onClick={handleCheckout}
-                        disabled={loading}
                         className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-lg py-6"
                     >
-                        {loading ? (
-                            <>
-                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                処理中...
-                            </>
-                        ) : error ? (
-                            <>
-                                <RefreshCw className="w-5 h-5 mr-2" />
-                                再試行する
-                            </>
-                        ) : (
-                            <>
-                                <Sparkles className="w-5 h-5 mr-2" />
-                                プレミアムプランを開始
-                            </>
-                        )}
+                        <Sparkles className="w-5 h-5 mr-2" />
+                        プレミアムプランを開始
                     </Button>
                 </Card>
 
