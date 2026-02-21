@@ -65,36 +65,8 @@ export default function Paywall() {
         }
     };
 
-    const handleCheckout = async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const response = await base44.functions.invoke('createCheckoutSession', {
-                success_url: window.location.origin + createPageUrl('billingsuccess') + '?next=' + encodeURIComponent(nextUrl),
-                cancel_url: window.location.origin + createPageUrl('paywall') + '?next=' + encodeURIComponent(nextUrl) + '&canceled=true',
-                next: nextUrl
-            });
-
-            if (response?.data?.url) {
-                window.location.href = response.data.url;
-            } else {
-                setLoading(false);
-                setError({
-                    code: 'NO_URL',
-                    message: 'チェックアウトの開始に失敗しました。もう一度お試しください。'
-                });
-                toast.error('エラーが発生しました');
-            }
-        } catch (error) {
-            console.error('Checkout error:', error);
-            setLoading(false);
-            setError({
-                code: 'ERROR',
-                message: 'チェックアウトの開始に失敗しました。もう一度お試しください。'
-            });
-            toast.error('エラーが発生しました');
-        }
+    const handleCheckout = () => {
+        window.location.href = 'https://buy.stripe.com/bJe8wOa1WcqigLI5OV8Ra00';
     };
 
     const features = [
