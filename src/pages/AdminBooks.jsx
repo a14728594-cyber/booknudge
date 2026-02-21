@@ -80,7 +80,7 @@ export default function AdminBooks() {
                         <h1 className="text-3xl font-bold text-gray-900">本管理</h1>
                     </div>
                     <Button
-                        onClick={() => navigate(createPageUrl('admin/book/new'))}
+                        onClick={() => navigate(createPageUrl('AdminBookEdit/new'))}
                         className="bg-indigo-600 hover:bg-indigo-700 gap-2"
                     >
                         <Plus className="w-5 h-5" />
@@ -132,7 +132,7 @@ export default function AdminBooks() {
                                 </div>
                                 <div className="flex gap-2">
                                     <Button
-                                        onClick={() => navigate(createPageUrl(`admin/book/${book.id}`))}
+                                        onClick={() => navigate(createPageUrl(`AdminBookEdit/${book.id}`))}
                                         variant="outline"
                                         size="sm"
                                         className="gap-2"

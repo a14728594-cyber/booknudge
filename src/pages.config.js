@@ -66,6 +66,8 @@ import Paywall from './pages/Paywall';
 import Privacy from './pages/Privacy';
 import Profile from './pages/Profile';
 import Quiz from './pages/Quiz';
+import QuizNew from './pages/QuizNew';
+import QuizResult from './pages/QuizResult';
 import Recommend from './pages/Recommend';
 import Refund from './pages/Refund';
 import Result from './pages/Result';
@@ -75,8 +77,6 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Tokushoho from './pages/Tokushoho';
 import genreDomain from './pages/genre[domain]';
-import QuizNew from './pages/QuizNew';
-import QuizResult from './pages/QuizResult';
 import __Layout from './Layout.jsx';
 
 
@@ -100,6 +100,8 @@ export const PAGES = {
     "Privacy": Privacy,
     "Profile": Profile,
     "Quiz": Quiz,
+    "QuizNew": QuizNew,
+    "QuizResult": QuizResult,
     "Recommend": Recommend,
     "Refund": Refund,
     "Result": Result,
@@ -109,8 +111,6 @@ export const PAGES = {
     "Terms": Terms,
     "Tokushoho": Tokushoho,
     "genre[domain]": genreDomain,
-    "QuizNew": QuizNew,
-    "QuizResult": QuizResult,
 }
 
 export const pagesConfig = {

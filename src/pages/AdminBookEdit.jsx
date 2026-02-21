@@ -70,7 +70,7 @@ export default function AdminBookEdit() {
             }
         } catch (error) {
             console.error('Error:', error);
-            navigate(createPageUrl('admin/books'));
+            navigate(createPageUrl('AdminBooks'));
         } finally {
             setLoading(false);
         }
@@ -188,7 +188,7 @@ export default function AdminBookEdit() {
                 await base44.entities.Book.create(data);
             }
 
-            navigate(createPageUrl('admin/books'));
+            navigate(createPageUrl('AdminBooks'));
         } catch (error) {
             console.error('Error saving book:', error);
             alert('保存に失敗しました');
