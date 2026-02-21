@@ -209,6 +209,9 @@ export default function Paywall() {
                                 <div className="flex-1">
                                     <p className="text-red-800 font-medium mb-1">{error.message}</p>
                                     <p className="text-xs text-red-600">エラーコード: {error.code}</p>
+                                    {error.details && (
+                                        <p className="text-xs text-red-500 mt-1">詳細: {error.details}</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
