@@ -4,11 +4,13 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import Card from '@/components/common/Card';
 import { Button } from '@/components/ui/button';
-import { Check, Loader2, Sparkles } from 'lucide-react';
+import { Check, Loader2, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Paywall() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [user, setUser] = useState(null);
     const urlParams = new URLSearchParams(window.location.search);
     const nextUrl = urlParams.get('next') || '/home';
@@ -65,6 +67,18 @@ export default function Paywall() {
 
     const handleCheckout = async () => {
         setLoading(true);
+        setError(null);
+        
+        // タイムアウト設定（10秒）
+        const timeoutId = setTimeout(() => {
+            setLoading(false);
+            setError({
+                code: 'TIMEOUT',
+                message: 'チェックアウトの開始に時間がかかりすぎています。もう一度お試しください。'
+            });
+            toast.error('タイムアウトしました。もう一度お試しください。');
+        }, 10000);
+
         try {
             await base44.functions.invoke('trackEvent', {
                 event_name: 'checkout_start',
@@ -77,16 +91,48 @@ export default function Paywall() {
                 next: nextUrl
             });
 
+            clearTimeout(timeoutId);
+
+            // APIからのレスポンス確認
+            if (response.data.ok === false) {
+                // エラーレスポンス
+                setLoading(false);
+                setError({
+                    code: response.data.code || 'UNKNOWN_ERROR',
+                    message: response.data.message || 'チェックアウトの開始に失敗しました。'
+                });
+                toast.error(response.data.message || 'エラーが発生しました');
+                return;
+            }
+
             if (response.data.url) {
+                // 成功 - Stripeへリダイレクト
                 window.location.href = response.data.url;
             } else {
-                alert('チェックアウトの開始に失敗しました');
+                // URLが無い場合
+                clearTimeout(timeoutId);
+                setLoading(false);
+                setError({
+                    code: 'NO_URL',
+                    message: 'チェックアウトURLの取得に失敗しました。もう一度お試しください。'
+                });
+                toast.error('エラーが発生しました');
             }
         } catch (error) {
+            clearTimeout(timeoutId);
             console.error('Failed to start checkout:', error);
-            alert('チェックアウトの開始に失敗しました');
+            setLoading(false);
+            
+            const errorMessage = error.response?.data?.message || 
+                                'チェックアウトの開始に失敗しました。もう一度お試しください。問題が続く場合はお問い合わせください。';
+            const errorCode = error.response?.data?.code || 'NETWORK_ERROR';
+            
+            setError({
+                code: errorCode,
+                message: errorMessage
+            });
+            toast.error(errorMessage);
         }
-        setLoading(false);
     };
 
     const features = [
@@ -133,6 +179,18 @@ export default function Paywall() {
                         ))}
                     </div>
 
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                            <div className="flex items-start gap-3">
+                                <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1">
+                                    <p className="text-red-800 font-medium mb-1">{error.message}</p>
+                                    <p className="text-xs text-red-600">エラーコード: {error.code}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <Button
                         onClick={handleCheckout}
                         disabled={loading}
@@ -142,6 +200,11 @@ export default function Paywall() {
                             <>
                                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                                 処理中...
+                            </>
+                        ) : error ? (
+                            <>
+                                <RefreshCw className="w-5 h-5 mr-2" />
+                                再試行する
                             </>
                         ) : (
                             <>
