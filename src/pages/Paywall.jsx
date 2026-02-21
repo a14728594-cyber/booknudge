@@ -128,13 +128,15 @@ export default function Paywall() {
                         </div>
                     )}
 
-                    <Button
-                        onClick={handleCheckout}
-                        className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-lg py-6"
+                    <a
+                        href="https://buy.stripe.com/bJe8wOa1WcqigLI5OV8Ra00"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-lg py-6 px-4 rounded-md font-medium transition-colors"
                     >
-                        <Sparkles className="w-5 h-5 mr-2" />
+                        <Sparkles className="w-5 h-5" />
                         プレミアムプランを開始
-                    </Button>
+                    </a>
                 </Card>
 
                 <div className="text-center">
