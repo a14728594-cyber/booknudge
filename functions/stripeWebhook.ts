@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@14.21.0';
 
-const stripe = new Stripe(Deno.env.get("STRIPE_API_KEY"), {
+const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"), {
     apiVersion: '2023-10-16',
 });
 
@@ -25,22 +25,32 @@ Deno.serve(async (req) => {
         switch (event.type) {
             case 'checkout.session.completed': {
                 const session = event.data.object;
-                const userId = session.metadata?.user_id;
+                const userId = session.metadata?.user_id || session.client_reference_id;
                 const customerId = session.customer;
 
                 if (userId && customerId) {
-                    // Subscriptionの作成または更新
-                    const subs = await base44.asServiceRole.entities.Subscription.filter({
+                    // Subscriptionの作成
+                    const existingSubs = await base44.asServiceRole.entities.Subscription.filter({
                         user_id: userId
                     });
 
-                    if (subs.length === 0) {
+                    if (existingSubs.length === 0) {
                         await base44.asServiceRole.entities.Subscription.create({
                             user_id: userId,
                             stripe_customer_id: customerId,
-                            status: 'incomplete'
+                            stripe_subscription_id: session.subscription,
+                            status: 'active',
+                            current_period_start: new Date().toISOString(),
+                            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
                         });
                     }
+
+                    // Userエンティティを更新
+                    await base44.asServiceRole.entities.User.update(userId, {
+                        stripe_customer_id: customerId,
+                        subscription_status: 'active',
+                        plan: 'premium'
+                    });
                 }
                 break;
             }
@@ -49,15 +59,20 @@ Deno.serve(async (req) => {
                 const invoice = event.data.object;
                 const customerId = invoice.customer;
                 
-                // ユーザーを特定
                 const subs = await base44.asServiceRole.entities.Subscription.filter({
                     stripe_customer_id: customerId
                 });
                 
                 if (subs.length > 0) {
                     const sub = subs[0];
+                    
+                    await base44.asServiceRole.entities.Subscription.update(sub.id, {
+                        status: 'active'
+                    });
+
                     await base44.asServiceRole.entities.User.update(sub.user_id, {
-                        plan_status: 'paid'
+                        subscription_status: 'active',
+                        plan: 'premium'
                     });
                 }
                 break;
@@ -81,16 +96,27 @@ Deno.serve(async (req) => {
                         current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
                     });
 
-                    // User の subscription_status を更新
-                    const userUpdates = await base44.asServiceRole.entities.User.filter({ id: sub.user_id });
-                    if (userUpdates.length > 0) {
-                        await base44.asServiceRole.auth.updateUser(sub.user_id, {
-                            subscription_status: subscription.status
-                        });
+                    // ユーザーステータス更新
+                    let userStatus = 'free';
+                    let userPlan = 'free';
+                    if (subscription.status === 'active') {
+                        userStatus = 'active';
+                        userPlan = 'premium';
+                    } else if (subscription.status === 'past_due') {
+                        userStatus = 'past_due';
+                    } else if (subscription.status === 'canceled') {
+                        userStatus = 'canceled';
+                    } else if (subscription.status === 'incomplete') {
+                        userStatus = 'incomplete';
                     }
 
+                    await base44.asServiceRole.entities.User.update(sub.user_id, {
+                        subscription_status: userStatus,
+                        subscription_current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+                        plan: userPlan
+                    });
+
                     if (subscription.status === 'active') {
-                        
                         await base44.asServiceRole.entities.Event.create({
                             user_id: sub.user_id,
                             event_name: 'subscribe',
@@ -98,7 +124,7 @@ Deno.serve(async (req) => {
                         });
                     }
                 } else {
-                    // 新規サブスクリプション - メタデータからuser_idを取得
+                    // 新規サブスクリプション
                     const userId = subscription.metadata?.user_id;
                     if (userId) {
                         await base44.asServiceRole.entities.Subscription.create({
@@ -110,9 +136,13 @@ Deno.serve(async (req) => {
                             current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
                         });
 
-                        // User の subscription_status を更新
-                        await base44.asServiceRole.auth.updateUser(userId, {
-                            subscription_status: subscription.status
+                        let userStatus = subscription.status;
+                        let userPlan = subscription.status === 'active' ? 'premium' : 'free';
+
+                        await base44.asServiceRole.entities.User.update(userId, {
+                            subscription_status: userStatus,
+                            subscription_current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+                            plan: userPlan
                         });
                     }
                 }
@@ -133,9 +163,9 @@ Deno.serve(async (req) => {
                         status: 'canceled'
                     });
 
-                    // User の subscription_status を更新
-                    await base44.asServiceRole.auth.updateUser(sub.user_id, {
-                        subscription_status: 'canceled'
+                    await base44.asServiceRole.entities.User.update(sub.user_id, {
+                        subscription_status: 'canceled',
+                        plan: 'free'
                     });
                     
                     await base44.asServiceRole.entities.Event.create({

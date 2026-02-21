@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@17.5.0';
 
-const stripe = new Stripe(Deno.env.get('STRIPE_API_KEY'), {
+const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'), {
     apiVersion: '2024-12-18.acacia'
 });
 
@@ -16,16 +16,11 @@ Deno.serve(async (req) => {
 
         const { success_url, cancel_url, next } = await req.json();
 
-        // 既存のSubscriptionを取得
-        const subscriptions = await base44.entities.Subscription.filter({ user_id: user.id });
-        let customerId = null;
+        // User エンティティから stripe_customer_id を確認
+        let customerId = user.stripe_customer_id;
 
-        if (subscriptions.length > 0) {
-            customerId = subscriptions[0].stripe_customer_id;
-        }
-
-        // Stripe Customerがない場合は作成
         if (!customerId) {
+            // 新規顧客作成
             const customer = await stripe.customers.create({
                 email: user.email,
                 metadata: {
@@ -33,6 +28,11 @@ Deno.serve(async (req) => {
                 }
             });
             customerId = customer.id;
+
+            // User エンティティに保存
+            await base44.asServiceRole.entities.User.update(user.id, {
+                stripe_customer_id: customerId
+            });
         }
 
         // Checkout Session作成
@@ -53,6 +53,7 @@ Deno.serve(async (req) => {
             ],
             success_url: success_url || `${req.headers.get('origin')}/home`,
             cancel_url: cancel_url || `${req.headers.get('origin')}/paywall`,
+            client_reference_id: user.id,
             metadata: {
                 user_id: user.id,
                 next: next || '/'
