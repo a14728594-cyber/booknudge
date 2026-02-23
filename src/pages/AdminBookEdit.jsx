@@ -166,6 +166,15 @@ export default function AdminBookEdit() {
         }
     };
 
+    const normalizeSearchText = (title, authors) => {
+        const text = title + ' ' + (authors || []).join(' ');
+        let normalized = text.normalize('NFKC');
+        normalized = normalized.toLowerCase();
+        normalized = normalized.replace(/[・:！？（）『』「」【】\-\.\,\!\?\(\)\[\]\{\}]/g, '');
+        normalized = normalized.replace(/\s+/g, '');
+        return normalized;
+    };
+
     const handleSave = async () => {
         if (!formData.title || !formData.amazon_url) {
             alert('タイトルとAmazon URLは必須です');
@@ -182,9 +191,12 @@ export default function AdminBookEdit() {
 
         setSaving(true);
         try {
+            const cleanedAuthors = formData.authors.filter(a => a.trim());
+            const searchText = normalizeSearchText(formData.title, cleanedAuthors);
+
             const data = {
                 title: formData.title,
-                authors: formData.authors.filter(a => a.trim()),
+                authors: cleanedAuthors,
                 isbn: formData.isbn || undefined,
                 tags: formData.tags.filter(t => t.trim()),
                 description: formData.description || undefined,
@@ -198,7 +210,8 @@ export default function AdminBookEdit() {
                 pain_points: cleanedPainPoints,
                 outcomes: cleanedOutcomes,
                 not_for: formData.not_for.filter(n => n.trim()),
-                one_liner: formData.one_liner || undefined
+                one_liner: formData.one_liner || undefined,
+                search_text: searchText
             };
 
             if (bookId && bookId !== 'new') {

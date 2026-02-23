@@ -47,6 +47,7 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AdminBookEdit from './pages/AdminBookEdit';
 import AdminBooks from './pages/AdminBooks';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminInquiries from './pages/AdminInquiries';
@@ -76,11 +77,11 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Tokushoho from './pages/Tokushoho';
 import genreDomain from './pages/genre[domain]';
-import AdminBookEdit from './pages/AdminBookEdit';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdminBookEdit": AdminBookEdit,
     "AdminBooks": AdminBooks,
     "AdminDashboard": AdminDashboard,
     "AdminInquiries": AdminInquiries,
@@ -110,7 +111,6 @@ export const PAGES = {
     "Terms": Terms,
     "Tokushoho": Tokushoho,
     "genre[domain]": genreDomain,
-    "AdminBookEdit": AdminBookEdit,
 }
 
 export const pagesConfig = {
