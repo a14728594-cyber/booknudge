@@ -29,11 +29,18 @@ Deno.serve(async (req) => {
 
         const normalizedQuery = normalizeText(query);
         
-        // search_textで部分一致検索
         const allBooks = await base44.entities.Book.list();
-        const matchedBooks = allBooks.filter(book => 
-            book.search_text && book.search_text.includes(normalizedQuery)
-        );
+        const matchedBooks = allBooks.filter(book => {
+            // search_textがあればそれを使う、なければリアルタイムで正規化
+            let searchText = book.search_text;
+            if (!searchText) {
+                const titleText = book.title || '';
+                const authorText = (book.authors || []).join(' ');
+                searchText = normalizeText(titleText + ' ' + authorText);
+            }
+            
+            return searchText.includes(normalizedQuery);
+        });
 
         return Response.json({ books: matchedBooks.slice(0, 20) });
     } catch (error) {
