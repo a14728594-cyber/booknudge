@@ -51,31 +51,21 @@ Deno.serve(async (req) => {
             }
         }
 
-        // GPTでフィードバック生成
-        const prompt = `あなたはビジネス書の専門家です。以下のクイズ結果に対して、正解を断定せず、フィードバックを生成してください。
+        // GPTでフィードバック生成（超簡潔版）
+        const prompt = `あなたはビジネスコーチです。以下のクイズ回答に対して、超簡潔なフィードバックを生成してください。
 
 【クイズ】
-タイトル: ${quiz.title}
-状況: ${quiz.scenario_text}
-形式: ${quiz.answer_type}
-${quiz.choices ? `選択肢: ${quiz.choices.join(', ')}` : ''}
+${quiz.scenario_text}
+回答: ${attempt.answer_value}
 
-【ユーザーの回答】
-${attempt.answer_value}
+【重要】各項目は30文字以内で出力してください。
 
-【似てる人の分布】
-${distributionSummary || 'データなし'}
-
-【ユーザーの目標・興味】
-目標: ${(profile.goal_tags || []).join(', ') || 'なし'}
-興味: ${(profile.interest_tags || []).join(', ') || 'なし'}
-
-以下のJSON形式で出力してください：
+以下のJSON形式で出力：
 {
-  "summary_one_liner": "一言でこの回答を評価",
-  "strength_text": "この選択の良い点・強み（2-3文）",
-  "blindspot_text": "起こりがちなリスクや盲点（2-3文）",
-  "next_action_text": "明日できる具体的な行動1つ（1-2文）"
+  "summary_one_liner": "一言評価（30文字以内）",
+  "strength_text": "良い点（30文字以内）",
+  "blindspot_text": "注意点（30文字以内）",
+  "next_action_text": "次の一歩（30文字以内）"
 }`;
 
         const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
