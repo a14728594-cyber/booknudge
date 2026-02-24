@@ -17,7 +17,8 @@ export default function SubscriptionGuard({ children, pagePath }) {
         try {
             const user = await base44.auth.me();
             
-            if (user.subscription_status === 'active') {
+            // 管理者は無条件でアクセス可能
+            if (user.role === 'admin' || user.subscription_status === 'active') {
                 setIsAuthorized(true);
             } else {
                 // イベント記録
