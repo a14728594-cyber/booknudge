@@ -9,11 +9,30 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // 全ユーザーを取得
+        // アクティブなユーザーのみ取得（直近30日以内）
         const allUsers = await base44.entities.User.filter({});
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
-        // 自分以外のユーザーを取得
-        const otherUsers = allUsers.filter(u => u.id !== user.id);
+        // 自分以外のアクティブユーザーでプロフィール完成者のみ
+        const otherUsers = allUsers.filter(u => {
+            if (u.id === user.id) return false;
+            
+            // アクティブチェック
+            if (!u.last_active_at) return false;
+            const isActive = new Date(u.last_active_at) > thirtyDaysAgo;
+            if (!isActive) return false;
+            
+            // プロフィール完成チェック
+            const hasProfile = u.display_name && 
+                              u.bio && 
+                              u.profile_json && 
+                              (u.profile_json.interests?.length > 0 || 
+                               u.profile_json.challenges || 
+                               u.profile_json.future_goal);
+            
+            return hasProfile;
+        });
 
         // フォロー中のユーザーを除外
         const follows = await base44.entities.Follow.filter({ follower_user_id: user.id });
