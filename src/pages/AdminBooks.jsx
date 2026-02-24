@@ -12,6 +12,7 @@ export default function AdminBooks() {
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [duplicates, setDuplicates] = useState([]);
 
     useEffect(() => {
         checkAdminAndLoad();
@@ -54,6 +55,26 @@ export default function AdminBooks() {
         }
     };
 
+    const checkDuplicates = () => {
+        const duplicateIds = [];
+        const seen = new Map();
+
+        books.forEach(book => {
+            const key = `${book.title}|||${(book.authors || []).join(',')}`;
+            if (seen.has(key)) {
+                duplicateIds.push(book.id);
+                duplicateIds.push(seen.get(key));
+            } else {
+                seen.set(key, book.id);
+            }
+        });
+
+        setDuplicates([...new Set(duplicateIds)]);
+        if (duplicateIds.length === 0) {
+            alert('重複はありません');
+        }
+    };
+
     const filteredBooks = books.filter(book => {
         const query = searchQuery.toLowerCase();
         return (
@@ -79,13 +100,22 @@ export default function AdminBooks() {
                         <BookOpen className="w-8 h-8 text-indigo-600" />
                         <h1 className="text-3xl font-bold text-gray-900">本管理</h1>
                     </div>
-                    <Button
-                        onClick={() => navigate(createPageUrl('AdminBookEdit') + '?bookId=new')}
-                        className="bg-indigo-600 hover:bg-indigo-700 gap-2"
-                    >
-                        <Plus className="w-5 h-5" />
-                        新規登録
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={checkDuplicates}
+                            variant="outline"
+                            className="gap-2"
+                        >
+                            重複チェック
+                        </Button>
+                        <Button
+                            onClick={() => navigate(createPageUrl('AdminBookEdit') + '?bookId=new')}
+                            className="bg-indigo-600 hover:bg-indigo-700 gap-2"
+                        >
+                            <Plus className="w-5 h-5" />
+                            新規登録
+                        </Button>
+                    </div>
                 </div>
 
                 <Card className="mb-6">
@@ -102,7 +132,10 @@ export default function AdminBooks() {
 
                 <div className="space-y-4">
                     {filteredBooks.map(book => (
-                        <Card key={book.id} className="hover:shadow-lg transition-shadow">
+                        <Card 
+                            key={book.id} 
+                            className={`hover:shadow-lg transition-shadow ${duplicates.includes(book.id) ? 'border-2 border-red-500 bg-red-50' : ''}`}
+                        >
                             <div className="flex items-start gap-4">
                                 <div className="flex-1">
                                     <h3 className="text-lg font-bold text-gray-900 mb-2">
