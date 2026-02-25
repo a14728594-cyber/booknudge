@@ -208,15 +208,14 @@ export default function Home() {
                 )}
 
                 {/* All Domains Carousels */}
-                {domains.map(domain => (
-                    topBooks[domain]?.length > 0 && (
+                {Object.keys(topBooks).map(domain => (
+                    domain !== mainDomain && topBooks[domain]?.length > 0 && (
                         <div key={domain} className="mb-16">
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
                                     <h2 className="text-2xl font-bold text-gray-900">
-                                        ジャンル別人気本
+                                        {domainLabels[domain] || domain}
                                     </h2>
-                                    <DomainBadge domain={domain} />
                                 </div>
                                 <div className="flex items-center gap-2 text-gray-500 text-sm">
                                     <ChevronRight className="w-4 h-4" />
