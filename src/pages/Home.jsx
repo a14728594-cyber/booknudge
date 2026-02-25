@@ -77,15 +77,20 @@ export default function Home() {
                 setMainDomain(user.profile_json.focus_domains[0]);
             }
 
-            // 各ジャンルの人気本を取得（カルーセル用に多めに取得）
+            // 各ジャンルの人気本を取得（タグベースで分類）
             const booksByDomain = {};
-            const allBooks = await base44.entities.Book.list('-google_ratings_count', 200);
+            const allBooks = await base44.entities.Book.list('-created_date', 200);
             
-            for (const domain of domains) {
+            for (const domain of Object.keys(domainLabels)) {
                 const domainBooks = allBooks.filter(book => 
-                    book.tags && book.tags.includes(domain)
+                    book.tags && book.tags.some(tag => 
+                        tag.toLowerCase().includes(domain.toLowerCase()) ||
+                        domain.toLowerCase().includes(tag.toLowerCase())
+                    )
                 ).slice(0, 15);
-                booksByDomain[domain] = domainBooks;
+                if (domainBooks.length > 0) {
+                    booksByDomain[domain] = domainBooks;
+                }
             }
             setTopBooks(booksByDomain);
         } catch (error) {
