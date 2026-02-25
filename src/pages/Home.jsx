@@ -9,6 +9,10 @@ import DomainBadge from '@/components/common/DomainBadge';
 import { Search, ArrowRight, TrendingUp, ChevronRight } from 'lucide-react';
 
 const domainConfig = {
+    'マーケティング': {
+        label: 'マーケティング',
+        tags: ['マーケティング', 'marketing', 'セールス', '集客', '広告', 'ブランディング']
+    },
     'コミュニケーション': {
         label: 'コミュニケーション',
         tags: ['コミュニケーション', '伝える力', 'プレゼン', '言語化', '交渉', '対人スキル']
