@@ -8,12 +8,27 @@ import BookCard from '@/components/common/BookCard';
 import DomainBadge from '@/components/common/DomainBadge';
 import { Search, ArrowRight, TrendingUp, ChevronRight } from 'lucide-react';
 
-const domainLabels = {
-    'コミュニケーション': 'コミュニケーション',
-    '人間関係': '人間関係',
-    'マインドセット': 'マインドセット',
-    '起業': '起業・ビジネス',
-    '習慣': '習慣・生活'
+const domainConfig = {
+    'コミュニケーション': {
+        label: 'コミュニケーション',
+        tags: ['コミュニケーション', '伝える力', 'プレゼン', '言語化', '交渉', '対人スキル']
+    },
+    '人間関係': {
+        label: '人間関係',
+        tags: ['人間関係', '自己肯定感', '自己防衛', '感情コントロール', 'ストレス', '立ち回り']
+    },
+    'マインドセット': {
+        label: 'マインドセット',
+        tags: ['マインドセット', 'メンタルケア', 'メンタル', '行動力', '思考法']
+    },
+    '起業': {
+        label: '起業・ビジネス',
+        tags: ['起業', 'ビジネス', '副業', '職場術', '仕事術']
+    },
+    '習慣': {
+        label: '習慣・生活',
+        tags: ['習慣', '生活', 'ライフスタイル', '時間管理']
+    }
 };
 
 export default function Home() {
