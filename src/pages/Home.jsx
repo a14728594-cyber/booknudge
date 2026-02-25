@@ -174,7 +174,6 @@ export default function Home() {
                                 scrollbarWidth: 'none',
                                 msOverflowStyle: 'none'
                             }}
-                            onScroll={() => handleCarouselScroll(mainDomain)}
                             onMouseDown={(e) => {
                                 const slider = e.currentTarget;
                                 slider.style.cursor = 'grabbing';
