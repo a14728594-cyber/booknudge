@@ -149,7 +149,7 @@ export default function Home() {
                 </div>
 
                 {/* Main Domain Carousel */}
-                {!loading && topBooks[mainDomain]?.length > 0 && (
+                {topBooks[mainDomain]?.length > 0 && (
                     <div className="mb-16">
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
