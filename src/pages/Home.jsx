@@ -116,25 +116,11 @@ export default function Home() {
     };
 
     const handleBookClick = async (bookId, domain) => {
-        try {
-            await base44.functions.invoke('trackEvent', {
-                event_name: 'book_card_click',
-                event_value: { book_id: bookId, domain }
-            });
-        } catch (error) {
-            console.error('Error tracking book click:', error);
-        }
-    };
-
-    const handleCarouselScroll = async (domain) => {
-        try {
-            await base44.functions.invoke('trackEvent', {
-                event_name: 'carousel_scroll',
-                event_value: { domain }
-            });
-        } catch (error) {
-            console.error('Error tracking carousel scroll:', error);
-        }
+        // Track event without blocking navigation
+        base44.functions.invoke('trackEvent', {
+            event_name: 'book_card_click',
+            event_value: { book_id: bookId, domain }
+        }).catch(() => {}); // Silently fail
     };
 
     if (loading) {
