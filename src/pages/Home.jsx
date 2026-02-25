@@ -87,11 +87,13 @@ export default function Home() {
             const booksByDomain = {};
             const allBooks = await base44.entities.Book.list('-created_date', 200);
             
-            for (const domain of Object.keys(domainLabels)) {
+            for (const [domain, config] of Object.entries(domainConfig)) {
                 const domainBooks = allBooks.filter(book => 
-                    book.tags && book.tags.some(tag => 
-                        tag.toLowerCase().includes(domain.toLowerCase()) ||
-                        domain.toLowerCase().includes(tag.toLowerCase())
+                    book.tags && book.tags.some(bookTag => 
+                        config.tags.some(domainTag => 
+                            bookTag.toLowerCase().includes(domainTag.toLowerCase()) ||
+                            domainTag.toLowerCase().includes(bookTag.toLowerCase())
+                        )
                     )
                 ).slice(0, 15);
                 if (domainBooks.length > 0) {
