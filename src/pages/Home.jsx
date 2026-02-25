@@ -157,9 +157,8 @@ export default function Home() {
                             <div className="flex items-center gap-3">
                                 <TrendingUp className="w-6 h-6 text-indigo-600" />
                                 <h2 className="text-2xl font-bold text-gray-900">
-                                    あなたの主ジャンル
+                                    {domainLabels[mainDomain] || mainDomain}
                                 </h2>
-                                <DomainBadge domain={mainDomain} />
                             </div>
                             <div className="flex items-center gap-2 text-gray-500 text-sm">
                                 <ChevronRight className="w-4 h-4" />
