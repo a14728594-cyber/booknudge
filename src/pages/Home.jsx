@@ -174,7 +174,7 @@ export default function Home() {
                             <div className="flex items-center gap-3">
                                 <TrendingUp className="w-6 h-6 text-indigo-600" />
                                 <h2 className="text-2xl font-bold text-gray-900">
-                                    {domainLabels[mainDomain] || mainDomain}
+                                    {domainConfig[mainDomain]?.label || mainDomain}
                                 </h2>
                             </div>
                             <div className="flex items-center gap-2 text-gray-500 text-sm">
