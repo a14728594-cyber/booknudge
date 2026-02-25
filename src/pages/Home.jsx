@@ -8,7 +8,13 @@ import BookCard from '@/components/common/BookCard';
 import DomainBadge from '@/components/common/DomainBadge';
 import { Search, ArrowRight, TrendingUp, ChevronRight } from 'lucide-react';
 
-const domains = ['sales', 'marketing', 'relationships', 'mindset', 'habits'];
+const domainLabels = {
+    'コミュニケーション': 'コミュニケーション',
+    '人間関係': '人間関係',
+    'マインドセット': 'マインドセット',
+    '起業': '起業・ビジネス',
+    '習慣': '習慣・生活'
+};
 
 export default function Home() {
     const [searchQuery, setSearchQuery] = useState('');
