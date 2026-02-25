@@ -64,18 +64,9 @@ export default function Home() {
                 30
             );
 
-            if (recentAnswers.length > 0) {
-                const domainCounts = {};
-                recentAnswers.forEach(a => {
-                    domainCounts[a.domain] = (domainCounts[a.domain] || 0) + 1;
-                });
-                const mainDom = Object.keys(domainCounts).reduce((a, b) => 
-                    domainCounts[a] > domainCounts[b] ? a : b
-                );
-                setMainDomain(mainDom);
-            } else if (user.profile_json?.focus_domains?.length > 0) {
-                setMainDomain(user.profile_json.focus_domains[0]);
-            }
+            // 主ジャンルは最初のカテゴリーに設定
+            const firstDomain = Object.keys(domainLabels)[0];
+            setMainDomain(firstDomain);
 
             // 各ジャンルの人気本を取得（タグベースで分類）
             const booksByDomain = {};
