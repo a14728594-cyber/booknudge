@@ -80,7 +80,7 @@ export default function Home() {
             );
 
             // 主ジャンルは最初のカテゴリーに設定
-            const firstDomain = Object.keys(domainLabels)[0];
+            const firstDomain = Object.keys(domainConfig)[0];
             setMainDomain(firstDomain);
 
             // 各ジャンルの人気本を取得（タグベースで分類）
