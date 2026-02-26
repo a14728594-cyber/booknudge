@@ -1,27 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowRight, BookOpen, TrendingUp, Users, Sparkles, Crown, Loader2 } from 'lucide-react';
+import { ArrowRight, BookOpen, TrendingUp, Users, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { base44 } from '@/api/base44Client';
 
 export default function Landing() {
-    const [loading, setLoading] = useState(false);
-
-    const handleSubscribe = async () => {
-        setLoading(true);
-        try {
-            const { data } = await base44.functions.invoke('createCheckoutSession');
-            if (data.url) {
-                window.location.href = data.url;
-            }
-        } catch (error) {
-            console.error('Failed to create checkout session:', error);
-            alert('エラーが発生しました。もう一度お試しください。');
-            setLoading(false);
-        }
-    };
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 overflow-hidden">
             {/* Hero */}
@@ -43,33 +26,12 @@ export default function Landing() {
                             診断からスタートして、あなたに最適な本を見つけ、毎日ちょっとずつ、楽しく実践しながら学べる
                         </p>
                         
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                            <Link to={createPageUrl('onboarding')}>
-                                <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-lg px-10 py-7 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
-                                    無料で診断を始める
-                                    <ArrowRight className="w-5 h-5 ml-2" />
-                                </Button>
-                            </Link>
-                            
-                            <Button 
-                                size="lg" 
-                                onClick={handleSubscribe}
-                                disabled={loading}
-                                className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-lg px-10 py-7 rounded-2xl shadow-lg hover:shadow-xl transition-all"
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                        処理中...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Crown className="w-5 h-5 mr-2" />
-                                        プレミアム登録
-                                    </>
-                                )}
+                        <Link to={createPageUrl('onboarding')}>
+                            <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-lg px-10 py-7 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+                                無料で診断を始める
+                                <ArrowRight className="w-5 h-5 ml-2" />
                             </Button>
-                        </div>
+                        </Link>
                     </div>
 
                     {/* Right: Illustration */}
