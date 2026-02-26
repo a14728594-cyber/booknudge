@@ -46,8 +46,7 @@ export default function Layout({ children, currentPageName }) {
     return <>{children}</>;
   }
 
-  // 🚧 一時的に全員プレミアム扱い（テスト用）
-  const isPremium = true; // user?.subscription_status === 'active';
+  const isPremium = user?.subscription_status === 'active';
 
   const userNavItems = [
   { label: 'ホーム', path: 'home', icon: Home, requiresPremium: false },

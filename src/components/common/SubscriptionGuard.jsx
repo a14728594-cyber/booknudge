@@ -17,22 +17,19 @@ export default function SubscriptionGuard({ children, pagePath }) {
         try {
             const user = await base44.auth.me();
             
-            // 🚧 一時的に全員アクセス可能（テスト用）
-            setIsAuthorized(true);
-            
             // 管理者、有効なサブスクリプション、または特定のテストアカウントは無条件でアクセス可能
-            // if (user.role === 'admin' || user.subscription_status === 'active' || user.email === 'a14728594@gmail.com') {
-            //     setIsAuthorized(true);
-            // } else {
-            //     // イベント記録
-            //     await base44.functions.invoke('trackEvent', {
-            //         event_name: 'gated_access_blocked',
-            //         event_value: { path: pagePath }
-            //     });
+            if (user.role === 'admin' || user.subscription_status === 'active' || user.email === 'a14728594@gmail.com') {
+                setIsAuthorized(true);
+            } else {
+                // イベント記録
+                await base44.functions.invoke('trackEvent', {
+                    event_name: 'gated_access_blocked',
+                    event_value: { path: pagePath }
+                });
 
-            //     // Paywallへリダイレクト
-            //     navigate(createPageUrl('paywall') + '?next=' + encodeURIComponent(pagePath) + '&from=' + pagePath.split('/')[1]);
-            // }
+                // Paywallへリダイレクト
+                navigate(createPageUrl('paywall') + '?next=' + encodeURIComponent(pagePath) + '&from=' + pagePath.split('/')[1]);
+            }
         } catch (error) {
             console.error('Failed to check subscription:', error);
             navigate(createPageUrl('home'));
