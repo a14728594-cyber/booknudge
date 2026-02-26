@@ -29,7 +29,10 @@ Deno.serve(async (req) => {
     console.log('[INFO] Checkout session request started');
 
     try {
-        // 環境変数チェック
+        // 環境変数チェック＆デバッグ情報
+        const keyPrefix = STRIPE_SECRET_KEY ? STRIPE_SECRET_KEY.substring(0, 8) : 'NOT_SET';
+        const isTestMode = STRIPE_SECRET_KEY?.startsWith('sk_test_');
+        
         if (!STRIPE_SECRET_KEY) {
             console.error('[ERROR] STRIPE_SECRET_KEY not configured');
             return Response.json({ 
@@ -45,6 +48,16 @@ Deno.serve(async (req) => {
                 ok: false, 
                 code: 'STRIPE_PRICE_MISSING',
                 message: 'Stripe料金設定が完了していません。管理者にお問い合わせください。'
+            }, { status: 500 });
+        }
+        
+        // デバッグ情報を返す
+        if (!isTestMode) {
+            return Response.json({
+                ok: false,
+                code: 'LIVE_MODE_KEY_DETECTED',
+                message: `ライブモードのキーが検出されました。キー: ${keyPrefix}... / Price: ${STRIPE_PRICE_ID}`,
+                debug: { keyPrefix, isTestMode, priceId: STRIPE_PRICE_ID }
             }, { status: 500 });
         }
 
