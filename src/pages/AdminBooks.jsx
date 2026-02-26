@@ -98,7 +98,10 @@ export default function AdminBooks() {
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-3">
                         <BookOpen className="w-8 h-8 text-indigo-600" />
-                        <h1 className="text-3xl font-bold text-gray-900">本管理</h1>
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900">本管理</h1>
+                            <p className="text-sm text-gray-600 mt-1">全{books.length}冊</p>
+                        </div>
                     </div>
                     <div className="flex gap-2">
                         <Button
