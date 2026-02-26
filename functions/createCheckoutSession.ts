@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@17.5.0';
 
+// Force redeploy to refresh environment variables
 // 環境変数チェック
 const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY');
 const STRIPE_PRICE_ID = Deno.env.get('STRIPE_PRICE_ID');
