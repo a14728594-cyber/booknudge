@@ -154,7 +154,7 @@ export default function Landing() {
                         </Link>
                     </div>
                     <p className="text-center text-xs text-gray-500 mt-4">
-                        © 2026 BookFit. All rights reserved.
+                        © 2026 BookNudge. All rights reserved.
                     </p>
                 </div>
             </footer>
