@@ -153,6 +153,21 @@ export default function Home() {
                     </form>
                 </div>
 
+                {/* Quiz CTA */}
+                <div className="mb-12">
+                    <Link to={createPageUrl('quiz')}>
+                        <div className="max-w-2xl mx-auto bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white hover:shadow-xl transition-shadow cursor-pointer">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-xl font-bold mb-2">📝 あなたに最適な本を見つける診断</h3>
+                                    <p className="text-indigo-100 text-sm">繰り返し診断することで、より深くあなたを理解します</p>
+                                </div>
+                                <ArrowRight className="w-8 h-8 flex-shrink-0" />
+                            </div>
+                        </div>
+                    </Link>
+                </div>
+
                 {/* Main Domain Carousel */}
                 {topBooks[mainDomain]?.length > 0 && (
                     <div className="mb-16">
