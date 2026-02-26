@@ -6,11 +6,17 @@ import Stripe from 'npm:stripe@17.5.0';
 const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY');
 const STRIPE_PRICE_ID = Deno.env.get('STRIPE_PRICE_ID');
 
-if (!STRIPE_SECRET_KEY) {
+// デバッグ: キーのプレフィックスを確認
+if (STRIPE_SECRET_KEY) {
+    const keyPrefix = STRIPE_SECRET_KEY.substring(0, 8);
+    console.log(`[DEBUG] STRIPE_SECRET_KEY starts with: ${keyPrefix}...`);
+} else {
     console.error('[FATAL] STRIPE_SECRET_KEY is not set');
 }
 
-if (!STRIPE_PRICE_ID) {
+if (STRIPE_PRICE_ID) {
+    console.log(`[DEBUG] STRIPE_PRICE_ID: ${STRIPE_PRICE_ID}`);
+} else {
     console.error('[FATAL] STRIPE_PRICE_ID is not set');
 }
 
