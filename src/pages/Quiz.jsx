@@ -42,6 +42,7 @@ function QuizPageContent() {
         try {
             const userData = await base44.auth.me();
             setUser(userData);
+            setIsPro(userData.subscription_status === 'active');
 
             // アクティブなクイズを取得
             const activeQuizzes = await base44.entities.Quiz.filter({
@@ -54,6 +55,12 @@ function QuizPageContent() {
                 user_id: userData.id
             });
             setAnsweredQuizIds(new Set(answers.map(a => a.quiz_id)));
+
+            // Free ユーザーは1日の上限チェック
+            if (userData.subscription_status !== 'active') {
+                const limitResult = await base44.functions.invoke('checkQuizDailyLimit', {});
+                setDailyLimit(limitResult.data);
+            }
 
         } catch (error) {
             console.error('Failed to load quiz:', error);
