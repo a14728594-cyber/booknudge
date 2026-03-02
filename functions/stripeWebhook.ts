@@ -1,7 +1,18 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@14.21.0';
 
-const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"), {
+const mode = Deno.env.get('STRIPE_MODE') || 'test';
+const isLive = mode === 'live';
+
+const STRIPE_SECRET_KEY = isLive
+    ? Deno.env.get('STRIPE_SECRET_KEY_LIVE')
+    : Deno.env.get('STRIPE_SECRET_KEY_TEST');
+
+const STRIPE_WEBHOOK_SECRET = isLive
+    ? Deno.env.get('STRIPE_WEBHOOK_SECRET_LIVE')
+    : Deno.env.get('STRIPE_WEBHOOK_SECRET_TEST');
+
+const stripe = new Stripe(STRIPE_SECRET_KEY, {
     apiVersion: '2023-10-16',
 });
 
