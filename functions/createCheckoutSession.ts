@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@17.5.0';
-import * as Sentry from 'npm:@sentry/deno@7.108.0';
+import * as Sentry from 'npm:@sentry/node@7.108.0';
 
 Deno.serve(async (req) => {
     const requestId = crypto.randomUUID().substring(0, 8);

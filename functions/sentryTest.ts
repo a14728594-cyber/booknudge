@@ -1,4 +1,4 @@
-import * as Sentry from 'npm:@sentry/deno@7.108.0';
+import * as Sentry from 'npm:@sentry/node@7.108.0';
 
 Deno.serve(async (req) => {
     // Sentry初期化（一度だけ）
