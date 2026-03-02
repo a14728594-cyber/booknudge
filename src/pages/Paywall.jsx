@@ -66,25 +66,47 @@ export default function Paywall() {
     };
 
     const handleCheckout = async () => {
+        console.log('[Paywall] Checkout button clicked');
         setLoading(true);
         setError(null);
+        
         try {
             const successPath = createPageUrl('BillingSuccess');
             const cancelPath = createPageUrl('paywall');
-            const res = await base44.functions.invoke('createCheckoutSession', {
+            
+            const payload = {
                 success_url: `${window.location.origin}${successPath}?next=${encodeURIComponent(nextUrl)}`,
                 cancel_url: `${window.location.origin}${cancelPath}?canceled=true&next=${encodeURIComponent(nextUrl)}&from=${from}`,
                 next: nextUrl
-            });
+            };
+            
+            console.log('[Paywall] Calling createCheckoutSession with payload:', payload);
+            
+            const res = await base44.functions.invoke('createCheckoutSession', payload);
+            
+            console.log('[Paywall] createCheckoutSession response:', res.data);
+            
             if (res.data?.ok && res.data?.url) {
-                window.open(res.data.url, '_top');
+                console.log('[Paywall] Redirecting to Stripe Checkout:', res.data.url);
+                window.location.href = res.data.url;
             } else {
-                setError({ message: res.data?.message || 'エラーが発生しました', code: res.data?.code, details: res.data?.details });
+                console.error('[Paywall] Invalid response from createCheckoutSession:', res.data);
+                setError({ 
+                    message: res.data?.message || 'エラーが発生しました', 
+                    code: res.data?.code, 
+                    details: res.data?.details 
+                });
+                setLoading(false);
             }
         } catch (err) {
-            setError({ message: 'チェックアウトの開始に失敗しました', code: 'NETWORK_ERROR' });
+            console.error('[Paywall] Checkout error:', err);
+            setError({ 
+                message: 'チェックアウトの開始に失敗しました', 
+                code: 'NETWORK_ERROR',
+                details: err.message 
+            });
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const features = [
