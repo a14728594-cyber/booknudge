@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import Card from '@/components/common/Card';
 import BookCard from '@/components/common/BookCard';
-import { Loader2, Edit, Save, X, Lock, Globe, Heart, Users as UsersIcon, RefreshCw } from 'lucide-react';
+import { Loader2, Edit, Save, X, Lock, Globe, Heart, Users as UsersIcon, RefreshCw, CreditCard } from 'lucide-react';
 
 export default function MyProfile() {
     const navigate = useNavigate();
@@ -17,6 +17,7 @@ export default function MyProfile() {
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [portalLoading, setPortalLoading] = useState(false);
     
     const [favorites, setFavorites] = useState([]);
     const [followersCount, setFollowersCount] = useState(0);
@@ -115,6 +116,26 @@ export default function MyProfile() {
             profile_visibility: user.profile_visibility || 'public'
         });
         setEditing(false);
+    };
+
+    const handleBillingPortal = async () => {
+        setPortalLoading(true);
+        try {
+            const res = await base44.functions.invoke('createCustomerPortalSession', {
+                return_url: `${window.location.origin}${createPageUrl('profile')}`
+            });
+            
+            if (res.data?.ok && res.data?.url) {
+                window.location.href = res.data.url;
+            } else {
+                alert('請求管理ページを開けませんでした。');
+                setPortalLoading(false);
+            }
+        } catch (error) {
+            console.error('Portal error:', error);
+            alert('エラーが発生しました。');
+            setPortalLoading(false);
+        }
     };
 
     if (loading) {
@@ -287,13 +308,28 @@ export default function MyProfile() {
                                 <h2 className="text-lg font-bold text-gray-900 mb-1">プレミアムプラン</h2>
                                 <p className="text-sm text-gray-500">現在ご契約中です</p>
                             </div>
-                            <Button
-                                variant="outline"
-                                className="text-red-600 border-red-200 hover:bg-red-50"
-                                onClick={() => navigate(createPageUrl('BillingCancel'))}
-                            >
-                                解約する
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    className="gap-2"
+                                    disabled={portalLoading}
+                                    onClick={handleBillingPortal}
+                                >
+                                    {portalLoading ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <CreditCard className="w-4 h-4" />
+                                    )}
+                                    請求管理
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="text-red-600 border-red-200 hover:bg-red-50"
+                                    onClick={() => navigate(createPageUrl('BillingCancel'))}
+                                >
+                                    解約する
+                                </Button>
+                            </div>
                         </div>
                     </Card>
                 )}
