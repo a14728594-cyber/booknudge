@@ -65,8 +65,24 @@ export default function Paywall() {
         }
     };
 
-    const handleCheckout = () => {
-        window.location.href = 'https://buy.stripe.com/bJe8wOa1WcqigLI5OV8Ra00';
+    const handleCheckout = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await base44.functions.invoke('createCheckoutSession', {
+                success_url: `${window.location.origin}/billing-success?next=${encodeURIComponent(nextUrl)}`,
+                cancel_url: `${window.location.origin}/paywall?canceled=true&next=${encodeURIComponent(nextUrl)}&from=${from}`,
+                next: nextUrl
+            });
+            if (res.data?.ok && res.data?.url) {
+                window.location.href = res.data.url;
+            } else {
+                setError({ message: res.data?.message || 'エラーが発生しました', code: res.data?.code, details: res.data?.details });
+            }
+        } catch (err) {
+            setError({ message: 'チェックアウトの開始に失敗しました', code: 'NETWORK_ERROR' });
+        }
+        setLoading(false);
     };
 
     const features = [
