@@ -36,16 +36,24 @@ Deno.serve(async (req) => {
 
         const { success_url, cancel_url, next } = await req.json();
 
-        let customerId = user.stripe_customer_id;
+        // モードに応じた顧客IDフィールドを使い分ける
+        const customerIdField = isLive ? 'stripe_customer_id_live' : 'stripe_customer_id_test';
+        let customerId = user[customerIdField];
 
         if (!customerId) {
-            const customer = await stripe.customers.create({
-                email: user.email,
-                metadata: { user_id: user.id }
-            });
-            customerId = customer.id;
+            // メールで既存顧客を検索
+            const existing = await stripe.customers.list({ email: user.email, limit: 1 });
+            if (existing.data.length > 0) {
+                customerId = existing.data[0].id;
+            } else {
+                const customer = await stripe.customers.create({
+                    email: user.email,
+                    metadata: { user_id: user.id }
+                });
+                customerId = customer.id;
+            }
             await base44.asServiceRole.entities.User.update(user.id, {
-                stripe_customer_id: customerId
+                [customerIdField]: customerId
             });
         }
 
