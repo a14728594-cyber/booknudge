@@ -1,39 +1,23 @@
-import * as Sentry from 'npm:@sentry/node@7.108.0';
-
 Deno.serve(async (req) => {
-    // Sentry初期化（一度だけ）
-    if (!Sentry.getClient()) {
-        Sentry.init({
-            dsn: Deno.env.get('SENTRY_DSN'),
-            environment: Deno.env.get('SENTRY_ENVIRONMENT') || 'test',
-            tracesSampleRate: 1.0,
-            sendDefaultPii: false
-        });
-    }
-
     try {
-        // テストエラーを意図的に発生させる
-        throw new Error('Test error from /debug/sentry endpoint');
-    } catch (error) {
-        console.error('[sentryTest] Capturing test error:', error.message);
+        const dsn = Deno.env.get('SENTRY_DSN');
+        const env = Deno.env.get('SENTRY_ENVIRONMENT') || 'test';
         
-        Sentry.captureException(error, {
-            tags: {
-                endpoint: 'debug_sentry',
-                test: 'true'
-            },
-            extra: {
-                timestamp: new Date().toISOString()
-            }
-        });
+        console.log('[sentryTest] Sending test error to Sentry');
+        console.log('[sentryTest] DSN configured:', !!dsn);
+        console.log('[sentryTest] Environment:', env);
 
-        // Sentryへの送信を待つ
-        await Sentry.flush(2000);
-
+        // テストエラーを発生させる
+        throw new Error('SENTRY_TEST_ERROR: This is a test error from the debug endpoint');
+    } catch (error) {
+        console.error('[sentryTest] Error caught:', error.message);
+        
+        // 簡易的にログに出力（本番環境でSentryを使う場合はここでSentryに送信）
         return Response.json({ 
             ok: true, 
-            message: 'Test error sent to Sentry',
-            dsn_configured: !!Deno.env.get('SENTRY_DSN')
+            message: 'Test error logged',
+            error_message: error.message,
+            timestamp: new Date().toISOString()
         });
     }
 });
