@@ -219,14 +219,20 @@ export default function Onboarding() {
 
             case 'future_goal':
                 return (
-                    <div>
-                        <Label>将来の目標</Label>
-                        <Textarea
-                            value={formData.future_goal}
-                            onChange={(e) => setFormData({ ...formData, future_goal: e.target.value })}
-                            placeholder="例：3年後には自分の会社を立ち上げて、チームを率いるリーダーになりたい"
-                            rows={4}
-                        />
+                    <div className="space-y-3">
+                        {FUTURE_GOAL_OPTIONS.map(option => (
+                            <button
+                                key={option}
+                                onClick={() => setFormData({ ...formData, future_goal: option })}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                                    formData.future_goal === option
+                                        ? 'border-indigo-600 bg-indigo-50'
+                                        : 'border-gray-200 hover:border-indigo-300'
+                                }`}
+                            >
+                                {option}
+                            </button>
+                        ))}
                     </div>
                 );
 
