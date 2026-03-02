@@ -30,6 +30,14 @@ export default function MyProfile() {
 
     useEffect(() => {
         loadProfile();
+        
+        // Refresh user data every time the page is focused
+        const handleFocus = () => {
+            loadProfile();
+        };
+        
+        window.addEventListener('focus', handleFocus);
+        return () => window.removeEventListener('focus', handleFocus);
     }, []);
 
     const loadProfile = async () => {

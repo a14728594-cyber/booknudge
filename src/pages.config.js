@@ -52,6 +52,7 @@ import AdminBooks from './pages/AdminBooks';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminInquiries from './pages/AdminInquiries';
 import AdminUsers from './pages/AdminUsers';
+import BillingCancel from './pages/BillingCancel';
 import BillingSuccess from './pages/BillingSuccess';
 import Book from './pages/Book';
 import BookDetail from './pages/BookDetail';
@@ -77,7 +78,6 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Tokushoho from './pages/Tokushoho';
 import genreDomain from './pages/genre[domain]';
-import BillingCancel from './pages/BillingCancel';
 import __Layout from './Layout.jsx';
 
 
@@ -87,6 +87,7 @@ export const PAGES = {
     "AdminDashboard": AdminDashboard,
     "AdminInquiries": AdminInquiries,
     "AdminUsers": AdminUsers,
+    "BillingCancel": BillingCancel,
     "BillingSuccess": BillingSuccess,
     "Book": Book,
     "BookDetail": BookDetail,
@@ -112,7 +113,6 @@ export const PAGES = {
     "Terms": Terms,
     "Tokushoho": Tokushoho,
     "genre[domain]": genreDomain,
-    "BillingCancel": BillingCancel,
 }
 
 export const pagesConfig = {
