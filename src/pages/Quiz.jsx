@@ -29,6 +29,9 @@ function QuizPageContent() {
     const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
     const [sliderValue, setSliderValue] = useState(50);
     const [answeredQuizIds, setAnsweredQuizIds] = useState(new Set());
+    const [isPro, setIsPro] = useState(false);
+    const [dailyLimit, setDailyLimit] = useState(null);
+    const [limitError, setLimitError] = useState(false);
 
     useEffect(() => {
         loadData();
