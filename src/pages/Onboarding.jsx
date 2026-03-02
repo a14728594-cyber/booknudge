@@ -332,14 +332,20 @@ export default function Onboarding() {
 
             case 'yearly_goal':
                 return (
-                    <div>
-                        <Label>今年の目標</Label>
-                        <Textarea
-                            value={formData.yearly_goal}
-                            onChange={(e) => setFormData({ ...formData, yearly_goal: e.target.value })}
-                            placeholder="例：売上を前年比150%にする"
-                            rows={3}
-                        />
+                    <div className="space-y-3">
+                        {YEARLY_GOAL_OPTIONS.map(option => (
+                            <button
+                                key={option}
+                                onClick={() => setFormData({ ...formData, yearly_goal: option })}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                                    formData.yearly_goal === option
+                                        ? 'border-indigo-600 bg-indigo-50'
+                                        : 'border-gray-200 hover:border-indigo-300'
+                                }`}
+                            >
+                                {option}
+                            </button>
+                        ))}
                     </div>
                 );
 
