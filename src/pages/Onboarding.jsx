@@ -294,14 +294,20 @@ export default function Onboarding() {
 
             case 'strengths':
                 return (
-                    <div>
-                        <Label>好き・得意なこと</Label>
-                        <Textarea
-                            value={formData.strengths}
-                            onChange={(e) => setFormData({ ...formData, strengths: e.target.value })}
-                            placeholder="例：人と話すこと、データ分析"
-                            rows={3}
-                        />
+                    <div className="space-y-3">
+                        {STRENGTHS_OPTIONS.map(option => (
+                            <button
+                                key={option}
+                                onClick={() => setFormData({ ...formData, strengths: option })}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                                    formData.strengths === option
+                                        ? 'border-indigo-600 bg-indigo-50'
+                                        : 'border-gray-200 hover:border-indigo-300'
+                                }`}
+                            >
+                                {option}
+                            </button>
+                        ))}
                     </div>
                 );
 
