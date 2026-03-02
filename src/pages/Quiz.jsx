@@ -9,6 +9,8 @@ import { Slider } from '@/components/ui/slider';
 import { Loader2 } from 'lucide-react';
 import Card from '@/components/common/Card';
 import SubscriptionGuard from '@/components/common/SubscriptionGuard';
+import QuizDistribution from '@/components/quiz/QuizDistribution';
+import QuizPaywall from '@/components/quiz/QuizPaywall';
 
 export default function Quiz() {
     return (
