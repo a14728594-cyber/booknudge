@@ -12,6 +12,13 @@ export default function BillingSuccess() {
     const [subscriptionActive, setSubscriptionActive] = useState(false);
     const [timeoutReached, setTimeoutReached] = useState(false);
     const [message, setMessage] = useState('決済を確認中...');
+    const [debugInfo, setDebugInfo] = useState({
+        userId: null,
+        currentStatus: null,
+        currentPlan: null,
+        verifyResult: null,
+        lastStripeEventId: null
+    });
     const urlParams = new URLSearchParams(window.location.search);
     const nextUrl = urlParams.get('next') || '/home';
     const sessionId = urlParams.get('session_id');
@@ -35,23 +42,56 @@ export default function BillingSuccess() {
     const verifyAndActivate = async () => {
         console.log('[BillingSuccess] Starting verification - session_id:', sessionId);
         
+        // ユーザー情報取得
+        try {
+            const user = await base44.auth.me();
+            setDebugInfo(prev => ({
+                ...prev,
+                userId: user.id,
+                currentStatus: user.subscription_status,
+                currentPlan: user.plan
+            }));
+        } catch (error) {
+            console.error('[BillingSuccess] Failed to load user:', error);
+        }
+        
         if (!sessionId) {
             console.warn('[BillingSuccess] No session_id provided, falling back to polling');
             setMessage('決済情報を確認中...');
+            setDebugInfo(prev => ({
+                ...prev,
+                verifyResult: { success: false, reason: 'session_idなし' }
+            }));
             await checkSubscriptionStatusPolling();
             return;
         }
 
         try {
-            // 即座にセッションを検証してアクティベート
+            // 即座にセッションを検証してアクティベート（10秒タイムアウト）
             console.log('[BillingSuccess] Verifying checkout session...');
             setMessage('決済を確認しています...');
             
-            const response = await base44.functions.invoke('verifyCheckoutSession', {
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout')), 10000)
+            );
+            
+            const verifyPromise = base44.functions.invoke('verifyCheckoutSession', {
                 session_id: sessionId
             });
+            
+            const response = await Promise.race([verifyPromise, timeoutPromise]);
 
             console.log('[BillingSuccess] Verification response:', response.data);
+            
+            setDebugInfo(prev => ({
+                ...prev,
+                verifyResult: {
+                    success: response.data?.ok,
+                    active: response.data?.subscription_active,
+                    message: response.data?.message,
+                    timestamp: new Date().toISOString()
+                }
+            }));
 
             if (response.data?.ok && response.data?.subscription_active) {
                 console.log('[BillingSuccess] Subscription activated immediately');
@@ -71,6 +111,14 @@ export default function BillingSuccess() {
         } catch (error) {
             console.error('[BillingSuccess] Verification failed:', error);
             setMessage('決済状態を確認中...');
+            setDebugInfo(prev => ({
+                ...prev,
+                verifyResult: {
+                    success: false,
+                    reason: error.message === 'Timeout' ? 'タイムアウト（10秒）' : error.message,
+                    timestamp: new Date().toISOString()
+                }
+            }));
             // エラーの場合もポーリングにフォールバック
             await checkSubscriptionStatusPolling();
         }
@@ -86,6 +134,12 @@ export default function BillingSuccess() {
             try {
                 const user = await base44.auth.me();
                 console.log(`[BillingSuccess] Polling attempt ${attempts}/${maxAttempts}: subscription_status=${user.subscription_status}, plan=${user.plan}`);
+                
+                setDebugInfo(prev => ({
+                    ...prev,
+                    currentStatus: user.subscription_status,
+                    currentPlan: user.plan
+                }));
                 
                 if (user.subscription_status === 'active') {
                     setSubscriptionActive(true);
@@ -123,8 +177,8 @@ export default function BillingSuccess() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-6">
-            <div className="max-w-md w-full">
+        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-6 py-12">
+            <div className="max-w-2xl w-full space-y-4">
                 <Card className="text-center">
                     {checking ? (
                         <>
@@ -181,6 +235,74 @@ export default function BillingSuccess() {
                             </div>
                         </>
                     ) : null}
+                </Card>
+
+                {/* デバッグ情報 */}
+                <Card className="bg-gray-50">
+                    <div className="text-left">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                            デバッグ情報
+                        </h3>
+                        <div className="space-y-2 text-xs font-mono">
+                            <div className="flex justify-between py-1 border-b border-gray-200">
+                                <span className="text-gray-500">ユーザーID:</span>
+                                <span className="text-gray-900 font-semibold">{debugInfo.userId || '読込中...'}</span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-gray-200">
+                                <span className="text-gray-500">現在のステータス:</span>
+                                <span className={`font-semibold ${debugInfo.currentStatus === 'active' ? 'text-green-600' : 'text-gray-600'}`}>
+                                    {debugInfo.currentStatus || '読込中...'}
+                                </span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-gray-200">
+                                <span className="text-gray-500">現在のプラン:</span>
+                                <span className={`font-semibold ${debugInfo.currentPlan === 'premium' ? 'text-indigo-600' : 'text-gray-600'}`}>
+                                    {debugInfo.currentPlan || '読込中...'}
+                                </span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-gray-200">
+                                <span className="text-gray-500">session_id:</span>
+                                <span className="text-gray-900 text-[10px] break-all">{sessionId || 'なし'}</span>
+                            </div>
+                            <div className="py-1 border-b border-gray-200">
+                                <div className="text-gray-500 mb-1">検証結果:</div>
+                                {debugInfo.verifyResult ? (
+                                    <div className="pl-2 space-y-1">
+                                        <div className={`${debugInfo.verifyResult.success ? 'text-green-600' : 'text-red-600'}`}>
+                                            ✓ Success: {String(debugInfo.verifyResult.success)}
+                                        </div>
+                                        {debugInfo.verifyResult.active !== undefined && (
+                                            <div className={`${debugInfo.verifyResult.active ? 'text-green-600' : 'text-yellow-600'}`}>
+                                                ✓ Active: {String(debugInfo.verifyResult.active)}
+                                            </div>
+                                        )}
+                                        {debugInfo.verifyResult.message && (
+                                            <div className="text-gray-700">
+                                                ✓ Message: {debugInfo.verifyResult.message}
+                                            </div>
+                                        )}
+                                        {debugInfo.verifyResult.reason && (
+                                            <div className="text-red-600">
+                                                ✗ Reason: {debugInfo.verifyResult.reason}
+                                            </div>
+                                        )}
+                                        {debugInfo.verifyResult.timestamp && (
+                                            <div className="text-gray-500 text-[10px]">
+                                                {new Date(debugInfo.verifyResult.timestamp).toLocaleTimeString('ja-JP')}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="text-gray-400 pl-2">未実行</div>
+                                )}
+                            </div>
+                            <div className="flex justify-between py-1">
+                                <span className="text-gray-500">Stripe Event ID:</span>
+                                <span className="text-gray-400">{debugInfo.lastStripeEventId || '未保存'}</span>
+                            </div>
+                        </div>
+                    </div>
                 </Card>
             </div>
         </div>
