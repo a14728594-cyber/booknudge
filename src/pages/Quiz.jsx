@@ -71,6 +71,12 @@ function QuizPageContent() {
     const handleSubmitAnswer = async () => {
         if (!user || quizzes.length === 0) return;
 
+        // Free ユーザーの1日5問制限チェック
+        if (!isPro && dailyLimit && !dailyLimit.canAnswer) {
+            setLimitError(true);
+            return;
+        }
+
         const currentQuiz = quizzes[currentQuizIndex];
         
         try {
@@ -90,6 +96,15 @@ function QuizPageContent() {
             const newAnswered = new Set(answeredQuizIds);
             newAnswered.add(currentQuiz.id);
             setAnsweredQuizIds(newAnswered);
+
+            // Free ユーザーは上限をカウントアップ
+            if (!isPro && dailyLimit) {
+                setDailyLimit({
+                    ...dailyLimit,
+                    todayCount: dailyLimit.todayCount + 1,
+                    remaining: Math.max(0, dailyLimit.remaining - 1)
+                });
+            }
 
             // 次のクイズへ
             if (currentQuizIndex < quizzes.length - 1) {
