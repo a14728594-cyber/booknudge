@@ -5,8 +5,8 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Send, RefreshCw, Clock } from 'lucide-react';
+
+import { Loader2 } from 'lucide-react';
 import Card from '@/components/common/Card';
 import SubscriptionGuard from '@/components/common/SubscriptionGuard';
 
