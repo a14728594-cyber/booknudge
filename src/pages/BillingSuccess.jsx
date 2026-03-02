@@ -39,6 +39,7 @@ export default function BillingSuccess() {
 
             try {
                 const user = await base44.auth.me();
+                console.log(`[BillingSuccess] attempt ${attempts}: subscription_status=${user.subscription_status}, plan=${user.plan}`);
                 
                 if (user.subscription_status === 'active') {
                     setSubscriptionActive(true);
