@@ -6,13 +6,20 @@ export default function DebugSentry() {
     const [sent, setSent] = useState(false);
     const [error, setError] = useState(null);
 
+    const [data, setData] = useState(null);
+
     useEffect(() => {
         const sendTestError = async () => {
             try {
                 console.log('[DebugSentry] Sending test error to Sentry...');
                 const response = await base44.functions.invoke('sentryTest', {});
                 console.log('[DebugSentry] Response:', response.data);
-                setSent(true);
+                if (response.data.ok) {
+                    setData(response.data);
+                    setSent(true);
+                } else {
+                    setError(response.data.error);
+                }
             } catch (err) {
                 console.error('[DebugSentry] Error:', err);
                 setError(err.message || 'テストエラーの送信に失敗しました');
@@ -24,21 +31,24 @@ export default function DebugSentry() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-6">
             <div className="max-w-2xl mx-auto text-center">
-                {sent ? (
+                {sent && data ? (
                     <div className="space-y-4">
                         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                             <CheckCircle className="w-10 h-10 text-green-600" />
                         </div>
-                        <h1 className="text-5xl font-bold text-gray-900">sent</h1>
-                        <p className="text-gray-600">テストエラーが Sentry に送信されました</p>
+                        <h1 className="text-4xl font-bold text-gray-900">sent (eventId: {data.eventId})</h1>
+                        <div className="bg-white rounded-lg p-6 space-y-2 text-left">
+                            <p className="text-gray-700"><span className="font-semibold">DSN:</span> {data.dsnPresent ? 'Present ✓' : 'Not present ✗'}</p>
+                            <p className="text-gray-700"><span className="font-semibold">Environment:</span> {data.environment}</p>
+                            <p className="text-gray-700"><span className="font-semibold">Timestamp:</span> {data.timestamp}</p>
+                        </div>
                     </div>
                 ) : error ? (
                     <div className="space-y-4">
                         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
                             <AlertCircle className="w-10 h-10 text-red-600" />
                         </div>
-                        <h1 className="text-3xl font-bold text-red-600">エラー</h1>
-                        <p className="text-gray-600">{error}</p>
+                        <h1 className="text-3xl font-bold text-red-600">failed: {error}</h1>
                     </div>
                 ) : (
                     <div className="space-y-4">
