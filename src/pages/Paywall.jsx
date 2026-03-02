@@ -75,7 +75,7 @@ export default function Paywall() {
                 next: nextUrl
             });
             if (res.data?.ok && res.data?.url) {
-                window.location.href = res.data.url;
+                window.open(res.data.url, '_top');
             } else {
                 setError({ message: res.data?.message || 'エラーが発生しました', code: res.data?.code, details: res.data?.details });
             }
