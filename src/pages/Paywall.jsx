@@ -69,9 +69,11 @@ export default function Paywall() {
         setLoading(true);
         setError(null);
         try {
+            const successPath = createPageUrl('BillingSuccess');
+            const cancelPath = createPageUrl('paywall');
             const res = await base44.functions.invoke('createCheckoutSession', {
-                success_url: `${window.location.origin}/billing-success?next=${encodeURIComponent(nextUrl)}`,
-                cancel_url: `${window.location.origin}/paywall?canceled=true&next=${encodeURIComponent(nextUrl)}&from=${from}`,
+                success_url: `${window.location.origin}${successPath}?next=${encodeURIComponent(nextUrl)}`,
+                cancel_url: `${window.location.origin}${cancelPath}?canceled=true&next=${encodeURIComponent(nextUrl)}&from=${from}`,
                 next: nextUrl
             });
             if (res.data?.ok && res.data?.url) {
