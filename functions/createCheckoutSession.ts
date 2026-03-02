@@ -18,9 +18,8 @@ Deno.serve(async (req) => {
     console.log(`[${requestId}] createCheckoutSession started`);
     
     try {
-        // モード固定: テストは 'test'、本番リリース時は 'live' に変更してデプロイ
-        const mode = 'test';
-        const isLive = false;
+        const stripeMode = Deno.env.get('STRIPE_MODE') || 'test';
+        const isLive = stripeMode === 'live';
 
         const STRIPE_SECRET_KEY = isLive
             ? Deno.env.get('STRIPE_SECRET_KEY_LIVE')
@@ -30,7 +29,7 @@ Deno.serve(async (req) => {
             ? Deno.env.get('STRIPE_PRICE_ID_LIVE')
             : Deno.env.get('STRIPE_PRICE_ID_TEST');
 
-        console.log(`[${requestId}] Stripe mode: ${mode}, key prefix: ${STRIPE_SECRET_KEY?.substring(0, 8)}...`);
+        console.log(`[${requestId}] Stripe mode: ${stripeMode}, key prefix: ${STRIPE_SECRET_KEY?.substring(0, 8)}...`);
 
         if (!STRIPE_SECRET_KEY) {
             return Response.json({ ok: false, code: 'STRIPE_CONFIG_MISSING', message: 'Stripe設定が完了していません。' }, { status: 500 });
