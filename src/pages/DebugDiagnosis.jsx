@@ -39,7 +39,7 @@ export default function DebugDiagnosis() {
     });
   };
 
-  const runFullDiagnosisFlo = async () => {
+  const runFullDiagnosisFlow = async () => {
     setLoading(true);
     setSteps([]);
     setResult(null);
@@ -82,18 +82,12 @@ export default function DebugDiagnosis() {
       console.log('[DebugDiagnosis] Recommendations:', recResponse.data);
       updateLastStep('success', `generated ${recResponse.data?.books?.length || 0} recommendations`);
 
-      // Step 4: Fetch book details
+      // Step 4: Use recommendations directly (if available)
       if (recResponse.data?.books?.length > 0) {
-        addStep('Fetch book details');
-        const bookIds = recResponse.data.books.slice(0, 3);
-        const booksResponse = await Promise.race([
-          Promise.all(bookIds.map(bid => base44.entities.Book.filter({ id: bid }).catch(() => []))),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), TIMEOUT_MS))
-        ]);
-
-        const books = booksResponse.filter(b => b.length > 0).map(b => b[0]);
+        addStep('Process recommendations');
+        const books = Array.isArray(recResponse.data.books) ? recResponse.data.books.slice(0, 3) : [];
         setRecommendations(books);
-        updateLastStep('success', `fetched ${books.length} books`);
+        updateLastStep('success', `processed ${books.length} books`);
       }
 
       setResult('success');
@@ -129,7 +123,7 @@ export default function DebugDiagnosis() {
         {/* Test Button */}
         <DebugCard title="Diagnosis Tests">
           <Button
-            onClick={runFullDiagnosisFlo}
+            onClick={runFullDiagnosisFlow}
             disabled={loading}
             className="w-full gap-2"
           >
