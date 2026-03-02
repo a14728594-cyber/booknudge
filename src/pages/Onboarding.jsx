@@ -70,6 +70,51 @@ const CURRENT_ACTIONS_OPTIONS = [
     'その他'
 ];
 
+const FUTURE_GOAL_OPTIONS = [
+    '起業・独立する',
+    '年収を大幅に上げる',
+    'スキルをアップさせる',
+    'キャリアチェンジする',
+    'リーダーシップを身につける',
+    'その他'
+];
+
+const CHALLENGES_OPTIONS = [
+    '売上・成約率が上がらない',
+    'マーケティング戦略が分からない',
+    '対人関係が上手くいかない',
+    'メンタルが不安定',
+    '時間管理ができていない',
+    'その他'
+];
+
+const STRENGTHS_OPTIONS = [
+    '人間関係構築力',
+    'データ分析力',
+    'クリエイティブ思考',
+    'リーダーシップ',
+    'コミュニケーション力',
+    '特にない'
+];
+
+const WEAKNESSES_OPTIONS = [
+    '細かい作業',
+    '長時間のデスクワーク',
+    '対人関係',
+    '数字・データ分析',
+    'クリエイティブ作業',
+    '特にない'
+];
+
+const YEARLY_GOAL_OPTIONS = [
+    '売上150%達成',
+    '新しいスキル習得',
+    'チームマネジメント経験',
+    'キャリアアップ',
+    'メンタルヘルス改善',
+    'その他'
+];
+
 export default function Onboarding() {
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(0);
