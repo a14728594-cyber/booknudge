@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
         console.log(`[${requestId}] Retrieving session ${session_id} from Stripe`);
         const session = await stripe.checkout.sessions.retrieve(session_id);
 
-        console.log(`[${requestId}] Session retrieved - payment_status: ${session.payment_status}, customer: ${session.customer}, subscription: ${session.subscription}`);
+        console.log(`[${requestId}] Session retrieved - payment_status: ${session.payment_status}, customer: ${session.customer}, subscription: ${session.subscription}, customer_email: ${session.customer_email}, status: ${session.status}`);
 
         // セッションが有効で支払い完了している場合
         if (session.payment_status === 'paid' && session.customer) {

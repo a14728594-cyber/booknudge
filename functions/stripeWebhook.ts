@@ -49,15 +49,16 @@ Deno.serve(async (req) => {
             STRIPE_WEBHOOK_SECRET
         );
 
-        console.log(`[${webhookId}] Event type: ${event.type}, event_id: ${event.id}`);
+        console.log(`[${webhookId}] Event type: ${event.type}, event_id: ${event.id}, timestamp: ${new Date().toISOString()}`);
 
         switch (event.type) {
             case 'checkout.session.completed': {
                 const session = event.data.object;
                 const userId = session.metadata?.user_id || session.client_reference_id;
                 const customerId = session.customer;
+                const customerEmail = session.customer_email || 'unknown';
 
-                console.log(`[${webhookId}] checkout.session.completed - session_id: ${session.id}, user_id: ${userId}, customer_id: ${customerId}, subscription_id: ${session.subscription}`);
+                console.log(`[${webhookId}] checkout.session.completed - session_id: ${session.id}, user_id: ${userId}, customer_id: ${customerId}, customer_email: ${customerEmail}, subscription_id: ${session.subscription}, payment_status: ${session.payment_status}`);
 
                 if (userId && customerId) {
                     console.log(`[${webhookId}] Updating DB for user ${userId}...`);

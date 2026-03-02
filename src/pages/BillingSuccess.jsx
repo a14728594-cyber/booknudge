@@ -57,7 +57,7 @@ export default function BillingSuccess() {
         
         if (!sessionId) {
             console.warn('[BillingSuccess] No session_id provided, falling back to polling');
-            setMessage('決済情報を確認中...');
+            setMessage('支払いを確認中...');
             setDebugInfo(prev => ({
                 ...prev,
                 verifyResult: { success: false, reason: 'session_idなし' }
@@ -67,21 +67,15 @@ export default function BillingSuccess() {
         }
 
         try {
-            // 即座にセッションを検証してアクティベート（10秒タイムアウト）
-            console.log('[BillingSuccess] Verifying checkout session...');
-            setMessage('決済を確認しています...');
+            // 即座にセッションを検証してアクティベート
+            console.log('[BillingSuccess] Verifying checkout session immediately...');
+            setMessage('支払いを確認中...');
             
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout')), 10000)
-            );
-            
-            const verifyPromise = base44.functions.invoke('verifyCheckoutSession', {
+            const response = await base44.functions.invoke('verifyCheckoutSession', {
                 session_id: sessionId
             });
-            
-            const response = await Promise.race([verifyPromise, timeoutPromise]);
 
-            console.log('[BillingSuccess] Verification response:', response.data);
+            console.log('[BillingSuccess] Immediate verification response:', response.data);
             
             setDebugInfo(prev => ({
                 ...prev,
@@ -105,17 +99,15 @@ export default function BillingSuccess() {
             } else {
                 // 検証APIが成功したが、まだアクティブでない場合はポーリング
                 console.log('[BillingSuccess] Verification successful but not active yet, starting polling');
-                setMessage('決済処理を待機中...');
                 await checkSubscriptionStatusPolling();
             }
         } catch (error) {
-            console.error('[BillingSuccess] Verification failed:', error);
-            setMessage('決済状態を確認中...');
+            console.error('[BillingSuccess] Immediate verification failed:', error);
             setDebugInfo(prev => ({
                 ...prev,
                 verifyResult: {
                     success: false,
-                    reason: error.message === 'Timeout' ? 'タイムアウト（10秒）' : error.message,
+                    reason: error.message,
                     timestamp: new Date().toISOString()
                 }
             }));
@@ -126,7 +118,9 @@ export default function BillingSuccess() {
 
     const checkSubscriptionStatusPolling = async () => {
         let attempts = 0;
-        const maxAttempts = 10; // 30秒間（3秒おきに10回）
+        const maxAttempts = 10;
+
+        setMessage('支払いを確認中...');
 
         const checkInterval = setInterval(async () => {
             attempts++;
@@ -142,6 +136,7 @@ export default function BillingSuccess() {
                 }));
                 
                 if (user.subscription_status === 'active') {
+                    console.log('[BillingSuccess] Subscription activated via polling');
                     setSubscriptionActive(true);
                     setChecking(false);
                     setMessage('プレミアムプランが有効になりました');
@@ -151,7 +146,7 @@ export default function BillingSuccess() {
                         navigate(nextUrl);
                     }, 1500);
                 } else if (attempts >= maxAttempts) {
-                    console.warn('[BillingSuccess] Timeout reached after polling');
+                    console.warn('[BillingSuccess] Max polling attempts reached');
                     setTimeoutReached(true);
                     setChecking(false);
                     clearInterval(checkInterval);
