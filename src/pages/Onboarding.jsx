@@ -109,12 +109,7 @@ export default function Onboarding() {
                 onboarding_completed: true
             });
 
-            // クイズセット生成
-            await base44.functions.invoke('generateQuizSet', {
-                request_text: null
-            });
-
-            // クイズページへ遷移
+            // クイズページへ遷移（固定クイズを使用）
             navigate(createPageUrl('quiz'));
         } catch (error) {
             console.error('Onboarding failed:', error);

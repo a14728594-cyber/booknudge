@@ -58,8 +58,9 @@ function ConnectContent() {
             await loadMatches(userData.id);
 
             await base44.functions.invoke('trackEvent', {
-                event_name: 'connect_view',
-                event_value: {}
+                event_name: 'home_view',
+                event_value: { page: 'connect' },
+                update_last_active: true
             });
         } catch (error) {
             console.error('Failed to load connect:', error);

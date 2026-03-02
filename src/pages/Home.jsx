@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,7 @@ const domainConfig = {
 };
 
 export default function Home() {
+    const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [mainDomain, setMainDomain] = useState('sales');
     const [topBooks, setTopBooks] = useState({});
@@ -118,7 +119,7 @@ export default function Home() {
     const handleBookClick = async (bookId, domain) => {
         // Track event without blocking navigation
         base44.functions.invoke('trackEvent', {
-            event_name: 'book_card_click',
+            event_name: 'book_view',
             event_value: { book_id: bookId, domain }
         }).catch(() => {}); // Silently fail
     };
