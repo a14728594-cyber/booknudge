@@ -8,59 +8,32 @@ export default function DebugStatus() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState({
     userId: null,
-    userEmail: null,
+    email: null,
     plan: null,
     subscriptionStatus: null,
-    updatedAt: null,
+    userUpdatedAt: null,
     dsnPresent: false,
     environment: null,
     answerCount: 0,
     lastAnswerId: null,
+    lastAnswerAt: null,
     matchCount: 0,
     lastMatchAt: null,
     dmCount: 0,
     lastDMAt: null,
     stripeCustomerId: null,
-    lastSessionId: null,
-    lastEventId: null,
+    lastStripeSessionId: null,
+    lastStripeEventId: null,
     recentError: null
   });
 
   const loadStatus = async () => {
     setLoading(true);
     try {
-      const user = await base44.auth.me();
-      console.log('[DebugStatus] User loaded:', user.id);
-
-      // 各エンティティのデータを取得
-      const [answers, matches, conversations, events] = await Promise.all([
-        base44.entities.Answer.filter({ user_id: user.id }, '-created_date', 1).catch(() => []),
-        base44.entities.UserMatch.filter({ viewer_user_id: user.id }, '-created_date', 1).catch(() => []),
-        base44.entities.Conversation.filter({}, '-last_message_at', 1).catch(() => []),
-        base44.entities.Event.filter({ user_id: user.id }, '-created_date', 5).catch(() => [])
-      ]);
-
-      const lastStripeEvent = events.find(e => e.event_name && e.event_name.includes('subscribe'));
-      
-      setStatus({
-        userId: user.id,
-        userEmail: user.email,
-        plan: user.plan || 'free',
-        subscriptionStatus: user.subscription_status || 'free',
-        updatedAt: user.updated_date,
-        dsnPresent: !!process.env.SENTRY_DSN,
-        environment: 'unknown',
-        answerCount: answers.length,
-        lastAnswerId: answers[0]?.id,
-        matchCount: matches.length,
-        lastMatchAt: matches[0]?.created_date,
-        dmCount: conversations.length,
-        lastDMAt: conversations[0]?.last_message_at,
-        stripeCustomerId: user.stripe_customer_id,
-        lastSessionId: null,
-        lastEventId: lastStripeEvent?.id,
-        recentError: null
-      });
+      console.log('[DebugStatus] Calling getDebugStatus...');
+      const response = await base44.functions.invoke('getDebugStatus', {});
+      console.log('[DebugStatus] Response:', response.data);
+      setStatus(response.data);
     } catch (error) {
       console.error('[DebugStatus] Error:', error);
       setStatus(prev => ({
@@ -78,15 +51,20 @@ export default function DebugStatus() {
 
   const statusItems = [
     { label: 'User ID', value: status.userId, copy: true },
-    { label: 'Email', value: status.userEmail },
+    { label: 'Email', value: status.email },
     { label: 'Plan', value: status.plan, highlight: status.plan === 'premium' },
     { label: 'Subscription Status', value: status.subscriptionStatus, highlight: status.subscriptionStatus === 'active' },
-    { label: 'Updated At', value: status.updatedAt ? new Date(status.updatedAt).toLocaleString('ja-JP') : 'N/A' },
+    { label: 'Updated At', value: status.userUpdatedAt ? new Date(status.userUpdatedAt).toLocaleString('ja-JP') : 'N/A' },
     { label: 'Stripe Customer ID', value: status.stripeCustomerId || 'None', copy: !!status.stripeCustomerId },
+    { label: 'Last Answer At', value: status.lastAnswerAt ? new Date(status.lastAnswerAt).toLocaleString('ja-JP') : 'None' },
     { label: 'Answer Count', value: status.answerCount },
     { label: 'Match Count', value: status.matchCount },
+    { label: 'Last Match At', value: status.lastMatchAt ? new Date(status.lastMatchAt).toLocaleString('ja-JP') : 'None' },
     { label: 'DM Count', value: status.dmCount },
+    { label: 'Last Stripe Session ID', value: status.lastStripeSessionId?.substring(0, 20) + '...' || 'None', copy: !!status.lastStripeSessionId },
+    { label: 'Last Stripe Event ID', value: status.lastStripeEventId?.substring(0, 20) + '...' || 'None', copy: !!status.lastStripeEventId },
     { label: 'DSN Present', value: status.dsnPresent ? '✓ Yes' : '✗ No', highlight: status.dsnPresent },
+    { label: 'Environment', value: status.environment || 'unknown' },
   ];
 
   return (
