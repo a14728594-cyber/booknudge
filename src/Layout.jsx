@@ -51,7 +51,6 @@ export default function Layout({ children, currentPageName }) {
   const userNavItems = [
   { label: 'ホーム', path: 'home', icon: Home, requiresPremium: false },
   { label: 'クイズ', path: 'quiz', icon: Calendar, requiresPremium: true },
-  { label: 'つながる', path: 'connect', icon: Users, requiresPremium: true },
   { label: 'DM', path: 'dm', icon: Send, requiresPremium: true },
   { label: 'プロフィール', path: 'profile', icon: User, requiresPremium: false },
   { label: 'URL共有', path: 'share', icon: Share2, requiresPremium: false },
