@@ -3,7 +3,7 @@ import Stripe from 'npm:stripe@17.5.0';
 
 Deno.serve(async (req) => {
     try {
-        const isLive = true;
+        const isLive = false;
 
         const STRIPE_SECRET_KEY = isLive
             ? Deno.env.get('STRIPE_SECRET_KEY_LIVE')
