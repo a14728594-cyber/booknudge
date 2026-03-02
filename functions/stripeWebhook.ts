@@ -3,8 +3,9 @@ import Stripe from 'npm:stripe@17.5.0';
 
 Deno.serve(async (req) => {
     try {
-        const mode = Deno.env.get('STRIPE_MODE') || 'test';
-        const isLive = mode === 'live';
+        // モード固定: テストは 'test'、本番リリース時は 'live' に変更してデプロイ
+        const mode = 'test';
+        const isLive = false;
 
         const STRIPE_SECRET_KEY = isLive
             ? Deno.env.get('STRIPE_SECRET_KEY_LIVE')
