@@ -32,7 +32,7 @@ export default function BillingSuccess() {
 
     const checkSubscriptionStatus = async () => {
         let attempts = 0;
-        const maxAttempts = 5; // 10秒間（2秒おきに5回）
+        const maxAttempts = 20; // 60秒間（3秒おきに20回）
 
         const checkInterval = setInterval(async () => {
             attempts++;
@@ -45,7 +45,6 @@ export default function BillingSuccess() {
                     setChecking(false);
                     clearInterval(checkInterval);
                     
-                    // 少し待ってから遷移
                     setTimeout(() => {
                         navigate(nextUrl);
                     }, 1500);
@@ -62,9 +61,8 @@ export default function BillingSuccess() {
                     clearInterval(checkInterval);
                 }
             }
-        }, 2000);
+        }, 3000);
 
-        // クリーンアップ
         return () => clearInterval(checkInterval);
     };
 
