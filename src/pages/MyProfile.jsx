@@ -128,9 +128,16 @@ export default function MyProfile() {
                                 {(user.display_name || user.email || 'U')[0].toUpperCase()}
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                                    {user.display_name || user.email || 'ユーザー'}
-                                </h1>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <h1 className="text-2xl font-bold text-gray-900">
+                                        {user.display_name || user.email || 'ユーザー'}
+                                    </h1>
+                                    {user.subscription_status === 'active' && (
+                                        <span className="bg-gradient-to-r from-amber-400 to-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                                            PRO
+                                        </span>
+                                    )}
+                                </div>
                                 <p className="text-sm text-gray-500 mb-3">{user.email}</p>
                                 <div className="flex items-center gap-4 text-sm">
                                     <div className="flex items-center gap-1">
@@ -254,6 +261,25 @@ export default function MyProfile() {
                         </>
                     )}
                 </Card>
+
+                {/* サブスクリプション管理 */}
+                {user.subscription_status === 'active' && (
+                    <Card>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-lg font-bold text-gray-900 mb-1">プレミアムプラン</h2>
+                                <p className="text-sm text-gray-500">現在ご契約中です</p>
+                            </div>
+                            <Button
+                                variant="outline"
+                                className="text-red-600 border-red-200 hover:bg-red-50"
+                                onClick={() => navigate(createPageUrl('BillingCancel'))}
+                            >
+                                解約する
+                            </Button>
+                        </div>
+                    </Card>
+                )}
 
                 {/* お気に入りの本 */}
                 <Card>
