@@ -1,31 +1,29 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@17.5.0';
 
-const mode = Deno.env.get('STRIPE_MODE') || 'test';
-const isLive = mode === 'live';
-
-const STRIPE_SECRET_KEY = isLive
-    ? Deno.env.get('STRIPE_SECRET_KEY_LIVE')
-    : Deno.env.get('STRIPE_SECRET_KEY_TEST');
-
-const STRIPE_PRICE_ID = isLive
-    ? Deno.env.get('STRIPE_PRICE_ID_LIVE')
-    : Deno.env.get('STRIPE_PRICE_ID_TEST');
-
-console.log(`[INFO] Stripe mode: ${mode}, key prefix: ${STRIPE_SECRET_KEY?.substring(0, 8)}...`);
-
-const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY, {
-    apiVersion: '2024-12-18.acacia'
-}) : null;
-
 Deno.serve(async (req) => {
     try {
+        const mode = Deno.env.get('STRIPE_MODE') || 'test';
+        const isLive = mode === 'live';
+
+        const STRIPE_SECRET_KEY = isLive
+            ? Deno.env.get('STRIPE_SECRET_KEY_LIVE')
+            : Deno.env.get('STRIPE_SECRET_KEY_TEST');
+
+        const STRIPE_PRICE_ID = isLive
+            ? Deno.env.get('STRIPE_PRICE_ID_LIVE')
+            : Deno.env.get('STRIPE_PRICE_ID_TEST');
+
+        console.log(`[INFO] Stripe mode: ${mode}, key prefix: ${STRIPE_SECRET_KEY?.substring(0, 8)}...`);
+
         if (!STRIPE_SECRET_KEY) {
             return Response.json({ ok: false, code: 'STRIPE_CONFIG_MISSING', message: 'Stripe設定が完了していません。' }, { status: 500 });
         }
         if (!STRIPE_PRICE_ID) {
             return Response.json({ ok: false, code: 'STRIPE_PRICE_MISSING', message: 'Stripe料金設定が完了していません。' }, { status: 500 });
         }
+
+        const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-12-18.acacia' });
 
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
@@ -36,12 +34,10 @@ Deno.serve(async (req) => {
 
         const { success_url, cancel_url, next } = await req.json();
 
-        // モードに応じた顧客IDフィールドを使い分ける
         const customerIdField = isLive ? 'stripe_customer_id_live' : 'stripe_customer_id_test';
         let customerId = user[customerIdField];
 
         if (!customerId) {
-            // メールで既存顧客を検索
             const existing = await stripe.customers.list({ email: user.email, limit: 1 });
             if (existing.data.length > 0) {
                 customerId = existing.data[0].id;
