@@ -1,8 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@17.5.0';
+import * as Sentry from 'npm:@sentry/deno@7.108.0';
 
 Deno.serve(async (req) => {
     const requestId = crypto.randomUUID().substring(0, 8);
+    
+    // Sentry初期化（一度だけ）
+    if (!Sentry.getClient()) {
+        Sentry.init({
+            dsn: Deno.env.get('SENTRY_DSN'),
+            environment: Deno.env.get('SENTRY_ENVIRONMENT') || 'test',
+            tracesSampleRate: 1.0,
+            sendDefaultPii: false
+        });
+    }
+    
     console.log(`[${requestId}] createCheckoutSession started`);
     
     try {
@@ -82,6 +94,22 @@ Deno.serve(async (req) => {
         return Response.json({ ok: true, url: session.url });
     } catch (error) {
         console.error(`[${requestId}] ERROR:`, error.message, error.stack);
+        
+        Sentry.captureException(error, {
+            tags: {
+                function: 'createCheckoutSession',
+                request_id: requestId,
+                error_type: 'checkout_creation'
+            },
+            extra: {
+                request_id: requestId,
+                error_message: error.message,
+                error_code: error.code
+            }
+        });
+        
+        await Sentry.flush(2000);
+        
         return Response.json({ ok: false, code: 'INTERNAL_ERROR', message: 'チェックアウトの開始に失敗しました。', details: error.message }, { status: 500 });
     }
 });

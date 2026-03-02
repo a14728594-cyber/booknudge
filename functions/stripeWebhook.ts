@@ -1,8 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@17.5.0';
+import * as Sentry from 'npm:@sentry/deno@7.108.0';
 
 Deno.serve(async (req) => {
     const webhookId = crypto.randomUUID().substring(0, 8);
+    
+    // Sentry初期化（一度だけ）
+    if (!Sentry.getClient()) {
+        Sentry.init({
+            dsn: Deno.env.get('SENTRY_DSN'),
+            environment: Deno.env.get('SENTRY_ENVIRONMENT') || 'test',
+            tracesSampleRate: 1.0,
+            sendDefaultPii: false
+        });
+    }
+    
     console.log(`[${webhookId}] Webhook received`);
     
     try {
@@ -212,6 +224,21 @@ Deno.serve(async (req) => {
         return Response.json({ received: true });
     } catch (error) {
         console.error(`[${webhookId}] Webhook error:`, error.message, error.stack);
+        
+        Sentry.captureException(error, {
+            tags: {
+                function: 'stripeWebhook',
+                webhook_id: webhookId,
+                error_type: 'webhook_processing'
+            },
+            extra: {
+                webhook_id: webhookId,
+                error_message: error.message
+            }
+        });
+        
+        await Sentry.flush(2000);
+        
         return Response.json({ error: error.message }, { status: 400 });
     }
 });
