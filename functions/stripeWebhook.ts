@@ -18,9 +18,8 @@ Deno.serve(async (req) => {
     console.log(`[${webhookId}] Webhook received`);
     
     try {
-        // モード固定: テストは 'test'、本番リリース時は 'live' に変更してデプロイ
-        const mode = 'test';
-        const isLive = false;
+        const stripeMode = Deno.env.get('STRIPE_MODE') || 'test';
+        const isLive = stripeMode === 'live';
 
         const STRIPE_SECRET_KEY = isLive
             ? Deno.env.get('STRIPE_SECRET_KEY_LIVE')
