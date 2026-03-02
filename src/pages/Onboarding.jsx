@@ -275,14 +275,20 @@ export default function Onboarding() {
 
             case 'challenges':
                 return (
-                    <div>
-                        <Label>具体的な悩み</Label>
-                        <Textarea
-                            value={formData.challenges}
-                            onChange={(e) => setFormData({ ...formData, challenges: e.target.value })}
-                            placeholder="例：営業の成約率が上がらず、どう改善すればいいかわからない"
-                            rows={4}
-                        />
+                    <div className="space-y-3">
+                        {CHALLENGES_OPTIONS.map(option => (
+                            <button
+                                key={option}
+                                onClick={() => setFormData({ ...formData, challenges: option })}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                                    formData.challenges === option
+                                        ? 'border-indigo-600 bg-indigo-50'
+                                        : 'border-gray-200 hover:border-indigo-300'
+                                }`}
+                            >
+                                {option}
+                            </button>
+                        ))}
                     </div>
                 );
 
