@@ -156,7 +156,7 @@ export default function Home() {
 
                 {/* Quiz CTA */}
                 <div className="mb-12">
-                    <Link to={createPageUrl('quiz')}>
+                    <Link to={createPageUrl('onboarding')}>
                         <div className="max-w-2xl mx-auto bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white hover:shadow-xl transition-shadow cursor-pointer">
                             <div className="flex items-center justify-between">
                                 <div>
