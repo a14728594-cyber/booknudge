@@ -179,6 +179,7 @@ function QuizPageContent() {
                             <Button
                                 onClick={handleSubmitAnswer}
                                 className="flex-1"
+                                disabled={!isPro && dailyLimit && !dailyLimit.canAnswer}
                             >
                                 {answeredQuizIds.has(quizzes[currentQuizIndex].id) ? '回答を更新' : '回答する'}
                             </Button>
@@ -195,6 +196,51 @@ function QuizPageContent() {
                                 次へ
                             </Button>
                         </div>
+
+                        {/* Free ユーザー向け上限表示 */}
+                        {!isPro && dailyLimit && (
+                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-4">
+                                <p className="text-sm text-amber-900">
+                                    本日の回答: <span className="font-semibold">{dailyLimit.todayCount}</span> / 5問
+                                    {dailyLimit.remaining === 0 && '（本日は回答上限に達しました）'}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* 回答結果とフィードバック表示 */}
+                        {answeredQuizIds.has(quizzes[currentQuizIndex].id) && (
+                            <div className="mt-6 space-y-4">
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                    <p className="text-sm font-semibold text-green-900">✓ 回答済み</p>
+                                </div>
+
+                                {/* Free 専用：分布エリアをぼかして Paywall 表示 */}
+                                {!isPro ? (
+                                    <div className="opacity-40 pointer-events-none">
+                                        <QuizDistribution 
+                                            quizId={quizzes[currentQuizIndex].id}
+                                            userValue={sliderValue}
+                                            isPro={false}
+                                        />
+                                        <div className="absolute inset-0 bg-white opacity-30 rounded-lg" />
+                                    </div>
+                                ) : null}
+
+                                {/* Pro 用：分布表示 */}
+                                {isPro && (
+                                    <QuizDistribution 
+                                        quizId={quizzes[currentQuizIndex].id}
+                                        userValue={sliderValue}
+                                        isPro={true}
+                                    />
+                                )}
+
+                                {/* Free ユーザー向け Paywall */}
+                                {!isPro && (
+                                    <QuizPaywall type="distribution" />
+                                )}
+                            </div>
+                        )}
                     </div>
                 </Card>
             ) : (
@@ -203,6 +249,13 @@ function QuizPageContent() {
                         <p className="text-gray-600">現在利用可能なクイズがありません</p>
                     </div>
                 </Card>
+            )}
+
+            {/* 上限到達時の Paywall */}
+            {limitError && !isPro && (
+                <div className="mt-6">
+                    <QuizPaywall type="limit" />
+                </div>
             )}
         </div>
     );
