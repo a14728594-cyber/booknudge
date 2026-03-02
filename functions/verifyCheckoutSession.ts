@@ -18,8 +18,8 @@ Deno.serve(async (req) => {
     console.log(`[${requestId}] verifyCheckoutSession started`);
     
     try {
-        const mode = 'test';
-        const isLive = false;
+        const stripeMode = Deno.env.get('STRIPE_MODE') || 'test';
+        const isLive = stripeMode === 'live';
 
         const STRIPE_SECRET_KEY = isLive
             ? Deno.env.get('STRIPE_SECRET_KEY_LIVE')
@@ -62,33 +62,9 @@ Deno.serve(async (req) => {
 
             console.log(`[${requestId}] Verifying DB state for user ${userId}`);
 
-            // DBの状態を確認
-            const existingSubs = await base44.asServiceRole.entities.Subscription.filter({
-                user_id: userId
-            });
-
-            // Subscriptionがまだ作成されていない場合、即座に作成
-            if (existingSubs.length === 0 && session.subscription) {
-                console.log(`[${requestId}] Creating subscription record immediately`);
-                await base44.asServiceRole.entities.Subscription.create({
-                    user_id: userId,
-                    stripe_customer_id: session.customer,
-                    stripe_subscription_id: session.subscription,
-                    status: 'active',
-                    current_period_start: new Date().toISOString(),
-                    current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-                });
-            }
-
-            // Userエンティティを即座に更新
-            console.log(`[${requestId}] Updating user entitlement immediately`);
-            await base44.asServiceRole.entities.User.update(userId, {
-                stripe_customer_id: session.customer,
-                subscription_status: 'active',
-                plan: 'premium'
-            });
-
-            console.log(`[${requestId}] Verification complete - user now has premium access`);
+            // WebhookがDB更新の責務を持つため、このVerify関数はUX確認のみ
+            // （webhook処理が未完了の可能性があるため、pollして待つはUXアプリケーション層の責務）
+            console.log(`[${requestId}] Verification: session confirmed paid. DB update is handled by webhook`);
 
             return Response.json({ 
                 ok: true, 
