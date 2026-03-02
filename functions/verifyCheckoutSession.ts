@@ -4,6 +4,17 @@ import * as Sentry from 'npm:@sentry/deno@7.108.0';
 
 Deno.serve(async (req) => {
     const requestId = crypto.randomUUID().substring(0, 8);
+    
+    // Sentry初期化（一度だけ）
+    if (!Sentry.getClient()) {
+        Sentry.init({
+            dsn: Deno.env.get('SENTRY_DSN'),
+            environment: Deno.env.get('SENTRY_ENVIRONMENT') || 'test',
+            tracesSampleRate: 1.0,
+            sendDefaultPii: false
+        });
+    }
+    
     console.log(`[${requestId}] verifyCheckoutSession started`);
     
     try {
@@ -94,6 +105,21 @@ Deno.serve(async (req) => {
         }
     } catch (error) {
         console.error(`[${requestId}] ERROR:`, error.message, error.stack);
+        
+        Sentry.captureException(error, {
+            tags: {
+                function: 'verifyCheckoutSession',
+                request_id: requestId,
+                error_type: 'verify_session'
+            },
+            extra: {
+                request_id: requestId,
+                error_message: error.message
+            }
+        });
+        
+        await Sentry.flush(2000);
+        
         return Response.json({ 
             ok: false, 
             message: 'セッションの検証に失敗しました',
