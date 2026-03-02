@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
 
         console.log(`[${requestId}] Creating checkout session for customer: ${customerId}`);
 
-        const finalSuccessUrl = success_url || `${req.headers.get('origin')}/home`;
+        const finalSuccessUrl = success_url || next || `${req.headers.get('origin')}/home`;
         const successUrlWithSession = finalSuccessUrl.includes('?') 
             ? `${finalSuccessUrl}&session_id={CHECKOUT_SESSION_ID}`
             : `${finalSuccessUrl}?session_id={CHECKOUT_SESSION_ID}`;
