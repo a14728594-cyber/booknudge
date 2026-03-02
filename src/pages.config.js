@@ -50,6 +50,7 @@
 import AdminBookEdit from './pages/AdminBookEdit';
 import AdminBooks from './pages/AdminBooks';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminDebug from './pages/AdminDebug';
 import AdminInquiries from './pages/AdminInquiries';
 import AdminUsers from './pages/AdminUsers';
 import BillingCancel from './pages/BillingCancel';
@@ -59,6 +60,7 @@ import BookDetail from './pages/BookDetail';
 import Connect from './pages/Connect';
 import DM from './pages/DM';
 import DMChat from './pages/DMChat';
+import DebugSentry from './pages/DebugSentry';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import MyProfile from './pages/MyProfile';
@@ -78,8 +80,10 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Tokushoho from './pages/Tokushoho';
 import genreDomain from './pages/genre[domain]';
-import AdminDebug from './pages/AdminDebug';
-import DebugSentry from './pages/DebugSentry';
+import DebugStatus from './pages/DebugStatus';
+import DebugBilling from './pages/DebugBilling';
+import DebugDiagnosis from './pages/DebugDiagnosis';
+import DebugQuiz from './pages/DebugQuiz';
 import __Layout from './Layout.jsx';
 
 
@@ -87,6 +91,7 @@ export const PAGES = {
     "AdminBookEdit": AdminBookEdit,
     "AdminBooks": AdminBooks,
     "AdminDashboard": AdminDashboard,
+    "AdminDebug": AdminDebug,
     "AdminInquiries": AdminInquiries,
     "AdminUsers": AdminUsers,
     "BillingCancel": BillingCancel,
@@ -96,6 +101,7 @@ export const PAGES = {
     "Connect": Connect,
     "DM": DM,
     "DMChat": DMChat,
+    "DebugSentry": DebugSentry,
     "Home": Home,
     "Landing": Landing,
     "MyProfile": MyProfile,
@@ -115,8 +121,10 @@ export const PAGES = {
     "Terms": Terms,
     "Tokushoho": Tokushoho,
     "genre[domain]": genreDomain,
-    "AdminDebug": AdminDebug,
-    "DebugSentry": DebugSentry,
+    "DebugStatus": DebugStatus,
+    "DebugBilling": DebugBilling,
+    "DebugDiagnosis": DebugDiagnosis,
+    "DebugQuiz": DebugQuiz,
 }
 
 export const pagesConfig = {
