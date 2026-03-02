@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import Card from '@/components/common/Card';
 import BookCard from '@/components/common/BookCard';
-import { Loader2, Edit, Save, X, Lock, Globe, Heart, Users as UsersIcon } from 'lucide-react';
+import { Loader2, Edit, Save, X, Lock, Globe, Heart, Users as UsersIcon, RefreshCw } from 'lucide-react';
 
 export default function MyProfile() {
     const navigate = useNavigate();
