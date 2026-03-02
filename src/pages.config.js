@@ -79,6 +79,7 @@ import Terms from './pages/Terms';
 import Tokushoho from './pages/Tokushoho';
 import genreDomain from './pages/genre[domain]';
 import AdminDebug from './pages/AdminDebug';
+import DebugSentry from './pages/DebugSentry';
 import __Layout from './Layout.jsx';
 
 
@@ -115,6 +116,7 @@ export const PAGES = {
     "Tokushoho": Tokushoho,
     "genre[domain]": genreDomain,
     "AdminDebug": AdminDebug,
+    "DebugSentry": DebugSentry,
 }
 
 export const pagesConfig = {
