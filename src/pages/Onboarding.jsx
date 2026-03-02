@@ -313,14 +313,20 @@ export default function Onboarding() {
 
             case 'weaknesses':
                 return (
-                    <div>
-                        <Label>嫌い・苦手なこと</Label>
-                        <Textarea
-                            value={formData.weaknesses}
-                            onChange={(e) => setFormData({ ...formData, weaknesses: e.target.value })}
-                            placeholder="例：長時間のデスクワーク、細かい作業"
-                            rows={3}
-                        />
+                    <div className="space-y-3">
+                        {WEAKNESSES_OPTIONS.map(option => (
+                            <button
+                                key={option}
+                                onClick={() => setFormData({ ...formData, weaknesses: option })}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                                    formData.weaknesses === option
+                                        ? 'border-indigo-600 bg-indigo-50'
+                                        : 'border-gray-200 hover:border-indigo-300'
+                                }`}
+                            >
+                                {option}
+                            </button>
+                        ))}
                     </div>
                 );
 
