@@ -2,6 +2,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@17.5.0';
 
 Deno.serve(async (req) => {
+    const webhookId = crypto.randomUUID().substring(0, 8);
+    console.log(`[${webhookId}] Webhook received`);
+    
     try {
         // モード固定: テストは 'test'、本番リリース時は 'live' に変更してデプロイ
         const mode = 'test';
@@ -34,13 +37,18 @@ Deno.serve(async (req) => {
             STRIPE_WEBHOOK_SECRET
         );
 
+        console.log(`[${webhookId}] Event type: ${event.type}, event_id: ${event.id}`);
+
         switch (event.type) {
             case 'checkout.session.completed': {
                 const session = event.data.object;
                 const userId = session.metadata?.user_id || session.client_reference_id;
                 const customerId = session.customer;
 
+                console.log(`[${webhookId}] checkout.session.completed - session_id: ${session.id}, user_id: ${userId}, customer_id: ${customerId}, subscription_id: ${session.subscription}`);
+
                 if (userId && customerId) {
+                    console.log(`[${webhookId}] Updating DB for user ${userId}...`);
                     // Subscriptionの作成
                     const existingSubs = await base44.asServiceRole.entities.Subscription.filter({
                         user_id: userId
@@ -63,6 +71,10 @@ Deno.serve(async (req) => {
                         subscription_status: 'active',
                         plan: 'premium'
                     });
+
+                    console.log(`[${webhookId}] DB updated successfully for user ${userId}`);
+                } else {
+                    console.warn(`[${webhookId}] Missing userId or customerId - userId: ${userId}, customerId: ${customerId}`);
                 }
                 break;
             }
@@ -70,6 +82,8 @@ Deno.serve(async (req) => {
             case 'invoice.paid': {
                 const invoice = event.data.object;
                 const customerId = invoice.customer;
+                
+                console.log(`[${webhookId}] invoice.paid - invoice_id: ${invoice.id}, customer_id: ${customerId}`);
                 
                 const subs = await base44.asServiceRole.entities.Subscription.filter({
                     stripe_customer_id: customerId
@@ -94,6 +108,8 @@ Deno.serve(async (req) => {
             case 'customer.subscription.created': {
                 const subscription = event.data.object;
                 const customerId = subscription.customer;
+                
+                console.log(`[${webhookId}] ${event.type} - subscription_id: ${subscription.id}, customer_id: ${customerId}, status: ${subscription.status}`);
                 
                 const subs = await base44.asServiceRole.entities.Subscription.filter({
                     stripe_customer_id: customerId
@@ -165,6 +181,8 @@ Deno.serve(async (req) => {
                 const subscription = event.data.object;
                 const customerId = subscription.customer;
                 
+                console.log(`[${webhookId}] customer.subscription.deleted - subscription_id: ${subscription.id}, customer_id: ${customerId}`);
+                
                 const subs = await base44.asServiceRole.entities.Subscription.filter({
                     stripe_customer_id: customerId
                 });
@@ -190,9 +208,10 @@ Deno.serve(async (req) => {
             }
         }
 
+        console.log(`[${webhookId}] Webhook processed successfully`);
         return Response.json({ received: true });
     } catch (error) {
-        console.error('Webhook error:', error);
+        console.error(`[${webhookId}] Webhook error:`, error.message, error.stack);
         return Response.json({ error: error.message }, { status: 400 });
     }
 });
