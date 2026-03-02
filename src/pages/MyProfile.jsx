@@ -165,14 +165,23 @@ export default function MyProfile() {
                         </div>
                         
                         {!editing && (
-                            <Button
-                                onClick={() => setEditing(true)}
-                                variant="outline"
-                                className="gap-2"
-                            >
-                                <Edit className="w-4 h-4" />
-                                編集
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button
+                                    onClick={loadProfile}
+                                    variant="outline"
+                                    className="gap-2"
+                                >
+                                    <RefreshCw className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                    onClick={() => setEditing(true)}
+                                    variant="outline"
+                                    className="gap-2"
+                                >
+                                    <Edit className="w-4 h-4" />
+                                    編集
+                                </Button>
+                            </div>
                         )}
                     </div>
 
