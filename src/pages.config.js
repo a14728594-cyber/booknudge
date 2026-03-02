@@ -84,6 +84,8 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Tokushoho from './pages/Tokushoho';
 import genreDomain from './pages/genre[domain]';
+import AdminQuizzes from './pages/AdminQuizzes';
+import AdminQuizForm from './pages/AdminQuizForm';
 import __Layout from './Layout.jsx';
 
 
@@ -125,6 +127,8 @@ export const PAGES = {
     "Terms": Terms,
     "Tokushoho": Tokushoho,
     "genre[domain]": genreDomain,
+    "AdminQuizzes": AdminQuizzes,
+    "AdminQuizForm": AdminQuizForm,
 }
 
 export const pagesConfig = {
