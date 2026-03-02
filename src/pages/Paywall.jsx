@@ -144,15 +144,14 @@ export default function Paywall() {
                         </div>
                     )}
 
-                    <a
-                        href="https://buy.stripe.com/bJe8wOa1WcqigLI5OV8Ra00"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-lg py-6 px-4 rounded-md font-medium transition-colors"
+                    <button
+                        onClick={handleCheckout}
+                        disabled={loading}
+                        className="inline-flex items-center justify-center gap-2 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-lg py-6 px-4 rounded-md font-medium transition-colors disabled:opacity-60"
                     >
-                        <Sparkles className="w-5 h-5" />
-                        プレミアムプランを開始
-                    </a>
+                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                        {loading ? '処理中...' : 'プレミアムプランを開始'}
+                    </button>
                 </Card>
 
                 <div className="text-center">
