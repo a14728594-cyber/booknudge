@@ -26,8 +26,8 @@ export default function Paywall() {
             const userData = await base44.auth.me();
             setUser(userData);
 
-            // すでに有料プランの場合はリダイレクト
-            if (userData.subscription_status === 'active') {
+            // すでに有料プランの場合はリダイレクト（ただしadminは表示）
+            if (userData.subscription_status === 'active' && userData.role !== 'admin') {
                 navigate(nextUrl);
             }
         } catch (error) {
