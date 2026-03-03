@@ -222,6 +222,52 @@ export default function Home() {
                     </Link>
                 </div>
 
+                {/* 診断結果ベースのおすすめ */}
+                {recommendedBooks.length > 0 && (
+                    <div className="mb-16">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <span className="text-2xl">✨</span>
+                                <h2 className="text-2xl font-bold text-gray-900">あなたへのおすすめ</h2>
+                                <span className="text-sm text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full font-medium">診断結果から厳選</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-gray-500 text-sm">
+                                <ChevronRight className="w-4 h-4" />
+                                <span>スライドで見る</span>
+                            </div>
+                        </div>
+                        <div
+                            className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing"
+                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                            onMouseDown={(e) => {
+                                const slider = e.currentTarget;
+                                let startX = e.pageX - slider.offsetLeft;
+                                let scrollLeft = slider.scrollLeft;
+                                const handleMouseMove = (e) => {
+                                    const x = e.pageX - slider.offsetLeft;
+                                    slider.scrollLeft = scrollLeft - (x - startX) * 2;
+                                };
+                                const handleMouseUp = () => {
+                                    document.removeEventListener('mousemove', handleMouseMove);
+                                    document.removeEventListener('mouseup', handleMouseUp);
+                                };
+                                document.addEventListener('mousemove', handleMouseMove);
+                                document.addEventListener('mouseup', handleMouseUp);
+                            }}
+                        >
+                            {recommendedBooks.map(book => (
+                                <div
+                                    key={book.id}
+                                    className="flex-shrink-0 w-72 snap-start"
+                                    onClick={() => handleBookClick(book.id, 'recommend')}
+                                >
+                                    <BookCard book={book} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Main Domain Carousel */}
                 {topBooks[mainDomain]?.length > 0 && (
                     <div className="mb-16">
