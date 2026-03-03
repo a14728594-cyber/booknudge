@@ -86,6 +86,7 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Tokushoho from './pages/Tokushoho';
 import genreDomain from './pages/genre[domain]';
+import AdminBillingStatus from './pages/AdminBillingStatus';
 import __Layout from './Layout.jsx';
 
 
@@ -129,6 +130,7 @@ export const PAGES = {
     "Terms": Terms,
     "Tokushoho": Tokushoho,
     "genre[domain]": genreDomain,
+    "AdminBillingStatus": AdminBillingStatus,
 }
 
 export const pagesConfig = {
