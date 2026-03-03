@@ -40,6 +40,10 @@ Deno.serve(async (req) => {
 
         const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-12-18.acacia' });
 
+        // bodyを先に読み取る（SDKがbodyを消費する前に）
+        const body = await req.json();
+        const { success_url, cancel_url, next } = body;
+
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
 
@@ -49,8 +53,6 @@ Deno.serve(async (req) => {
         }
 
         console.log(`[${requestId}] User authenticated: ${user.id} (${user.email})`);
-
-        const { success_url, cancel_url, next } = await req.json();
 
         const customerIdField = isLive ? 'stripe_customer_id_live' : 'stripe_customer_id_test';
         let customerId = user[customerIdField];
