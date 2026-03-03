@@ -17,16 +17,10 @@ export default function SubscriptionGuard({ children, pagePath }) {
         try {
             const user = await base44.auth.me();
             
-            // 管理者のみアクセス可能
-            if (user.role === 'admin') {
+            // 管理者または有料ユーザーはアクセス可能
+            if (user.role === 'admin' || user.subscription_status === 'active') {
                 setIsAuthorized(true);
             } else {
-                // イベント記録
-                await base44.functions.invoke('trackEvent', {
-                    event_name: 'gated_access_blocked',
-                    event_value: { path: pagePath }
-                });
-
                 // Paywallへリダイレクト
                 navigate(createPageUrl('paywall') + '?next=' + encodeURIComponent(pagePath) + '&from=' + pagePath.split('/')[1]);
             }
