@@ -72,25 +72,6 @@ Deno.serve(async (req) => {
         }
     } catch (error) {
         console.error(`[${requestId}] ERROR:`, error.message, error.stack);
-        
-        Sentry.captureException(error, {
-            tags: {
-                function: 'verifyCheckoutSession',
-                request_id: requestId,
-                error_type: 'verify_session'
-            },
-            extra: {
-                request_id: requestId,
-                error_message: error.message
-            }
-        });
-        
-        await Sentry.flush(2000);
-        
-        return Response.json({ 
-            ok: false, 
-            message: 'セッションの検証に失敗しました',
-            details: error.message 
-        }, { status: 500 });
+        return Response.json({ ok: false, message: 'セッションの検証に失敗しました', details: error.message }, { status: 500 });
     }
 });
