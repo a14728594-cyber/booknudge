@@ -97,7 +97,11 @@ export default function Paywall() {
             if (res.data?.ok && res.data?.url) {
                 console.log('[Paywall] Redirecting to Stripe Checkout:', res.data.url);
                 setCheckoutUrl(res.data.url);
-                window.location.href = res.data.url;
+                // Try window.open first (works in iframe/preview), fallback to location.href
+                const opened = window.open(res.data.url, '_blank');
+                if (!opened) {
+                    window.location.href = res.data.url;
+                }
             } else {
                 console.error('[Paywall] Invalid response from createCheckoutSession:', res.data);
                 setError({ 
