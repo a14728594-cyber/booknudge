@@ -240,7 +240,7 @@ export default function AdminBillingStatus() {
 
                     {/* Checkout作成 */}
                     <div>
-                        <p className="text-sm text-gray-600 mb-3">Checkoutセッションを作成して新しいタブで開きます</p>
+                        <p className="text-sm text-gray-600 mb-3">Checkoutセッションを作成してURLを表示します</p>
                         <Button
                             onClick={handleCreateCheckout}
                             disabled={checkoutLoading}
@@ -250,8 +250,21 @@ export default function AdminBillingStatus() {
                                 ? <Loader2 className="w-4 h-4 animate-spin" />
                                 : <ExternalLink className="w-4 h-4" />
                             }
-                            Checkoutを作成して開く
+                            Checkoutを作成
                         </Button>
+                        {checkoutUrl && (
+                            <div className="mt-3 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+                                <p className="text-xs text-indigo-700 font-medium mb-2">Checkout URL（タップして開く）:</p>
+                                <a
+                                    href={checkoutUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-indigo-600 underline break-all"
+                                >
+                                    {checkoutUrl}
+                                </a>
+                            </div>
+                        )}
                     </div>
 
                     <div className="border-t pt-5">
