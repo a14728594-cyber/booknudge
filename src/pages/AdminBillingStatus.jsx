@@ -72,7 +72,7 @@ export default function AdminBillingStatus() {
                 next: 'AdminBillingStatus'
             });
             if (data?.url) {
-                window.location.href = data.url;
+                window.open(data.url, '_blank', 'noopener,noreferrer');
             } else {
                 alert('Checkout URL not returned: ' + JSON.stringify(data));
             }
