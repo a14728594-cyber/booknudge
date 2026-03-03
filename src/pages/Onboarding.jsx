@@ -148,14 +148,19 @@ export default function Onboarding() {
     const handleSubmit = async () => {
         setLoading(true);
         try {
+            const isAuth = await base44.auth.isAuthenticated();
+            if (!isAuth) {
+                base44.auth.redirectToLogin(createPageUrl('home'));
+                return;
+            }
+
             // プロフィール保存
             await base44.auth.updateMe({
                 profile_json: formData,
                 onboarding_completed: true
             });
 
-            // クイズページへ遷移（固定クイズを使用）
-            navigate(createPageUrl('quiz'));
+            navigate(createPageUrl('home'));
         } catch (error) {
             console.error('Onboarding failed:', error);
             alert('エラーが発生しました。もう一度お試しください。');
