@@ -29,6 +29,7 @@ export default function AdminBillingStatus() {
     const [verifyLoading, setVerifyLoading] = useState(false);
     const [verifySessionId, setVerifySessionId] = useState('');
     const [verifyResult, setVerifyResult] = useState(null);
+    const [checkoutUrl, setCheckoutUrl] = useState(null);
     const [error, setError] = useState(null);
 
     useEffect(() => {
