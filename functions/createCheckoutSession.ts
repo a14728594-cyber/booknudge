@@ -83,22 +83,6 @@ Deno.serve(async (req) => {
         return Response.json({ ok: true, url: session.url });
     } catch (error) {
         console.error(`[${requestId}] ERROR:`, error.message, error.stack);
-        
-        Sentry.captureException(error, {
-            tags: {
-                function: 'createCheckoutSession',
-                request_id: requestId,
-                error_type: 'checkout_creation'
-            },
-            extra: {
-                request_id: requestId,
-                error_message: error.message,
-                error_code: error.code
-            }
-        });
-        
-        await Sentry.flush(2000);
-        
         return Response.json({ ok: false, code: 'INTERNAL_ERROR', message: 'チェックアウトの開始に失敗しました。', details: error.message }, { status: 500 });
     }
 });
