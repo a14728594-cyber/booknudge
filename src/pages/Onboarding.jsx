@@ -119,6 +119,12 @@ export default function Onboarding() {
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(0);
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        base44.auth.isAuthenticated().then(isAuth => {
+            if (!isAuth) navigate(createPageUrl('landing'));
+        });
+    }, []);
     const [formData, setFormData] = useState({
         position: '',
         position_other: '',
