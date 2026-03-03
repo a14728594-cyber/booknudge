@@ -232,73 +232,7 @@ export default function BillingSuccess() {
                     ) : null}
                 </Card>
 
-                {/* デバッグ情報 */}
-                <Card className="bg-gray-50">
-                    <div className="text-left">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                            デバッグ情報
-                        </h3>
-                        <div className="space-y-2 text-xs font-mono">
-                            <div className="flex justify-between py-1 border-b border-gray-200">
-                                <span className="text-gray-500">ユーザーID:</span>
-                                <span className="text-gray-900 font-semibold">{debugInfo.userId || '読込中...'}</span>
-                            </div>
-                            <div className="flex justify-between py-1 border-b border-gray-200">
-                                <span className="text-gray-500">現在のステータス:</span>
-                                <span className={`font-semibold ${debugInfo.currentStatus === 'active' ? 'text-green-600' : 'text-gray-600'}`}>
-                                    {debugInfo.currentStatus || '読込中...'}
-                                </span>
-                            </div>
-                            <div className="flex justify-between py-1 border-b border-gray-200">
-                                <span className="text-gray-500">現在のプラン:</span>
-                                <span className={`font-semibold ${debugInfo.currentPlan === 'premium' ? 'text-indigo-600' : 'text-gray-600'}`}>
-                                    {debugInfo.currentPlan || '読込中...'}
-                                </span>
-                            </div>
-                            <div className="flex justify-between py-1 border-b border-gray-200">
-                                <span className="text-gray-500">session_id:</span>
-                                <span className="text-gray-900 text-[10px] break-all">{sessionId || 'なし'}</span>
-                            </div>
-                            <div className="py-1 border-b border-gray-200">
-                                <div className="text-gray-500 mb-1">検証結果:</div>
-                                {debugInfo.verifyResult ? (
-                                    <div className="pl-2 space-y-1">
-                                        <div className={`${debugInfo.verifyResult.success ? 'text-green-600' : 'text-red-600'}`}>
-                                            ✓ Success: {String(debugInfo.verifyResult.success)}
-                                        </div>
-                                        {debugInfo.verifyResult.active !== undefined && (
-                                            <div className={`${debugInfo.verifyResult.active ? 'text-green-600' : 'text-yellow-600'}`}>
-                                                ✓ Active: {String(debugInfo.verifyResult.active)}
-                                            </div>
-                                        )}
-                                        {debugInfo.verifyResult.message && (
-                                            <div className="text-gray-700">
-                                                ✓ Message: {debugInfo.verifyResult.message}
-                                            </div>
-                                        )}
-                                        {debugInfo.verifyResult.reason && (
-                                            <div className="text-red-600">
-                                                ✗ Reason: {debugInfo.verifyResult.reason}
-                                            </div>
-                                        )}
-                                        {debugInfo.verifyResult.timestamp && (
-                                            <div className="text-gray-500 text-[10px]">
-                                                {new Date(debugInfo.verifyResult.timestamp).toLocaleTimeString('ja-JP')}
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className="text-gray-400 pl-2">未実行</div>
-                                )}
-                            </div>
-                            <div className="flex justify-between py-1">
-                                <span className="text-gray-500">Stripe Event ID:</span>
-                                <span className="text-gray-400">{debugInfo.lastStripeEventId || '未保存'}</span>
-                            </div>
-                        </div>
-                    </div>
-                </Card>
+
             </div>
         </div>
     );
