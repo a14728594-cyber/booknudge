@@ -100,10 +100,15 @@ export default function Paywall() {
             }
         } catch (err) {
             console.error('[Paywall] Checkout error:', err);
+            // 認証エラーの場合はログインへ
+            if (err?.response?.status === 401 || err?.status === 401) {
+                base44.auth.redirectToLogin(window.location.href);
+                return;
+            }
             setError({ 
                 message: 'チェックアウトの開始に失敗しました', 
-                code: 'NETWORK_ERROR',
-                details: err.message 
+                code: err?.response?.status ? `HTTP_${err.response.status}` : 'NETWORK_ERROR',
+                details: err?.response?.data?.message || err.message 
             });
             setLoading(false);
         }
