@@ -193,6 +193,8 @@ export default function Paywall() {
                     ) : (
                         <a
                             href={checkoutUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="inline-flex items-center justify-center gap-2 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-lg py-6 px-4 rounded-md font-medium transition-colors"
                         >
                             <Sparkles className="w-5 h-5" />
