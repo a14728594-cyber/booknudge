@@ -190,6 +190,21 @@ export default function Paywall() {
                         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
                         {loading ? '処理中...' : 'プレミアムプランを開始'}
                     </button>
+
+                    {checkoutUrl && (
+                        <div className="mt-4 p-4 bg-indigo-50 border border-indigo-200 rounded-xl text-center">
+                            <p className="text-sm text-indigo-700 font-medium mb-2">決済ページが準備できました</p>
+                            <a
+                                href={checkoutUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors"
+                            >
+                                <Sparkles className="w-4 h-4" />
+                                決済ページを開く
+                            </a>
+                        </div>
+                    )}
                 </Card>
 
                 <div className="text-center">
