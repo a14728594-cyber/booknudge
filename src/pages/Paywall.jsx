@@ -12,6 +12,7 @@ export default function Paywall() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [user, setUser] = useState(null);
+    const [checkoutUrl, setCheckoutUrl] = useState(null);
     const urlParams = new URLSearchParams(window.location.search);
     const nextUrl = urlParams.get('next') || '/home';
     const from = urlParams.get('from') || 'unknown';
