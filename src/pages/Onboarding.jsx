@@ -148,12 +148,6 @@ export default function Onboarding() {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const isAuth = await base44.auth.isAuthenticated();
-            if (!isAuth) {
-                base44.auth.redirectToLogin(createPageUrl('home'));
-                return;
-            }
-
             // プロフィール保存
             await base44.auth.updateMe({
                 profile_json: formData,
