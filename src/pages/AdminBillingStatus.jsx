@@ -65,10 +65,11 @@ export default function AdminBillingStatus() {
     const handleCreateCheckout = async () => {
         setCheckoutLoading(true);
         try {
+            const origin = window.location.origin;
             const { data } = await base44.functions.invoke('createCheckoutSession', {
-                success_url: `${window.location.origin}/#/AdminBillingStatus?checkout=success`,
-                cancel_url: `${window.location.origin}/#/AdminBillingStatus`,
-                next: '/AdminBillingStatus'
+                success_url: `${origin}/?page=AdminBillingStatus&checkout=success`,
+                cancel_url: `${origin}/?page=AdminBillingStatus`,
+                next: 'AdminBillingStatus'
             });
             if (data?.url) {
                 window.open(data.url, '_blank');
