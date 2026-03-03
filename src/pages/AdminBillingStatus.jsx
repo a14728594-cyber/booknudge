@@ -65,6 +65,7 @@ export default function AdminBillingStatus() {
 
     const handleCreateCheckout = async () => {
         setCheckoutLoading(true);
+        setCheckoutUrl(null);
         try {
             const origin = window.location.origin;
             const { data } = await base44.functions.invoke('createCheckoutSession', {
@@ -73,7 +74,7 @@ export default function AdminBillingStatus() {
                 next: 'AdminBillingStatus'
             });
             if (data?.url) {
-                window.open(data.url, '_blank', 'noopener,noreferrer');
+                setCheckoutUrl(data.url);
             } else {
                 alert('Checkout URL not returned: ' + JSON.stringify(data));
             }
