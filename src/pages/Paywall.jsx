@@ -71,6 +71,13 @@ export default function Paywall() {
         setError(null);
         
         try {
+            // ログイン確認
+            const isAuth = await base44.auth.isAuthenticated();
+            if (!isAuth) {
+                base44.auth.redirectToLogin(window.location.href);
+                return;
+            }
+
             const successPath = createPageUrl('BillingSuccess');
             const cancelPath = createPageUrl('paywall');
             
