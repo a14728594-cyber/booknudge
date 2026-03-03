@@ -31,6 +31,11 @@ Deno.serve(async (req) => {
         }
 
         const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-12-18.acacia' });
+
+        // bodyを先に読み取る（SDKがbodyを消費する前に）
+        const body = await req.json();
+        const { session_id } = body;
+
         const base44 = createClientFromRequest(req);
         
         const user = await base44.auth.me();
@@ -38,8 +43,6 @@ Deno.serve(async (req) => {
             console.log(`[${requestId}] Auth failed`);
             return Response.json({ ok: false, message: 'ログインが必要です' }, { status: 401 });
         }
-
-        const { session_id } = await req.json();
         
         if (!session_id) {
             console.log(`[${requestId}] session_id missing`);
