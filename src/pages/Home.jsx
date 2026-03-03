@@ -85,6 +85,58 @@ export default function Home() {
             const firstDomain = Object.keys(domainConfig)[0];
             setMainDomain(firstDomain);
 
+            // 診断済みユーザーの場合、診断結果を元におすすめ本を生成
+            if (user?.onboarding_completed && user?.profile_json) {
+                const profile = user.profile_json;
+                const allBooksForRec = await base44.entities.Book.list('-created_date', 200);
+
+                // 診断結果からキーワードを抽出
+                const profileKeywords = [
+                    profile.future_goal,
+                    profile.challenges,
+                    profile.position,
+                    ...(profile.current_actions || [])
+                ].filter(Boolean);
+
+                // キーワードとタグのマッチングでスコアリング
+                const scoredBooks = allBooksForRec.map(book => {
+                    let score = 0;
+                    const bookTagsStr = (book.tags || []).join(' ').toLowerCase();
+                    const painStr = (book.pain_points || []).join(' ').toLowerCase();
+                    const outcomeStr = (book.outcomes || []).join(' ').toLowerCase();
+
+                    profileKeywords.forEach(keyword => {
+                        const kw = keyword.toLowerCase();
+                        if (bookTagsStr.includes(kw)) score += 3;
+                        if (painStr.includes(kw)) score += 2;
+                        if (outcomeStr.includes(kw)) score += 1;
+                    });
+
+                    // 悩みとの細かいマッチング
+                    const challengeMap = {
+                        '売上・成約率が上がらない': ['営業', 'セールス', '成約', '売上'],
+                        'マーケティング戦略が分からない': ['マーケティング', '集客', '広告', 'ブランディング'],
+                        '対人関係が上手くいかない': ['人間関係', 'コミュニケーション', '対人'],
+                        'メンタルが不安定': ['メンタル', 'マインドセット', '思考法'],
+                        '時間管理ができていない': ['習慣', '時間管理', '生産性']
+                    };
+                    const matchTags = challengeMap[profile.challenges] || [];
+                    matchTags.forEach(tag => {
+                        if (bookTagsStr.includes(tag.toLowerCase())) score += 2;
+                    });
+
+                    return { book, score };
+                });
+
+                const topRec = scoredBooks
+                    .filter(s => s.score > 0)
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, 10)
+                    .map(s => s.book);
+
+                setRecommendedBooks(topRec);
+            }
+
             // 各ジャンルの人気本を取得（タグベースで分類）
             const booksByDomain = {};
             const allBooks = await base44.entities.Book.list('-created_date', 200);
