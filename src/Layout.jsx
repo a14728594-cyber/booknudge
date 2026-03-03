@@ -68,7 +68,8 @@ export default function Layout({ children, currentPageName }) {
   { label: 'ユーザー管理', path: 'AdminUsers', icon: UserCog },
   { label: '本管理', path: 'AdminBooks', icon: BookOpen },
   { label: 'クイズ管理', path: 'AdminQuizzes', icon: MessageSquare },
-  { label: '問い合わせ', path: 'AdminInquiries', icon: MessageSquare }];
+  { label: '問い合わせ', path: 'AdminInquiries', icon: MessageSquare },
+  { label: 'Billing', path: 'AdminBillingStatus', icon: BarChart3 }];
 
 
   const navItems = isAdminPage ? adminNavItems : userNavItems;
