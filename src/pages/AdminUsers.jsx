@@ -33,6 +33,11 @@ export default function AdminUsers() {
         }
     };
 
+    const updatePlan = async (userId, newStatus) => {
+        await base44.asServiceRole.entities.User.update(userId, { subscription_status: newStatus });
+        setUsers(prev => prev.map(u => u.id === userId ? { ...u, subscription_status: newStatus } : u));
+    };
+
     const loadUsers = async () => {
         try {
             const allUsers = await base44.entities.User.list('-created_date', 1000);
