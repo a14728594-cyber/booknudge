@@ -17,8 +17,8 @@ export default function SubscriptionGuard({ children, pagePath }) {
         try {
             const user = await base44.auth.me({ forceRefresh: true });
             
-            // 管理者または有料ユーザーはアクセス可能
-            if (user.role === 'admin' || user.subscription_status === 'active') {
+            // 有料ユーザーはアクセス可能
+            if (user.subscription_status === 'active') {
                 setIsAuthorized(true);
             } else {
                 // Paywallへリダイレクト
