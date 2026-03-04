@@ -87,6 +87,7 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Tokushoho from './pages/Tokushoho';
 import genreDomain from './pages/genre[domain]';
+import DeepDiagnosis from './pages/DeepDiagnosis';
 import __Layout from './Layout.jsx';
 
 
@@ -131,6 +132,7 @@ export const PAGES = {
     "Terms": Terms,
     "Tokushoho": Tokushoho,
     "genre[domain]": genreDomain,
+    "DeepDiagnosis": DeepDiagnosis,
 }
 
 export const pagesConfig = {

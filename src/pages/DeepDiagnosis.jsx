@@ -1,0 +1,332 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+
+const GENRES = [
+    { key: 'マーケ', label: '📣 マーケ・ブランディング' },
+    { key: '営業', label: '💼 営業・セールス' },
+    { key: 'アイデア', label: '💡 アイデア・差別化' },
+    { key: '人間関係', label: '🤝 人間関係・コミュニケーション' },
+    { key: '習慣', label: '⏰ 習慣・仕事術' },
+    { key: 'マインドセット', label: '🧠 マインドセット' },
+];
+
+const STEPS = { GENRE: 'genre', PROBLEM: 'problem', QUESTION: 'question', RESULT: 'result' };
+
+export default function DeepDiagnosis() {
+    const navigate = useNavigate();
+    const [step, setStep] = useState(STEPS.GENRE);
+    const [user, setUser] = useState(null);
+    const [selectedGenre, setSelectedGenre] = useState(null);
+    const [selectedProblem, setSelectedProblem] = useState(null);
+    const [problems, setProblems] = useState([]);
+    const [nodes, setNodes] = useState([]);
+    const [options, setOptions] = useState({});
+    const [currentNode, setCurrentNode] = useState(null);
+    const [answers, setAnswers] = useState([]);
+    const [tagScores, setTagScores] = useState({});
+    const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        base44.auth.me().then(setUser);
+    }, []);
+
+    // ジャンル選択後、悩みリストを取得
+    const handleGenreSelect = async (genre) => {
+        setSelectedGenre(genre);
+        setLoading(true);
+        try {
+            const genreNodes = await base44.entities.DiagnosisNode.filter(
+                { genre, is_active: true },
+                'order',
+                50
+            );
+            // problemを持つstartノードから悩みリストを抽出
+            const problemNodes = genreNodes.filter(n => n.node_type === 'start' && n.problem);
+            setProblems(problemNodes);
+            setNodes(genreNodes);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+        setStep(STEPS.PROBLEM);
+    };
+
+    // 悩み選択後、最初の質問ノードを取得
+    const handleProblemSelect = async (problemNode) => {
+        setSelectedProblem(problemNode.problem);
+        setLoading(true);
+        try {
+            // problemに紐づくquestionノードを取得
+            const questionNodes = nodes.filter(
+                n => n.problem === problemNode.problem && n.node_type === 'question'
+            ).sort((a, b) => (a.order || 0) - (b.order || 0));
+
+            if (questionNodes.length === 0) {
+                // 質問がない場合はすぐ完了
+                await saveSession(problemNode.problem, [], {});
+                return;
+            }
+
+            // 全ノードの選択肢を取得
+            const allNodeIds = [...questionNodes.map(n => n.id), problemNode.id];
+            const allOptions = await base44.entities.DiagnosisOption.filter(
+                {},
+                'order',
+                200
+            );
+            const optionMap = {};
+            allOptions.forEach(opt => {
+                if (!optionMap[opt.node_id]) optionMap[opt.node_id] = [];
+                optionMap[opt.node_id].push(opt);
+            });
+            setOptions(optionMap);
+
+            setCurrentNode(questionNodes[0]);
+            setAnswers([]);
+            setTagScores({});
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+        setStep(STEPS.QUESTION);
+    };
+
+    // 選択肢を選んだ時
+    const handleOptionSelect = async (option) => {
+        // タグスコアを更新
+        const newScores = { ...tagScores };
+        (option.tag_effects || []).forEach(({ tag, delta }) => {
+            newScores[tag] = (newScores[tag] || 0) + (delta || 1);
+        });
+        setTagScores(newScores);
+
+        const newAnswers = [
+            ...answers,
+            { node_id: currentNode.id, option_key: option.option_key, option_text: option.option_text }
+        ];
+        setAnswers(newAnswers);
+
+        // 次のノードを決定
+        const nextNodeId = option.next_node_id;
+        let nextNode = null;
+
+        if (nextNodeId) {
+            // 指定された分岐先
+            const allNodes = await base44.entities.DiagnosisNode.filter(
+                { genre: selectedGenre, problem: selectedProblem, is_active: true },
+                'order',
+                50
+            );
+            nextNode = allNodes.find(n => n.id === nextNodeId) || null;
+        } else {
+            // 次のorderのquestionノードへ
+            const currentOrder = currentNode.order || 0;
+            const allNodes = nodes.filter(
+                n => n.problem === selectedProblem && n.node_type === 'question'
+            ).sort((a, b) => (a.order || 0) - (b.order || 0));
+            nextNode = allNodes.find(n => (n.order || 0) > currentOrder) || null;
+        }
+
+        if (!nextNode || newAnswers.length >= 7) {
+            // 完了
+            await saveSession(selectedProblem, newAnswers, newScores);
+        } else {
+            setCurrentNode(nextNode);
+        }
+    };
+
+    const saveSession = async (problem, answersData, scores) => {
+        setSaving(true);
+        try {
+            const result_tags = Object.entries(scores).map(([tag, score]) => ({ tag, score }));
+
+            // 既存の is_latest を false に
+            if (user) {
+                const prevSessions = await base44.entities.DiagnosisSession.filter(
+                    { user_id: user.id, is_latest: true }
+                );
+                for (const s of prevSessions) {
+                    await base44.entities.DiagnosisSession.update(s.id, { is_latest: false });
+                }
+
+                await base44.entities.DiagnosisSession.create({
+                    user_id: user.id,
+                    genre: selectedGenre,
+                    problem,
+                    answers: answersData,
+                    result_tags,
+                    is_latest: true,
+                });
+            }
+            setStep(STEPS.RESULT);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const currentOptions = currentNode ? (options[currentNode.id] || []).sort((a, b) => (a.order || 0) - (b.order || 0)) : [];
+    const questionNodes = nodes.filter(n => n.problem === selectedProblem && n.node_type === 'question');
+    const currentIndex = questionNodes.findIndex(n => n.id === currentNode?.id);
+    const progress = questionNodes.length > 0 ? ((answers.length / Math.min(questionNodes.length, 7)) * 100) : 0;
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-6">
+            <div className="max-w-2xl mx-auto">
+
+                {/* ヘッダー */}
+                <div className="flex items-center gap-4 mb-8">
+                    <button
+                        onClick={() => {
+                            if (step === STEPS.GENRE) navigate(createPageUrl('home'));
+                            else if (step === STEPS.PROBLEM) setStep(STEPS.GENRE);
+                            else if (step === STEPS.QUESTION) setStep(STEPS.PROBLEM);
+                        }}
+                        className="p-2 rounded-xl hover:bg-white text-gray-500"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-900">おすすめ精度を上げる診断</h1>
+                        <p className="text-sm text-gray-500">診断するたびにおすすめが最適化されます</p>
+                    </div>
+                </div>
+
+                {/* ジャンル選択 */}
+                {step === STEPS.GENRE && (
+                    <div>
+                        <h2 className="text-lg font-semibold text-gray-800 mb-6">どのジャンルで悩んでいますか？</h2>
+                        <div className="grid grid-cols-2 gap-3">
+                            {GENRES.map(g => (
+                                <button
+                                    key={g.key}
+                                    onClick={() => handleGenreSelect(g.key)}
+                                    className="p-4 bg-white rounded-2xl border-2 border-gray-100 hover:border-indigo-400 hover:shadow-md transition-all text-left font-medium text-gray-700"
+                                >
+                                    {g.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* 悩み選択 */}
+                {step === STEPS.PROBLEM && (
+                    <div>
+                        <div className="mb-2 text-sm font-medium text-indigo-600">{selectedGenre}</div>
+                        <h2 className="text-lg font-semibold text-gray-800 mb-6">具体的にどんな悩みがありますか？</h2>
+                        {loading ? (
+                            <div className="text-center py-12 text-gray-500">読み込み中...</div>
+                        ) : problems.length === 0 ? (
+                            <div className="text-center py-12 text-gray-400">
+                                <p className="mb-2">このジャンルの質問はまだ準備中です</p>
+                                <Button variant="outline" onClick={() => setStep(STEPS.GENRE)}>戻る</Button>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {problems.map(p => (
+                                    <button
+                                        key={p.id}
+                                        onClick={() => handleProblemSelect(p)}
+                                        className="w-full p-4 bg-white rounded-2xl border-2 border-gray-100 hover:border-indigo-400 hover:shadow-md transition-all text-left"
+                                    >
+                                        <div className="font-medium text-gray-800">{p.problem}</div>
+                                        {p.title && <div className="text-sm text-gray-500 mt-1">{p.title}</div>}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* 質問ステップ */}
+                {step === STEPS.QUESTION && (
+                    <div>
+                        {/* プログレスバー */}
+                        <div className="mb-6">
+                            <div className="flex justify-between text-sm text-gray-500 mb-2">
+                                <span>{selectedGenre} / {selectedProblem}</span>
+                                <span>{answers.length + 1} / {Math.min(questionNodes.length, 7)}</span>
+                            </div>
+                            <div className="h-2 bg-gray-200 rounded-full">
+                                <div
+                                    className="h-2 bg-indigo-500 rounded-full transition-all"
+                                    style={{ width: `${progress}%` }}
+                                />
+                            </div>
+                        </div>
+
+                        {loading || saving ? (
+                            <div className="text-center py-12 text-gray-500">処理中...</div>
+                        ) : currentNode ? (
+                            <div>
+                                <h2 className="text-xl font-semibold text-gray-800 mb-8 leading-relaxed">
+                                    {currentNode.prompt}
+                                </h2>
+                                <div className="space-y-3">
+                                    {currentOptions.length === 0 ? (
+                                        <div className="text-center py-8 text-gray-400">選択肢が登録されていません</div>
+                                    ) : (
+                                        currentOptions.map(opt => (
+                                            <button
+                                                key={opt.id}
+                                                onClick={() => handleOptionSelect(opt)}
+                                                className="w-full p-4 bg-white rounded-2xl border-2 border-gray-100 hover:border-indigo-400 hover:shadow-md transition-all text-left flex items-center gap-4"
+                                            >
+                                                <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center text-sm flex-shrink-0">
+                                                    {opt.option_key}
+                                                </span>
+                                                <span className="text-gray-800">{opt.option_text}</span>
+                                            </button>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        ) : null}
+                    </div>
+                )}
+
+                {/* 完了 */}
+                {step === STEPS.RESULT && (
+                    <div className="text-center py-8">
+                        <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">診断完了！</h2>
+                        <p className="text-gray-600 mb-8">
+                            診断結果を元に、おすすめの本が更新されました。<br />
+                            ホームに戻って確認してみましょう。
+                        </p>
+                        <div className="flex gap-3 justify-center">
+                            <Button
+                                onClick={() => navigate(createPageUrl('home'))}
+                                className="bg-indigo-600 hover:bg-indigo-700"
+                            >
+                                ホームへ <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setStep(STEPS.GENRE);
+                                    setSelectedGenre(null);
+                                    setSelectedProblem(null);
+                                    setAnswers([]);
+                                    setTagScores({});
+                                    setCurrentNode(null);
+                                }}
+                            >
+                                もう一度診断する
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
