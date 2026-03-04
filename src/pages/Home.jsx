@@ -85,45 +85,54 @@ export default function Home() {
             const firstDomain = Object.keys(domainConfig)[0];
             setMainDomain(firstDomain);
 
-            // 診断済みユーザーの場合、診断結果を元におすすめ本を生成
-            if (user?.onboarding_completed && user?.profile_json) {
-                const profile = user.profile_json;
+            // 深掘り診断の最新セッションを取得
+            const latestSessions = await base44.entities.DiagnosisSession.filter(
+                { user_id: user.id, is_latest: true },
+                '-created_date',
+                1
+            );
+            const latestSession = latestSessions[0] || null;
+
+            // おすすめ本のスコアリング
+            if ((user?.onboarding_completed && user?.profile_json) || latestSession) {
                 const allBooksForRec = await base44.entities.Book.list('-created_date', 200);
 
-                // 診断結果からキーワードを抽出
-                const profileKeywords = [
-                    profile.future_goal,
-                    profile.challenges,
-                    profile.position,
-                    ...(profile.current_actions || [])
-                ].filter(Boolean);
-
-                // キーワードとタグのマッチングでスコアリング
                 const scoredBooks = allBooksForRec.map(book => {
                     let score = 0;
                     const bookTagsStr = (book.tags || []).join(' ').toLowerCase();
                     const painStr = (book.pain_points || []).join(' ').toLowerCase();
                     const outcomeStr = (book.outcomes || []).join(' ').toLowerCase();
 
-                    profileKeywords.forEach(keyword => {
-                        const kw = keyword.toLowerCase();
-                        if (bookTagsStr.includes(kw)) score += 3;
-                        if (painStr.includes(kw)) score += 2;
-                        if (outcomeStr.includes(kw)) score += 1;
-                    });
+                    // 初回診断プロフィールからのスコア
+                    if (user?.profile_json) {
+                        const profile = user.profile_json;
+                        const profileKeywords = [
+                            profile.future_goal,
+                            profile.challenges,
+                            profile.position,
+                            ...(profile.current_actions || [])
+                        ].filter(Boolean);
 
-                    // 悩みとの細かいマッチング
-                    const challengeMap = {
-                        '売上・成約率が上がらない': ['営業', 'セールス', '成約', '売上'],
-                        'マーケティング戦略が分からない': ['マーケティング', '集客', '広告', 'ブランディング'],
-                        '対人関係が上手くいかない': ['人間関係', 'コミュニケーション', '対人'],
-                        'メンタルが不安定': ['メンタル', 'マインドセット', '思考法'],
-                        '時間管理ができていない': ['習慣', '時間管理', '生産性']
-                    };
-                    const matchTags = challengeMap[profile.challenges] || [];
-                    matchTags.forEach(tag => {
-                        if (bookTagsStr.includes(tag.toLowerCase())) score += 2;
-                    });
+                        profileKeywords.forEach(keyword => {
+                            const kw = keyword.toLowerCase();
+                            if (bookTagsStr.includes(kw)) score += 3;
+                            if (painStr.includes(kw)) score += 2;
+                            if (outcomeStr.includes(kw)) score += 1;
+                        });
+                    }
+
+                    // 深掘り診断result_tagsからのスコア（優先度高）
+                    if (latestSession?.result_tags) {
+                        latestSession.result_tags.forEach(({ tag, score: tagScore }) => {
+                            const t = tag.toLowerCase();
+                            if (bookTagsStr.includes(t)) score += (tagScore || 1) * 4;
+                            if (painStr.includes(t)) score += (tagScore || 1) * 2;
+                            if (outcomeStr.includes(t)) score += (tagScore || 1);
+                        });
+                        // ジャンルと悩みも加味
+                        if (latestSession.genre && bookTagsStr.includes(latestSession.genre.toLowerCase())) score += 5;
+                        if (latestSession.problem && painStr.includes(latestSession.problem.toLowerCase())) score += 3;
+                    }
 
                     return { book, score };
                 });
