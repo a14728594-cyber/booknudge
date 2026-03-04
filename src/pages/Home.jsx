@@ -207,16 +207,27 @@ export default function Home() {
                     </form>
                 </div>
 
-                {/* Quiz CTA */}
-                <div className="mb-12">
-                    <Link to={createPageUrl('onboarding')}>
-                        <div className="max-w-2xl mx-auto bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white hover:shadow-xl transition-shadow cursor-pointer">
+                {/* Diagnosis CTAs */}
+                <div className="mb-12 max-w-2xl mx-auto flex flex-col sm:flex-row gap-3">
+                    <Link to={createPageUrl('onboarding')} className="flex-1">
+                        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-5 text-white hover:shadow-xl transition-shadow cursor-pointer h-full">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h3 className="text-xl font-bold mb-2">📝 あなたに最適な本を見つける診断</h3>
-                                    <p className="text-indigo-100 text-sm">繰り返し診断することで、より深くあなたを理解します</p>
+                                    <h3 className="text-base font-bold mb-1">📝 初回診断</h3>
+                                    <p className="text-indigo-100 text-xs">プロフィールを元に本を提案</p>
                                 </div>
-                                <ArrowRight className="w-8 h-8 flex-shrink-0" />
+                                <ArrowRight className="w-6 h-6 flex-shrink-0" />
+                            </div>
+                        </div>
+                    </Link>
+                    <Link to={createPageUrl('DeepDiagnosis')} className="flex-1">
+                        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-5 text-white hover:shadow-xl transition-shadow cursor-pointer h-full">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-base font-bold mb-1">🎯 おすすめ精度を上げる診断</h3>
+                                    <p className="text-emerald-100 text-xs">何度でも試せる深掘り診断</p>
+                                </div>
+                                <ArrowRight className="w-6 h-6 flex-shrink-0" />
                             </div>
                         </div>
                     </Link>
