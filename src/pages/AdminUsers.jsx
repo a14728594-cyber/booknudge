@@ -148,9 +148,18 @@ export default function AdminUsers() {
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
-                                            <Badge className={user.plan_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}>
-                                                {user.plan_status === 'paid' ? '有料' : '無料'}
-                                            </Badge>
+                                            <Select
+                                                value={user.subscription_status === 'active' ? 'active' : 'free'}
+                                                onValueChange={(val) => updatePlan(user.id, val === 'active' ? 'active' : null)}
+                                            >
+                                                <SelectTrigger className="w-24 h-7 text-xs rounded-lg">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="free">無料</SelectItem>
+                                                    <SelectItem value="active">有料</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </TableCell>
                                         <TableCell>
                                             <Badge className={user.role === 'admin' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700'}>
