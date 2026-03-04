@@ -70,7 +70,8 @@ export default function Layout({ children, currentPageName }) {
   { label: 'クイズ管理', path: 'AdminQuizzes', icon: MessageSquare },
   { label: '問い合わせ', path: 'AdminInquiries', icon: MessageSquare },
   { label: 'Billing', path: 'AdminBillingStatus', icon: BarChart3 },
-  { label: '深掘り診断', path: 'AdminDiagnosis', icon: MessageSquare }];
+  { label: '深掘り診断', path: 'AdminDiagnosis', icon: MessageSquare },
+  { label: '事例クイズ', path: 'AdminCaseQuiz', icon: BookOpen }];
 
 
   const navItems = isAdminPage ? adminNavItems : userNavItems;
