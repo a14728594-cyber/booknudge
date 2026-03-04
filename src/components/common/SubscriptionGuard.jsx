@@ -15,7 +15,7 @@ export default function SubscriptionGuard({ children, pagePath }) {
 
     const checkSubscription = async () => {
         try {
-            const user = await base44.auth.me();
+            const user = await base44.auth.me({ forceRefresh: true });
             
             // 管理者または有料ユーザーはアクセス可能
             if (user.role === 'admin' || user.subscription_status === 'active') {
