@@ -28,12 +28,13 @@ Deno.serve(async (req) => {
 
         const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-12-18.acacia' });
 
-        // bodyを先に読み取る（SDKがbodyを消費する前に）
-        const body = await req.json();
-        const { success_url, cancel_url, next } = body;
-
+        // SDKを先に初期化（ヘッダーベース認証なのでbodyは不要）
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
+
+        // bodyはSDK初期化後に読み取る
+        const body = await req.json();
+        const { success_url, cancel_url, next } = body;
 
         if (!user) {
             console.log(`[${requestId}] Auth failed - no user`);
