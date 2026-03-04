@@ -141,16 +141,44 @@ export default function AdminDiagnosis() {
             </div>
 
             {/* ジャンル切り替え */}
-            <div className="flex gap-2 mb-8 flex-wrap">
-                {GENRES.map(g => (
-                    <button
-                        key={g}
-                        onClick={() => setSelectedGenre(g)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedGenre === g ? 'bg-indigo-600 text-white' : 'bg-white border text-gray-600 hover:border-indigo-400'}`}
-                    >
-                        {g}
-                    </button>
+            <div className="flex gap-2 mb-8 flex-wrap items-center">
+                {genres.map(g => (
+                    <div key={g} className="flex items-center gap-0.5 group">
+                        <button
+                            onClick={() => setSelectedGenre(g)}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedGenre === g ? 'bg-indigo-600 text-white' : 'bg-white border text-gray-600 hover:border-indigo-400'}`}
+                        >
+                            {g}
+                        </button>
+                        <button
+                            onClick={() => deleteGenre(g)}
+                            className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-opacity ml-0.5"
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
+                    </div>
                 ))}
+                {addingGenre ? (
+                    <div className="flex items-center gap-2">
+                        <Input
+                            value={newGenreText}
+                            onChange={e => setNewGenreText(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && addGenre()}
+                            placeholder="ジャンル名"
+                            className="h-8 w-36 text-sm"
+                            autoFocus
+                        />
+                        <button onClick={addGenre} className="text-green-600"><Check className="w-4 h-4" /></button>
+                        <button onClick={() => { setAddingGenre(false); setNewGenreText(''); }} className="text-gray-400"><X className="w-4 h-4" /></button>
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => setAddingGenre(true)}
+                        className="px-3 py-2 rounded-full text-sm border border-dashed text-gray-400 hover:text-indigo-600 hover:border-indigo-400 transition-colors flex items-center gap-1"
+                    >
+                        <Plus className="w-3 h-3" /> ジャンル追加
+                    </button>
+                )}
             </div>
 
             {loading ? (
