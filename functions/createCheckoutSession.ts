@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import Stripe from 'npm:stripe@17.5.0';
+import Stripe from 'npm:stripe@14.25.0';
 
 Deno.serve(async (req) => {
     const requestId = crypto.randomUUID().substring(0, 8);
