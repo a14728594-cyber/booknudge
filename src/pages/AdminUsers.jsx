@@ -34,7 +34,7 @@ export default function AdminUsers() {
     };
 
     const updatePlan = async (userId, newStatus) => {
-        await base44.asServiceRole.entities.User.update(userId, { subscription_status: newStatus });
+        await base44.functions.invoke('adminUpdateUserPlan', { user_id: userId, subscription_status: newStatus });
         setUsers(prev => prev.map(u => u.id === userId ? { ...u, subscription_status: newStatus } : u));
     };
 
