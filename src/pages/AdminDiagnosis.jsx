@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Trash2, ChevronDown, ChevronRight, Edit2, Check, X } from 'lucide-react';
 
-const GENRES = ['マーケ', '営業', 'アイデア', '人間関係', '習慣', 'マインドセット'];
 const NODE_TYPES = ['start', 'question', 'end'];
 
 export default function AdminDiagnosis() {
@@ -14,20 +13,55 @@ export default function AdminDiagnosis() {
     const [nodes, setNodes] = useState([]);
     const [options, setOptions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedGenre, setSelectedGenre] = useState(GENRES[0]);
+    const [genres, setGenres] = useState([]);
+    const [selectedGenre, setSelectedGenre] = useState(null);
     const [expandedNodes, setExpandedNodes] = useState({});
     const [editingNode, setEditingNode] = useState(null);
     const [editingOption, setEditingOption] = useState(null);
     const [newNodeForm, setNewNodeForm] = useState(null);
     const [newOptionForm, setNewOptionForm] = useState(null);
+    const [newGenreText, setNewGenreText] = useState('');
+    const [addingGenre, setAddingGenre] = useState(false);
 
     useEffect(() => {
         checkAdmin();
+        loadGenres();
     }, []);
 
     useEffect(() => {
-        loadData();
+        if (selectedGenre) loadData();
     }, [selectedGenre]);
+
+    const loadGenres = async () => {
+        // DiagnosisNodeのgenreを全件取得してユニーク抽出
+        const allNodes = await base44.entities.DiagnosisNode.list('genre', 500);
+        const existing = [...new Set(allNodes.map(n => n.genre).filter(Boolean))];
+        // ローカルストレージで追加済みジャンルも保持
+        const stored = JSON.parse(localStorage.getItem('diagnosis_genres') || '[]');
+        const merged = [...new Set([...stored, ...existing])];
+        setGenres(merged);
+        if (merged.length > 0 && !selectedGenre) setSelectedGenre(merged[0]);
+        localStorage.setItem('diagnosis_genres', JSON.stringify(merged));
+    };
+
+    const addGenre = () => {
+        const g = newGenreText.trim();
+        if (!g || genres.includes(g)) return;
+        const updated = [...genres, g];
+        setGenres(updated);
+        localStorage.setItem('diagnosis_genres', JSON.stringify(updated));
+        setSelectedGenre(g);
+        setNewGenreText('');
+        setAddingGenre(false);
+    };
+
+    const deleteGenre = (g) => {
+        if (!confirm(`ジャンル「${g}」を削除しますか？（ノードは削除されません）`)) return;
+        const updated = genres.filter(x => x !== g);
+        setGenres(updated);
+        localStorage.setItem('diagnosis_genres', JSON.stringify(updated));
+        if (selectedGenre === g) setSelectedGenre(updated[0] || null);
+    };
 
     const checkAdmin = async () => {
         const user = await base44.auth.me();
