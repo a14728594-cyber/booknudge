@@ -90,6 +90,7 @@ import genreDomain from './pages/genre[domain]';
 import DeepDiagnosis from './pages/DeepDiagnosis';
 import AdminDiagnosis from './pages/AdminDiagnosis';
 import AdminCaseQuiz from './pages/AdminCaseQuiz';
+import CaseQuizPage from './pages/CaseQuizPage';
 import __Layout from './Layout.jsx';
 
 
@@ -137,6 +138,7 @@ export const PAGES = {
     "DeepDiagnosis": DeepDiagnosis,
     "AdminDiagnosis": AdminDiagnosis,
     "AdminCaseQuiz": AdminCaseQuiz,
+    "CaseQuizPage": CaseQuizPage,
 }
 
 export const pagesConfig = {
