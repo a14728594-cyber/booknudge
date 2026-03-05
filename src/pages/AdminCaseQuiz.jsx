@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import AdminCaseQuizGenreBar from '../components/admin/casequiz/AdminCaseQuizGenreBar';
-import AdminCaseQuizList from '../components/admin/casequiz/AdminCaseQuizList';
-import AdminCaseQuizForm from '../components/admin/casequiz/AdminCaseQuizForm';
+import AdminCaseQuizGenreBar from '@/components/admin/casequiz/AdminCaseQuizGenreBar';
+import AdminCaseQuizList from '@/components/admin/casequiz/AdminCaseQuizList';
+import AdminCaseQuizForm from '@/components/admin/casequiz/AdminCaseQuizForm';
 
 export default function AdminCaseQuiz() {
     const navigate = useNavigate();
