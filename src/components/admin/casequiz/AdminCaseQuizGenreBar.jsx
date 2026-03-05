@@ -6,7 +6,6 @@ export default function AdminCaseQuizGenreBar({
     selectedGenre, selectedProblem,
     onSelectGenre, onSelectProblem
 }) {
-    const navigate = useNavigate();
     const [genres, setGenres] = useState([]);
     const [problems, setProblems] = useState({}); // genre_id -> ProblemCategory[]
 
