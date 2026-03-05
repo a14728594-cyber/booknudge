@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import CaseQuizGenreSelector from '../components/casequiz/CaseQuizGenreSelector';
-import CaseQuizPlayer from '../components/casequiz/CaseQuizPlayer';
+import CaseQuizGenreSelector from '@/components/casequiz/CaseQuizGenreSelector';
+import CaseQuizPlayer from '@/components/casequiz/CaseQuizPlayer';
 
 export default function CaseQuizPage() {
     const [user, setUser] = useState(null);
