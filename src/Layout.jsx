@@ -67,7 +67,6 @@ export default function Layout({ children, currentPageName }) {
   { label: 'ダッシュボード', path: 'AdminDashboard', icon: BarChart3 },
   { label: 'ユーザー管理', path: 'AdminUsers', icon: UserCog },
   { label: '本管理', path: 'AdminBooks', icon: BookOpen },
-  { label: 'クイズ管理', path: 'AdminQuizzes', icon: MessageSquare },
   { label: '問い合わせ', path: 'AdminInquiries', icon: MessageSquare },
   { label: 'Billing', path: 'AdminBillingStatus', icon: BarChart3 },
   { label: '深掘り診断', path: 'AdminDiagnosis', icon: MessageSquare },
