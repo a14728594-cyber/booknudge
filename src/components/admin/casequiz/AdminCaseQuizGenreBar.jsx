@@ -51,13 +51,7 @@ export default function AdminCaseQuizGenreBar({
                         {g.name}
                     </button>
                 ))}
-                <button
-                    onClick={() => navigate(createPageUrl('AdminGenreManager'))}
-                    className="px-3 py-1.5 rounded-full text-sm border text-gray-400 hover:text-indigo-600 hover:border-indigo-400 flex items-center gap-1"
-                    title="ジャンル・悩みカテゴリを管理"
-                >
-                    <Settings className="w-3 h-3" /> 管理
-                </button>
+
             </div>
 
             {/* 悩みカテゴリ行 */}
