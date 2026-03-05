@@ -2,29 +2,66 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Plus, Trash2, Check } from 'lucide-react';
 
 export default function AdminCaseQuizForm({ quiz, defaultGenre, defaultProblem, onBack }) {
     const isNew = !quiz;
+    const [genres, setGenres] = useState([]);
+    const [problems, setProblems] = useState([]); // ProblemCategory[]
     const [form, setForm] = useState({
-        genre: quiz?.genre || defaultGenre || '',
-        problem: quiz?.problem || defaultProblem || '',
+        genre: quiz?.genre || defaultGenre?.name || '',
+        genre_id: quiz?.genre_id || defaultGenre?.id || '',
+        problem: quiz?.problem || defaultProblem?.name || '',
+        problem_id: quiz?.problem_id || defaultProblem?.id || '',
         scenario: quiz?.scenario || '',
         question: quiz?.question || '',
         common_feedback: quiz?.common_feedback || '',
         order: quiz?.order ?? 0,
         is_active: quiz?.is_active ?? true,
+        book_id: quiz?.book_id || '',
     });
     const [options, setOptions] = useState([]);
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
+        loadGenres();
         if (!isNew) loadOptions();
     }, []);
+
+    useEffect(() => {
+        if (form.genre_id) loadProblems(form.genre_id);
+    }, [form.genre_id]);
+
+    const loadGenres = async () => {
+        const gs = await base44.entities.Genre.filter({ is_active: true }, 'order', 100);
+        setGenres(gs);
+    };
+
+    const loadProblems = async (genreId) => {
+        const ps = await base44.entities.ProblemCategory.filter({ genre_id: genreId, is_active: true }, 'order', 100);
+        setProblems(ps);
+    };
 
     const loadOptions = async () => {
         const opts = await base44.entities.CaseQuizOption.filter({ quiz_id: quiz.id }, 'order', 20);
         setOptions(opts.map(o => ({ ...o, _saved: true })));
+    };
+
+    const handleGenreChange = (genreId) => {
+        const g = genres.find(x => x.id === genreId);
+        setForm(p => ({ ...p, genre_id: genreId, genre: g?.name || '', problem_id: '', problem: '' }));
+        setProblems([]);
+        loadProblems(genreId);
+    };
+
+    const handleProblemChange = (problemId) => {
+        if (problemId === '__none__') {
+            setForm(p => ({ ...p, problem_id: '', problem: '' }));
+            return;
+        }
+        const prob = problems.find(x => x.id === problemId);
+        setForm(p => ({ ...p, problem_id: problemId, problem: prob?.name || '' }));
     };
 
     const addOption = () => {
@@ -48,22 +85,25 @@ export default function AdminCaseQuizForm({ quiz, defaultGenre, defaultProblem, 
         if (!form.genre || !form.scenario || !form.question) return alert('ジャンル・事例・質問文は必須です');
         setSaving(true);
         let quizId = quiz?.id;
+        const saveData = {
+            genre: form.genre,
+            problem: form.problem,
+            scenario: form.scenario,
+            question: form.question,
+            common_feedback: form.common_feedback,
+            order: form.order,
+            is_active: form.is_active,
+        };
+        if (form.book_id) saveData.book_id = form.book_id;
+
         if (isNew) {
-            const created = await base44.entities.CaseQuiz.create(form);
+            const created = await base44.entities.CaseQuiz.create(saveData);
             quizId = created.id;
         } else {
-            await base44.entities.CaseQuiz.update(quizId, form);
+            await base44.entities.CaseQuiz.update(quizId, saveData);
         }
-        // 選択肢を保存
         for (const opt of options) {
-            const data = {
-                quiz_id: quizId,
-                option_text: opt.option_text,
-                praise: opt.praise,
-                risk: opt.risk,
-                next_action: opt.next_action,
-                order: opt.order,
-            };
+            const data = { quiz_id: quizId, option_text: opt.option_text, praise: opt.praise, risk: opt.risk, next_action: opt.next_action, order: opt.order };
             if (opt._saved && opt.id) {
                 await base44.entities.CaseQuizOption.update(opt.id, data);
             } else {
@@ -82,16 +122,38 @@ export default function AdminCaseQuizForm({ quiz, defaultGenre, defaultProblem, 
             <h2 className="text-xl font-bold text-gray-900 mb-6">{isNew ? 'クイズを追加' : 'クイズを編集'}</h2>
 
             <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4 mb-6">
+                {/* ジャンル・悩みカテゴリ（連動プルダウン） */}
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="text-xs font-medium text-gray-600 mb-1 block">ジャンル *</label>
-                        <Input value={form.genre} onChange={e => setForm(p => ({ ...p, genre: e.target.value }))} placeholder="例：マーケ" />
+                        <Select value={form.genre_id || ''} onValueChange={handleGenreChange}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="選択してください" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {genres.map(g => (
+                                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div>
                         <label className="text-xs font-medium text-gray-600 mb-1 block">悩みカテゴリ</label>
-                        <Input value={form.problem} onChange={e => setForm(p => ({ ...p, problem: e.target.value }))} placeholder="例：集客できない" />
+                        <Select value={form.problem_id || '__none__'} onValueChange={handleProblemChange} disabled={!form.genre_id}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="（任意）" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="__none__">（なし）</SelectItem>
+                                {problems.map(p => (
+                                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
+
+                {/* 事例本文 */}
                 <div>
                     <label className="text-xs font-medium text-gray-600 mb-1 block">事例本文（scenario）*</label>
                     <textarea
@@ -102,20 +164,30 @@ export default function AdminCaseQuizForm({ quiz, defaultGenre, defaultProblem, 
                         className="w-full border rounded-lg px-3 py-2 text-sm resize-y focus:outline-none focus:ring-1 focus:ring-indigo-400"
                     />
                 </div>
+
+                {/* 質問文 */}
                 <div>
                     <label className="text-xs font-medium text-gray-600 mb-1 block">質問文（question）*</label>
                     <Input value={form.question} onChange={e => setForm(p => ({ ...p, question: e.target.value }))} placeholder="この状況でどう対応しますか？" />
                 </div>
+
+                {/* 共通フィードバック */}
                 <div>
                     <label className="text-xs font-medium text-gray-600 mb-1 block">共通フィードバック（1行）</label>
                     <Input value={form.common_feedback} onChange={e => setForm(p => ({ ...p, common_feedback: e.target.value }))} placeholder="この問いのポイントは..." />
                 </div>
-                <div className="flex gap-4 items-center">
+
+                {/* 本ID・order・is_active */}
+                <div className="grid grid-cols-3 gap-4 items-end">
+                    <div>
+                        <label className="text-xs font-medium text-gray-600 mb-1 block">本ID（任意）</label>
+                        <Input value={form.book_id} onChange={e => setForm(p => ({ ...p, book_id: e.target.value }))} placeholder="本に紐づける場合" />
+                    </div>
                     <div>
                         <label className="text-xs font-medium text-gray-600 mb-1 block">表示順</label>
-                        <Input type="number" value={form.order} onChange={e => setForm(p => ({ ...p, order: Number(e.target.value) }))} className="w-24" />
+                        <Input type="number" value={form.order} onChange={e => setForm(p => ({ ...p, order: Number(e.target.value) }))} />
                     </div>
-                    <div className="flex items-center gap-2 pt-5">
+                    <div className="flex items-center gap-2 pb-1">
                         <input type="checkbox" id="is_active" checked={form.is_active} onChange={e => setForm(p => ({ ...p, is_active: e.target.checked }))} className="w-4 h-4" />
                         <label htmlFor="is_active" className="text-sm text-gray-700">配信中</label>
                     </div>
@@ -136,7 +208,7 @@ export default function AdminCaseQuizForm({ quiz, defaultGenre, defaultProblem, 
                     {options.map((opt, idx) => (
                         <div key={idx} className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-medium text-gray-500">選択肢 {idx + 1}</span>
+                                <span className="text-xs font-medium text-gray-500">選択肢 {String.fromCharCode(65 + idx)}</span>
                                 <button onClick={() => removeOption(idx)} className="text-gray-300 hover:text-red-400">
                                     <Trash2 className="w-4 h-4" />
                                 </button>

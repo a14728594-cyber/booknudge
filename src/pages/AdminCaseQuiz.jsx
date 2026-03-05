@@ -8,9 +8,8 @@ import AdminCaseQuizForm from '@/components/admin/casequiz/AdminCaseQuizForm';
 
 export default function AdminCaseQuiz() {
     const navigate = useNavigate();
-    const [genres, setGenres] = useState([]);
-    const [selectedGenre, setSelectedGenre] = useState(null);
-    const [selectedProblem, setSelectedProblem] = useState(null);
+    const [selectedGenre, setSelectedGenre] = useState(null);   // Genre object
+    const [selectedProblem, setSelectedProblem] = useState(null); // ProblemCategory object
     const [editingQuiz, setEditingQuiz] = useState(null); // null=list, 'new'=新規, quiz object=編集
     const [reload, setReload] = useState(0);
 
@@ -19,19 +18,7 @@ export default function AdminCaseQuiz() {
             const user = await base44.auth.me();
             if (user?.role !== 'admin') navigate(createPageUrl('home'));
         })();
-        loadGenres();
     }, []);
-
-    const loadGenres = () => {
-        const stored = JSON.parse(localStorage.getItem('casequiz_genres') || '[]');
-        setGenres(stored);
-        if (stored.length > 0 && !selectedGenre) setSelectedGenre(stored[0]);
-    };
-
-    const saveGenres = (updated) => {
-        localStorage.setItem('casequiz_genres', JSON.stringify(updated));
-        setGenres(updated);
-    };
 
     const triggerReload = () => setReload(r => r + 1);
 
@@ -50,21 +37,24 @@ export default function AdminCaseQuiz() {
         <div className="max-w-5xl mx-auto px-6 py-8">
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">事例クイズ 管理</h1>
-                <div className="text-sm text-gray-500">CaseQuiz / CaseQuizOption</div>
+                <button
+                    onClick={() => navigate(createPageUrl('AdminGenreManager'))}
+                    className="text-sm text-indigo-600 hover:underline"
+                >
+                    ジャンル・悩みカテゴリを管理 →
+                </button>
             </div>
 
             <AdminCaseQuizGenreBar
-                genres={genres}
                 selectedGenre={selectedGenre}
                 selectedProblem={selectedProblem}
-                onSelectGenre={(g) => { setSelectedGenre(g); setSelectedProblem(null); }}
+                onSelectGenre={setSelectedGenre}
                 onSelectProblem={setSelectedProblem}
-                onSaveGenres={saveGenres}
             />
 
             {selectedGenre && (
                 <AdminCaseQuizList
-                    key={`${selectedGenre}-${selectedProblem}-${reload}`}
+                    key={`${selectedGenre?.id}-${selectedProblem?.id}-${reload}`}
                     genre={selectedGenre}
                     problem={selectedProblem}
                     onEdit={(quiz) => setEditingQuiz(quiz)}

@@ -14,16 +14,16 @@ export default function AdminCaseQuizList({ genre, problem, onEdit, onNew, onRel
 
     useEffect(() => {
         setPage(0);
-    }, [genre, problem]);
+    }, [genre?.id, problem?.id]);
 
     useEffect(() => {
         loadQuizzes();
-    }, [genre, problem, page]);
+    }, [genre?.id, problem?.id, page]);
 
     const loadQuizzes = async () => {
         setLoading(true);
-        const filter = { genre };
-        if (problem) filter.problem = problem;
+        const filter = { genre: genre.name };
+        if (problem) filter.problem = problem.name;
         const all = await base44.entities.CaseQuiz.filter(filter, 'order', 500);
         setTotal(all.length);
         setQuizzes(all.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE));
@@ -33,7 +33,6 @@ export default function AdminCaseQuizList({ genre, problem, onEdit, onNew, onRel
     const deleteQuiz = async (id) => {
         if (!confirm('このクイズを削除しますか？')) return;
         await base44.entities.CaseQuiz.delete(id);
-        // 関連する選択肢も削除
         const opts = await base44.entities.CaseQuizOption.filter({ quiz_id: id }, 'order', 100);
         for (const o of opts) await base44.entities.CaseQuizOption.delete(o.id);
         loadQuizzes();
@@ -90,7 +89,6 @@ export default function AdminCaseQuizList({ genre, problem, onEdit, onNew, onRel
                 </div>
             )}
 
-            {/* ページング */}
             {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-3 mt-6">
                     <button onClick={() => setPage(p => p - 1)} disabled={page === 0} className="p-1 disabled:opacity-30">
