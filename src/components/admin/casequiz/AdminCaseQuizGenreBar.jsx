@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import { Settings } from 'lucide-react';
+
 
 export default function AdminCaseQuizGenreBar({
     selectedGenre, selectedProblem,
