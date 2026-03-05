@@ -50,8 +50,10 @@
 import AdminBillingStatus from './pages/AdminBillingStatus';
 import AdminBookEdit from './pages/AdminBookEdit';
 import AdminBooks from './pages/AdminBooks';
+import AdminCaseQuiz from './pages/AdminCaseQuiz';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminDebug from './pages/AdminDebug';
+import AdminDiagnosis from './pages/AdminDiagnosis';
 import AdminInquiries from './pages/AdminInquiries';
 import AdminQuizForm from './pages/AdminQuizForm';
 import AdminQuizzes from './pages/AdminQuizzes';
@@ -60,6 +62,7 @@ import BillingCancel from './pages/BillingCancel';
 import BillingSuccess from './pages/BillingSuccess';
 import Book from './pages/Book';
 import BookDetail from './pages/BookDetail';
+import CaseQuizPage from './pages/CaseQuizPage';
 import Connect from './pages/Connect';
 import DM from './pages/DM';
 import DMChat from './pages/DMChat';
@@ -68,6 +71,7 @@ import DebugDiagnosis from './pages/DebugDiagnosis';
 import DebugQuiz from './pages/DebugQuiz';
 import DebugSentry from './pages/DebugSentry';
 import DebugStatus from './pages/DebugStatus';
+import DeepDiagnosis from './pages/DeepDiagnosis';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import MyProfile from './pages/MyProfile';
@@ -87,10 +91,7 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Tokushoho from './pages/Tokushoho';
 import genreDomain from './pages/genre[domain]';
-import DeepDiagnosis from './pages/DeepDiagnosis';
-import AdminDiagnosis from './pages/AdminDiagnosis';
-import AdminCaseQuiz from './pages/AdminCaseQuiz';
-import CaseQuizPage from './pages/CaseQuizPage';
+import AdminGenreManager from './pages/AdminGenreManager';
 import __Layout from './Layout.jsx';
 
 
@@ -98,8 +99,10 @@ export const PAGES = {
     "AdminBillingStatus": AdminBillingStatus,
     "AdminBookEdit": AdminBookEdit,
     "AdminBooks": AdminBooks,
+    "AdminCaseQuiz": AdminCaseQuiz,
     "AdminDashboard": AdminDashboard,
     "AdminDebug": AdminDebug,
+    "AdminDiagnosis": AdminDiagnosis,
     "AdminInquiries": AdminInquiries,
     "AdminQuizForm": AdminQuizForm,
     "AdminQuizzes": AdminQuizzes,
@@ -108,6 +111,7 @@ export const PAGES = {
     "BillingSuccess": BillingSuccess,
     "Book": Book,
     "BookDetail": BookDetail,
+    "CaseQuizPage": CaseQuizPage,
     "Connect": Connect,
     "DM": DM,
     "DMChat": DMChat,
@@ -116,6 +120,7 @@ export const PAGES = {
     "DebugQuiz": DebugQuiz,
     "DebugSentry": DebugSentry,
     "DebugStatus": DebugStatus,
+    "DeepDiagnosis": DeepDiagnosis,
     "Home": Home,
     "Landing": Landing,
     "MyProfile": MyProfile,
@@ -135,10 +140,7 @@ export const PAGES = {
     "Terms": Terms,
     "Tokushoho": Tokushoho,
     "genre[domain]": genreDomain,
-    "DeepDiagnosis": DeepDiagnosis,
-    "AdminDiagnosis": AdminDiagnosis,
-    "AdminCaseQuiz": AdminCaseQuiz,
-    "CaseQuizPage": CaseQuizPage,
+    "AdminGenreManager": AdminGenreManager,
 }
 
 export const pagesConfig = {
