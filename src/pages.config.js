@@ -54,6 +54,7 @@ import AdminCaseQuiz from './pages/AdminCaseQuiz';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminDebug from './pages/AdminDebug';
 import AdminDiagnosis from './pages/AdminDiagnosis';
+import AdminGenreManager from './pages/AdminGenreManager';
 import AdminInquiries from './pages/AdminInquiries';
 import AdminQuizForm from './pages/AdminQuizForm';
 import AdminQuizzes from './pages/AdminQuizzes';
@@ -91,7 +92,6 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Tokushoho from './pages/Tokushoho';
 import genreDomain from './pages/genre[domain]';
-import AdminGenreManager from './pages/AdminGenreManager';
 import __Layout from './Layout.jsx';
 
 
@@ -103,6 +103,7 @@ export const PAGES = {
     "AdminDashboard": AdminDashboard,
     "AdminDebug": AdminDebug,
     "AdminDiagnosis": AdminDiagnosis,
+    "AdminGenreManager": AdminGenreManager,
     "AdminInquiries": AdminInquiries,
     "AdminQuizForm": AdminQuizForm,
     "AdminQuizzes": AdminQuizzes,
@@ -140,7 +141,6 @@ export const PAGES = {
     "Terms": Terms,
     "Tokushoho": Tokushoho,
     "genre[domain]": genreDomain,
-    "AdminGenreManager": AdminGenreManager,
 }
 
 export const pagesConfig = {
