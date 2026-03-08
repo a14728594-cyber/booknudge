@@ -14,15 +14,13 @@ const GENRES = [
     { key: 'マインドセット', label: '🧠 マインドセット' },
 ];
 
-const STEPS = { GENRE: 'genre', PROBLEM: 'problem', QUESTION: 'question', RESULT: 'result' };
+const STEPS = { GENRE: 'genre', QUESTION: 'question', RESULT: 'result' };
 
 export default function DeepDiagnosis() {
     const navigate = useNavigate();
     const [step, setStep] = useState(STEPS.GENRE);
     const [user, setUser] = useState(null);
     const [selectedGenre, setSelectedGenre] = useState(null);
-    const [selectedProblem, setSelectedProblem] = useState(null);
-    const [problems, setProblems] = useState([]);
     const [nodes, setNodes] = useState([]);
     const [options, setOptions] = useState({});
     const [currentNode, setCurrentNode] = useState(null);
@@ -36,59 +34,32 @@ export default function DeepDiagnosis() {
         base44.auth.me().then(setUser);
     }, []);
 
-    // ジャンル選択後、悩みリストを取得
+    // ジャンル選択後、即1問目へ
     const handleGenreSelect = async (genre) => {
         setSelectedGenre(genre);
         setLoading(true);
         try {
-            const genreNodes = await base44.entities.DiagnosisNode.filter(
-                { genre, is_active: true },
-                'order',
-                50
-            );
-            // problemを持つstartノードから悩みリストを抽出
-            const problemNodes = genreNodes.filter(n => n.node_type === 'start' && n.problem);
-            setProblems(problemNodes);
-            setNodes(genreNodes);
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoading(false);
-        }
-        setStep(STEPS.PROBLEM);
-    };
+            const [genreNodes, allOptions] = await Promise.all([
+                base44.entities.DiagnosisNode.filter({ genre, is_active: true }, 'order', 200),
+                base44.entities.DiagnosisOption.list('order', 1000),
+            ]);
 
-    // 悩み選択後、startノードから質問ツリーをロードして開始
-    const handleProblemSelect = async (problemNode) => {
-        setSelectedProblem(problemNode.problem);
-        setLoading(true);
-        try {
-            // このジャンル・problemの全ノードと全選択肢を一括取得
-            const allOptions = await base44.entities.DiagnosisOption.list('order', 1000);
             const optionMap = {};
             allOptions.forEach(opt => {
                 if (!optionMap[opt.node_id]) optionMap[opt.node_id] = [];
                 optionMap[opt.node_id].push(opt);
             });
             setOptions(optionMap);
+            setNodes(genreNodes);
 
-            // startノードの次の質問 = startノードの選択肢がなければ、最初のquestionノードを探す
-            // startノードの選択肢から最初の質問へ
-            const startOpts = (optionMap[problemNode.id] || []).sort((a, b) => (a.order || 0) - (b.order || 0));
-            let firstNode = null;
-            if (startOpts.length > 0 && startOpts[0].next_node_id) {
-                firstNode = nodes.find(n => n.id === startOpts[0].next_node_id) || null;
-            }
-            // fallback: 同problemの最初のquestionノード
-            if (!firstNode) {
-                const questionNodes = nodes.filter(
-                    n => n.problem === problemNode.problem && n.node_type === 'question'
-                ).sort((a, b) => (a.order || 0) - (b.order || 0));
-                firstNode = questionNodes[0] || null;
-            }
+            // ルートノード = どの選択肢からも参照されていないノード
+            const referencedIds = new Set(allOptions.map(o => o.next_node_id).filter(Boolean));
+            const rootNodes = genreNodes.filter(n => !referencedIds.has(n.id)).sort((a, b) => (a.order || 0) - (b.order || 0));
+            const firstNode = rootNodes[0] || genreNodes[0] || null;
 
             if (!firstNode) {
-                await saveSession(problemNode.problem, [], {});
+                setLoading(false);
+                setStep(STEPS.QUESTION);
                 return;
             }
 
