@@ -10,7 +10,7 @@ const TYPE_COLORS = {
 export default function NodeCard({ node, options, allNodes, onEdit, onDelete, isRoot, isHighlighted, onClickNext }) {
     const getNodeLabel = (id) => {
         const n = allNodes.find(x => x.id === id);
-        return n ? (n.prompt?.slice(0, 35) || id.slice(0, 8)) : `(ID: ${id.slice(0, 8)}...)`;
+        return n ? (n.title ? `[${n.title}] ${n.prompt?.slice(0, 25)}` : n.prompt?.slice(0, 35)) : `(ID: ${id.slice(0, 8)}...)`;
     };
 
     return (
