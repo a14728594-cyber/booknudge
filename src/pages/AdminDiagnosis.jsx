@@ -4,9 +4,9 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Trash2, ChevronDown, ChevronRight, Edit2, Check, X } from 'lucide-react';
-
-const NODE_TYPES = ['start', 'question', 'end'];
+import { Plus, Check, X } from 'lucide-react';
+import NodeCard from '@/components/admin/diagnosis/NodeCard';
+import NodeEditor from '@/components/admin/diagnosis/NodeEditor';
 
 export default function AdminDiagnosis() {
     const navigate = useNavigate();
@@ -15,11 +15,9 @@ export default function AdminDiagnosis() {
     const [loading, setLoading] = useState(true);
     const [genres, setGenres] = useState([]);
     const [selectedGenre, setSelectedGenre] = useState(null);
-    const [expandedNodes, setExpandedNodes] = useState({});
-    const [editingNode, setEditingNode] = useState(null);
-    const [editingOption, setEditingOption] = useState(null);
-    const [newNodeForm, setNewNodeForm] = useState(null);
-    const [newOptionForm, setNewOptionForm] = useState(null);
+    const [editingNode, setEditingNode] = useState(null); // null = 非表示, {} = 新規, node = 編集
+    const [editingMode, setEditingMode] = useState('create');
+    const [highlightedId, setHighlightedId] = useState(null);
     const [newGenreText, setNewGenreText] = useState('');
     const [addingGenre, setAddingGenre] = useState(false);
 
@@ -32,11 +30,23 @@ export default function AdminDiagnosis() {
         if (selectedGenre) loadData();
     }, [selectedGenre]);
 
+    // Highlight scroll
+    useEffect(() => {
+        if (highlightedId) {
+            document.getElementById(`node-${highlightedId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const t = setTimeout(() => setHighlightedId(null), 2000);
+            return () => clearTimeout(t);
+        }
+    }, [highlightedId]);
+
+    const checkAdmin = async () => {
+        const user = await base44.auth.me();
+        if (user?.role !== 'admin') navigate(createPageUrl('home'));
+    };
+
     const loadGenres = async () => {
-        // DiagnosisNodeのgenreを全件取得してユニーク抽出
         const allNodes = await base44.entities.DiagnosisNode.list('genre', 500);
         const existing = [...new Set(allNodes.map(n => n.genre).filter(Boolean))];
-        // ローカルストレージで追加済みジャンルも保持
         const stored = JSON.parse(localStorage.getItem('diagnosis_genres') || '[]');
         const merged = [...new Set([...stored, ...existing])];
         setGenres(merged);
@@ -56,88 +66,104 @@ export default function AdminDiagnosis() {
     };
 
     const deleteGenre = (g) => {
-        if (!confirm(`ジャンル「${g}」を削除しますか？（ノードは削除されません）`)) return;
+        if (!confirm(`ジャンル「${g}」を削除しますか？`)) return;
         const updated = genres.filter(x => x !== g);
         setGenres(updated);
         localStorage.setItem('diagnosis_genres', JSON.stringify(updated));
         if (selectedGenre === g) setSelectedGenre(updated[0] || null);
     };
 
-    const checkAdmin = async () => {
-        const user = await base44.auth.me();
-        if (user?.role !== 'admin') navigate(createPageUrl('home'));
-    };
-
     const loadData = async () => {
         setLoading(true);
         const [allNodes, allOptions] = await Promise.all([
-            base44.entities.DiagnosisNode.filter({ genre: selectedGenre }, 'order', 100),
-            base44.entities.DiagnosisOption.list('order', 500),
+            base44.entities.DiagnosisNode.filter({ genre: selectedGenre }, 'order', 200),
+            base44.entities.DiagnosisOption.list('order', 1000),
         ]);
         setNodes(allNodes);
         setOptions(allOptions);
         setLoading(false);
     };
 
-    const nodeOptions = (nodeId) => options.filter(o => o.node_id === nodeId).sort((a, b) => (a.order || 0) - (b.order || 0));
+    const nodeOptions = (nodeId) =>
+        options.filter(o => o.node_id === nodeId).sort((a, b) => (a.order || 0) - (b.order || 0));
 
-    // Node CRUD
-    const createNode = async () => {
-        if (!newNodeForm?.prompt) return;
-        await base44.entities.DiagnosisNode.create({
-            genre: selectedGenre,
-            ...newNodeForm,
-            is_active: true,
-        });
-        setNewNodeForm(null);
-        loadData();
-    };
+    const handleSave = async ({ node: nodeData, options: optsData }) => {
+        const isNew = editingMode === 'create';
 
-    const updateNode = async (id, data) => {
-        await base44.entities.DiagnosisNode.update(id, data);
+        let savedNode;
+        if (isNew) {
+            savedNode = await base44.entities.DiagnosisNode.create({
+                genre: selectedGenre,
+                ...nodeData,
+                is_active: nodeData.is_active ?? true,
+            });
+        } else {
+            await base44.entities.DiagnosisNode.update(editingNode.id, nodeData);
+            savedNode = { ...editingNode, ...nodeData };
+        }
+
+        const nodeId = savedNode.id || editingNode.id;
+
+        // Sync options: delete old, create new
+        const existingOpts = options.filter(o => o.node_id === nodeId);
+        await Promise.all(existingOpts.map(o => base44.entities.DiagnosisOption.delete(o.id)));
+        await Promise.all(
+            optsData
+                .filter(o => o.option_text?.trim())
+                .map((o, idx) =>
+                    base44.entities.DiagnosisOption.create({
+                        node_id: nodeId,
+                        option_key: o.option_key || String.fromCharCode(65 + idx),
+                        option_text: o.option_text,
+                        next_node_id: o.next_node_id || null,
+                        tag_effects: o.tag_effects || [],
+                        order: idx,
+                    })
+                )
+        );
+
         setEditingNode(null);
+        await loadData();
+        setHighlightedId(nodeId);
+    };
+
+    const handleDelete = async (node) => {
+        // Check if this node is referenced by any option
+        const refs = options.filter(o => o.next_node_id === node.id);
+        if (refs.length > 0) {
+            const refTexts = refs.map(o => `「${o.option_text}」`).join(', ');
+            if (!confirm(`このノードは ${refs.length}個の選択肢（${refTexts}）から参照されています。\n削除しますか？`)) return;
+        } else {
+            if (!confirm('このノードと関連する選択肢を削除しますか？')) return;
+        }
+
+        const nodeOpts = options.filter(o => o.node_id === node.id);
+        await Promise.all(nodeOpts.map(o => base44.entities.DiagnosisOption.delete(o.id)));
+        await base44.entities.DiagnosisNode.delete(node.id);
         loadData();
     };
 
-    const deleteNode = async (id) => {
-        if (!confirm('このノードと関連する選択肢を削除しますか？')) return;
-        await base44.entities.DiagnosisNode.delete(id);
-        const nodeOpts = options.filter(o => o.node_id === id);
-        for (const o of nodeOpts) await base44.entities.DiagnosisOption.delete(o.id);
-        loadData();
+    const openCreate = () => {
+        setEditingMode('create');
+        setEditingNode({ node_type: 'question', prompt: '', order: nodes.length, _options: [] });
     };
 
-    // Option CRUD
-    const createOption = async (nodeId) => {
-        if (!newOptionForm?.option_text) return;
-        await base44.entities.DiagnosisOption.create({
-            node_id: nodeId,
-            option_key: newOptionForm.option_key || 'A',
-            option_text: newOptionForm.option_text,
-            tag_effects: [],
-            next_node_id: newOptionForm.next_node_id || '',
-            order: newOptionForm.order || 0,
-        });
-        setNewOptionForm(null);
-        loadData();
+    const openEdit = (node) => {
+        setEditingMode('edit');
+        setEditingNode({ ...node, _options: nodeOptions(node.id) });
     };
 
-    const updateOption = async (id, data) => {
-        await base44.entities.DiagnosisOption.update(id, data);
-        setEditingOption(null);
-        loadData();
-    };
-
-    const deleteOption = async (id) => {
-        await base44.entities.DiagnosisOption.delete(id);
-        loadData();
-    };
+    // Find root nodes: nodes not referenced by any option's next_node_id
+    const referencedIds = new Set(options.map(o => o.next_node_id).filter(Boolean));
+    const rootNodes = nodes.filter(n => !referencedIds.has(n.id));
 
     return (
         <div className="max-w-5xl mx-auto px-6 py-8">
             <div className="flex items-center justify-between mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">深掘り診断 管理</h1>
-                <div className="text-sm text-gray-500">DiagnosisNode / DiagnosisOption</div>
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900">深掘り診断 管理</h1>
+                    <p className="text-sm text-gray-500 mt-0.5">分岐式質問ツリーの管理</p>
+                </div>
             </div>
 
             {/* ジャンル切り替え */}
@@ -150,32 +176,19 @@ export default function AdminDiagnosis() {
                         >
                             {g}
                         </button>
-                        <button
-                            onClick={() => deleteGenre(g)}
-                            className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-opacity ml-0.5"
-                        >
+                        <button onClick={() => deleteGenre(g)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-opacity ml-0.5">
                             <X className="w-3 h-3" />
                         </button>
                     </div>
                 ))}
                 {addingGenre ? (
                     <div className="flex items-center gap-2">
-                        <Input
-                            value={newGenreText}
-                            onChange={e => setNewGenreText(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && addGenre()}
-                            placeholder="ジャンル名"
-                            className="h-8 w-36 text-sm"
-                            autoFocus
-                        />
+                        <Input value={newGenreText} onChange={e => setNewGenreText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addGenre()} placeholder="ジャンル名" className="h-8 w-36 text-sm" autoFocus />
                         <button onClick={addGenre} className="text-green-600"><Check className="w-4 h-4" /></button>
                         <button onClick={() => { setAddingGenre(false); setNewGenreText(''); }} className="text-gray-400"><X className="w-4 h-4" /></button>
                     </div>
                 ) : (
-                    <button
-                        onClick={() => setAddingGenre(true)}
-                        className="px-3 py-2 rounded-full text-sm border border-dashed text-gray-400 hover:text-indigo-600 hover:border-indigo-400 transition-colors flex items-center gap-1"
-                    >
+                    <button onClick={() => setAddingGenre(true)} className="px-3 py-2 rounded-full text-sm border border-dashed text-gray-400 hover:text-indigo-600 hover:border-indigo-400 transition-colors flex items-center gap-1">
                         <Plus className="w-3 h-3" /> ジャンル追加
                     </button>
                 )}
@@ -184,112 +197,61 @@ export default function AdminDiagnosis() {
             {loading ? (
                 <div className="text-center py-12 text-gray-400">読み込み中...</div>
             ) : (
-                <>
-                    {/* ノード一覧 */}
-                    <div className="space-y-3 mb-6">
-                        {nodes.map(node => (
-                            <div key={node.id} className="bg-white rounded-xl border border-gray-200">
-                                <div className="flex items-center gap-3 p-4">
-                                    <button onClick={() => setExpandedNodes(prev => ({ ...prev, [node.id]: !prev[node.id] }))}>
-                                        {expandedNodes[node.id] ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
-                                    </button>
-                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${node.node_type === 'start' ? 'bg-green-100 text-green-700' : node.node_type === 'end' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
-                                        {node.node_type}
-                                    </span>
-                                    <span className="text-xs text-gray-400">order:{node.order || 0}</span>
-                                    {editingNode?.id === node.id ? (
-                                        <div className="flex-1 flex gap-2 flex-wrap">
-                                            <Input value={editingNode.problem || ''} onChange={e => setEditingNode(p => ({ ...p, problem: e.target.value }))} placeholder="problem" className="flex-1 text-sm h-8" />
-                                            <Input value={editingNode.prompt} onChange={e => setEditingNode(p => ({ ...p, prompt: e.target.value }))} placeholder="質問文" className="flex-1 text-sm h-8" />
-                                            <Input value={editingNode.order || ''} onChange={e => setEditingNode(p => ({ ...p, order: Number(e.target.value) }))} placeholder="order" type="number" className="w-20 text-sm h-8" />
-                                            <button onClick={() => updateNode(node.id, editingNode)} className="text-green-600"><Check className="w-4 h-4" /></button>
-                                            <button onClick={() => setEditingNode(null)} className="text-gray-400"><X className="w-4 h-4" /></button>
-                                        </div>
-                                    ) : (
-                                        <div className="flex-1 min-w-0">
-                                            {node.problem && <span className="text-xs text-gray-400 mr-2">[{node.problem}]</span>}
-                                            <span className="text-sm text-gray-800 truncate">{node.prompt}</span>
-                                        </div>
-                                    )}
-                                    <button onClick={() => setEditingNode({ ...node })} className="text-gray-400 hover:text-indigo-600"><Edit2 className="w-4 h-4" /></button>
-                                    <button onClick={() => deleteNode(node.id)} className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
-                                </div>
-
-                                {/* 選択肢一覧 */}
-                                {expandedNodes[node.id] && (
-                                    <div className="border-t border-gray-100 px-4 pb-4 pt-3 space-y-2">
-                                        <div className="text-xs font-medium text-gray-500 mb-2">選択肢</div>
-                                        {nodeOptions(node.id).map(opt => (
-                                            <div key={opt.id} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
-                                                {editingOption?.id === opt.id ? (
-                                                    <div className="flex-1 flex gap-2 flex-wrap">
-                                                        <Input value={editingOption.option_key} onChange={e => setEditingOption(p => ({ ...p, option_key: e.target.value }))} placeholder="Key" className="w-16 text-sm h-7" />
-                                                        <Input value={editingOption.option_text} onChange={e => setEditingOption(p => ({ ...p, option_text: e.target.value }))} placeholder="テキスト" className="flex-1 text-sm h-7" />
-                                                        <Input value={editingOption.next_node_id || ''} onChange={e => setEditingOption(p => ({ ...p, next_node_id: e.target.value }))} placeholder="next_node_id" className="w-40 text-sm h-7" />
-                                                        <Input value={JSON.stringify(editingOption.tag_effects || [])} onChange={e => { try { setEditingOption(p => ({ ...p, tag_effects: JSON.parse(e.target.value) })); } catch {} }} placeholder='tag_effects JSON' className="flex-1 text-xs h-7" />
-                                                        <button onClick={() => updateOption(opt.id, editingOption)} className="text-green-600"><Check className="w-4 h-4" /></button>
-                                                        <button onClick={() => setEditingOption(null)} className="text-gray-400"><X className="w-4 h-4" /></button>
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs flex items-center justify-center font-bold">{opt.option_key}</span>
-                                                        <span className="flex-1 text-sm text-gray-800">{opt.option_text}</span>
-                                                        {opt.next_node_id && <span className="text-xs text-gray-400">→{opt.next_node_id.slice(0, 8)}</span>}
-                                                        {opt.tag_effects?.length > 0 && <span className="text-xs text-emerald-600">{opt.tag_effects.map(t => `${t.tag}+${t.delta}`).join(', ')}</span>}
-                                                        <button onClick={() => setEditingOption({ ...opt })} className="text-gray-400 hover:text-indigo-600"><Edit2 className="w-3 h-3" /></button>
-                                                        <button onClick={() => deleteOption(opt.id)} className="text-gray-400 hover:text-red-500"><Trash2 className="w-3 h-3" /></button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        ))}
-
-                                        {/* 選択肢追加フォーム */}
-                                        {newOptionForm?.nodeId === node.id ? (
-                                            <div className="flex gap-2 flex-wrap mt-2">
-                                                <Input value={newOptionForm.option_key || ''} onChange={e => setNewOptionForm(p => ({ ...p, option_key: e.target.value }))} placeholder="Key (A)" className="w-16 text-sm h-7" />
-                                                <Input value={newOptionForm.option_text || ''} onChange={e => setNewOptionForm(p => ({ ...p, option_text: e.target.value }))} placeholder="選択肢テキスト" className="flex-1 text-sm h-7" />
-                                                <Input value={newOptionForm.next_node_id || ''} onChange={e => setNewOptionForm(p => ({ ...p, next_node_id: e.target.value }))} placeholder="next_node_id（任意）" className="w-40 text-sm h-7" />
-                                                <Button size="sm" onClick={() => createOption(node.id)} className="h-7 text-xs">追加</Button>
-                                                <Button size="sm" variant="ghost" onClick={() => setNewOptionForm(null)} className="h-7 text-xs">キャンセル</Button>
-                                            </div>
-                                        ) : (
-                                            <button
-                                                onClick={() => setNewOptionForm({ nodeId: node.id, option_key: '', option_text: '' })}
-                                                className="text-xs text-indigo-500 hover:text-indigo-700 flex items-center gap-1 mt-1"
-                                            >
-                                                <Plus className="w-3 h-3" /> 選択肢を追加
-                                            </button>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                <div className="space-y-6">
+                    {/* 凡例 */}
+                    <div className="flex items-center gap-4 text-xs text-gray-500 bg-white rounded-xl border border-gray-100 px-4 py-2.5">
+                        <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-amber-400"></span>開始点（どの選択肢からも参照されていない質問）</span>
+                        <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-green-500"></span>start</span>
+                        <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-blue-500"></span>question</span>
+                        <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-red-400"></span>end / 終了</span>
                     </div>
 
-                    {/* 新規ノード追加 */}
-                    {newNodeForm ? (
-                        <div className="bg-white rounded-xl border-2 border-indigo-200 p-4 space-y-3">
-                            <div className="text-sm font-medium text-gray-700">新規ノード追加（ジャンル: {selectedGenre}）</div>
-                            <div className="flex gap-2 flex-wrap">
-                                <select value={newNodeForm.node_type || 'question'} onChange={e => setNewNodeForm(p => ({ ...p, node_type: e.target.value }))} className="border rounded-lg text-sm px-2 py-1">
-                                    {NODE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                                </select>
-                                <Input value={newNodeForm.problem || ''} onChange={e => setNewNodeForm(p => ({ ...p, problem: e.target.value }))} placeholder="problem（例：集客できない）" className="flex-1 text-sm h-8" />
-                                <Input value={newNodeForm.order || ''} onChange={e => setNewNodeForm(p => ({ ...p, order: Number(e.target.value) }))} placeholder="order" type="number" className="w-20 text-sm h-8" />
-                            </div>
-                            <Input value={newNodeForm.prompt || ''} onChange={e => setNewNodeForm(p => ({ ...p, prompt: e.target.value }))} placeholder="質問文（必須）" className="text-sm" />
-                            <Input value={newNodeForm.title || ''} onChange={e => setNewNodeForm(p => ({ ...p, title: e.target.value }))} placeholder="タイトル（任意）" className="text-sm" />
-                            <div className="flex gap-2">
-                                <Button onClick={createNode}>保存</Button>
-                                <Button variant="outline" onClick={() => setNewNodeForm(null)}>キャンセル</Button>
-                            </div>
+                    {/* エディター */}
+                    {editingNode && (
+                        <NodeEditor
+                            node={editingNode}
+                            allNodes={nodes}
+                            onSave={handleSave}
+                            onCancel={() => setEditingNode(null)}
+                            selectedGenre={selectedGenre}
+                            mode={editingMode}
+                        />
+                    )}
+
+                    {/* ノード一覧 */}
+                    {nodes.length === 0 ? (
+                        <div className="text-center py-16 text-gray-400">
+                            <p className="mb-4">このジャンルの質問はまだありません</p>
+                            <Button onClick={openCreate} className="gap-2">
+                                <Plus className="w-4 h-4" /> 最初の質問を追加
+                            </Button>
                         </div>
                     ) : (
-                        <Button onClick={() => setNewNodeForm({ node_type: 'question', prompt: '', order: nodes.length })} className="gap-2">
-                            <Plus className="w-4 h-4" /> ノードを追加
+                        <div className="space-y-3">
+                            {nodes.map(node => (
+                                <div key={node.id} id={`node-${node.id}`}>
+                                    <NodeCard
+                                        node={node}
+                                        options={nodeOptions(node.id)}
+                                        allNodes={nodes}
+                                        isRoot={rootNodes.some(r => r.id === node.id)}
+                                        isHighlighted={highlightedId === node.id}
+                                        onEdit={() => openEdit(node)}
+                                        onDelete={() => handleDelete(node)}
+                                        onClickNext={(id) => setHighlightedId(id)}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* 追加ボタン */}
+                    {nodes.length > 0 && !editingNode && (
+                        <Button onClick={openCreate} variant="outline" className="gap-2 w-full border-dashed">
+                            <Plus className="w-4 h-4" /> 質問を追加
                         </Button>
                     )}
-                </>
+                </div>
             )}
         </div>
     );
