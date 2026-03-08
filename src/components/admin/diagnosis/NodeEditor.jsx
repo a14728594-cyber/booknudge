@@ -150,11 +150,11 @@ export default function NodeEditor({ node, allNodes, onSave, onCancel, selectedG
                     />
                 </div>
                 <div>
-                    <label className="text-xs text-gray-500 mb-1 block">タイトル（任意）</label>
+                    <label className="text-xs text-gray-500 mb-1 block">タイトル <span className="text-red-500">*</span></label>
                     <Input
                         value={form.title || ''}
                         onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-                        placeholder="見出し"
+                        placeholder="例：MKT_A1"
                         className="text-sm h-8"
                     />
                 </div>
