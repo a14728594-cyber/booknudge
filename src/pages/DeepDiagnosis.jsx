@@ -136,17 +136,22 @@ export default function DeepDiagnosis() {
                     is_latest: true,
                 });
 
-                // AIおすすめを生成してセッションに保存
-                const recResult = await base44.functions.invoke('generateRecommendations', {});
-                if (recResult?.data?.recommendations) {
-                    await base44.entities.DiagnosisSession.update(session.id, {
-                        recommended_books: recResult.data.recommendations
-                    });
+                // AIおすすめを生成してセッションに保存（失敗しても診断完了は表示する）
+                try {
+                    const recResult = await base44.functions.invoke('generateRecommendations', {});
+                    if (recResult?.data?.recommendations) {
+                        await base44.entities.DiagnosisSession.update(session.id, {
+                            recommended_books: recResult.data.recommendations
+                        });
+                    }
+                } catch (recError) {
+                    console.error('recommendations error:', recError);
                 }
             }
             setStep(STEPS.RESULT);
         } catch (e) {
             console.error(e);
+            setStep(STEPS.RESULT); // エラーでも結果画面へ
         } finally {
             setSaving(false);
         }
