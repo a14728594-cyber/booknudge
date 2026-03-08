@@ -40,7 +40,7 @@ function OptionRow({ opt, index, allNodes, editingNode, onChange, onDelete }) {
                         .filter(n => !editingNode || n.id !== editingNode.id)
                         .map(n => (
                             <option key={n.id} value={n.id}>
-                                [{n.node_type}] {n.prompt?.slice(0, 50)}
+                                {n.title ? `[${n.title}] ` : ''}{n.prompt?.slice(0, 40)}
                             </option>
                         ))
                     }
