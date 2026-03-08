@@ -87,45 +87,7 @@ export default function AdminDiagnosis() {
     const nodeOptions = (nodeId) =>
         options.filter(o => o.node_id === nodeId).sort((a, b) => (a.order || 0) - (b.order || 0));
 
-    const handleSave = async ({ node: nodeData, options: optsData }) => {
-        const isNew = editingMode === 'create';
 
-        let savedNode;
-        if (isNew) {
-            savedNode = await base44.entities.DiagnosisNode.create({
-                genre: selectedGenre,
-                ...nodeData,
-                is_active: nodeData.is_active ?? true,
-            });
-        } else {
-            await base44.entities.DiagnosisNode.update(editingNode.id, nodeData);
-            savedNode = { ...editingNode, ...nodeData };
-        }
-
-        const nodeId = savedNode.id || editingNode.id;
-
-        // Sync options: delete old, create new
-        const existingOpts = options.filter(o => o.node_id === nodeId);
-        await Promise.all(existingOpts.map(o => base44.entities.DiagnosisOption.delete(o.id)));
-        await Promise.all(
-            optsData
-                .filter(o => o.option_text?.trim())
-                .map((o, idx) =>
-                    base44.entities.DiagnosisOption.create({
-                        node_id: nodeId,
-                        option_key: o.option_key || String.fromCharCode(65 + idx),
-                        option_text: o.option_text,
-                        next_node_id: o.next_node_id || null,
-                        tag_effects: o.tag_effects || [],
-                        order: idx,
-                    })
-                )
-        );
-
-        setEditingNode(null);
-        await loadData();
-        setHighlightedId(nodeId);
-    };
 
     const handleDelete = async (node) => {
         // Check if this node is referenced by any option
