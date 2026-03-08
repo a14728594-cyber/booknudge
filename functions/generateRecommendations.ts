@@ -48,6 +48,7 @@ ${answerTexts.map((t, i) => `  ${i + 1}. ${t}`).join('\n')}`
         const booksJson = bookPool.map(b => ({
             id: b.id,
             title: b.title,
+            description: b.description || '',
             tags: b.tags || [],
             one_liner: b.one_liner || '',
             pain_points: b.pain_points || [],
