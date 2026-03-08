@@ -113,7 +113,7 @@ export default function DeepDiagnosis() {
         setCurrentNode(nextNode);
     };
 
-    const saveSession = async (problem, answersData, scores) => {
+    const saveSession = async (answersData, scores) => {
         setSaving(true);
         try {
             const result_tags = Object.entries(scores).map(([tag, score]) => ({ tag, score }));
@@ -131,7 +131,6 @@ export default function DeepDiagnosis() {
                 const session = await base44.entities.DiagnosisSession.create({
                     user_id: user.id,
                     genre: selectedGenre,
-                    problem,
                     answers: answersData,
                     result_tags,
                     is_latest: true,
