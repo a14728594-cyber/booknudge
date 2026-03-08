@@ -147,8 +147,8 @@ export default function DeepDiagnosis() {
         try {
             const result_tags = Object.entries(scores).map(([tag, score]) => ({ tag, score }));
 
-            // 既存の is_latest を false に
             if (user) {
+                // 既存の is_latest を false に
                 const prevSessions = await base44.entities.DiagnosisSession.filter(
                     { user_id: user.id, is_latest: true }
                 );
@@ -156,7 +156,8 @@ export default function DeepDiagnosis() {
                     await base44.entities.DiagnosisSession.update(s.id, { is_latest: false });
                 }
 
-                await base44.entities.DiagnosisSession.create({
+                // セッションを保存
+                const session = await base44.entities.DiagnosisSession.create({
                     user_id: user.id,
                     genre: selectedGenre,
                     problem,
@@ -164,6 +165,14 @@ export default function DeepDiagnosis() {
                     result_tags,
                     is_latest: true,
                 });
+
+                // AIおすすめを生成してセッションに保存
+                const recResult = await base44.functions.invoke('generateRecommendations', {});
+                if (recResult?.data?.recommendations) {
+                    await base44.entities.DiagnosisSession.update(session.id, {
+                        recommended_books: recResult.data.recommendations
+                    });
+                }
             }
             setStep(STEPS.RESULT);
         } catch (e) {

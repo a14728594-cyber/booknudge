@@ -63,6 +63,7 @@ import BillingSuccess from './pages/BillingSuccess';
 import Book from './pages/Book';
 import BookDetail from './pages/BookDetail';
 import CaseQuizPage from './pages/CaseQuizPage';
+import CommonQuiz from './pages/CommonQuiz';
 import Connect from './pages/Connect';
 import DM from './pages/DM';
 import DMChat from './pages/DMChat';
@@ -77,6 +78,7 @@ import Landing from './pages/Landing';
 import MyProfile from './pages/MyProfile';
 import Onboarding from './pages/Onboarding';
 import Paywall from './pages/Paywall';
+import PersonalizedQuiz from './pages/PersonalizedQuiz';
 import Privacy from './pages/Privacy';
 import Profile from './pages/Profile';
 import Quiz from './pages/Quiz';
@@ -91,8 +93,6 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Tokushoho from './pages/Tokushoho';
 import genreDomain from './pages/genre[domain]';
-import CommonQuiz from './pages/CommonQuiz';
-import PersonalizedQuiz from './pages/PersonalizedQuiz';
 import __Layout from './Layout.jsx';
 
 
@@ -113,6 +113,7 @@ export const PAGES = {
     "Book": Book,
     "BookDetail": BookDetail,
     "CaseQuizPage": CaseQuizPage,
+    "CommonQuiz": CommonQuiz,
     "Connect": Connect,
     "DM": DM,
     "DMChat": DMChat,
@@ -127,6 +128,7 @@ export const PAGES = {
     "MyProfile": MyProfile,
     "Onboarding": Onboarding,
     "Paywall": Paywall,
+    "PersonalizedQuiz": PersonalizedQuiz,
     "Privacy": Privacy,
     "Profile": Profile,
     "Quiz": Quiz,
@@ -141,8 +143,6 @@ export const PAGES = {
     "Terms": Terms,
     "Tokushoho": Tokushoho,
     "genre[domain]": genreDomain,
-    "CommonQuiz": CommonQuiz,
-    "PersonalizedQuiz": PersonalizedQuiz,
 }
 
 export const pagesConfig = {
