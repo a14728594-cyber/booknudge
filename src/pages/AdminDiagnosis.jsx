@@ -306,6 +306,7 @@ export default function AdminDiagnosis() {
                                         onEdit={() => openEdit(node)}
                                         onDelete={() => handleDelete(node)}
                                         onClickNext={(id) => setHighlightedId(id)}
+                                        onCreateFromOption={openCreateFromOption}
                                     />
                                 </div>
                             ))}
