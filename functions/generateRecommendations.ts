@@ -30,46 +30,48 @@ Deno.serve(async (req) => {
         const booksJson = bookCandidates.map(b => ({
             id: b.id,
             title: b.title,
-            tags: b.tags,
+            tags: b.tags || [],
             description: b.description || '',
+            one_liner: b.one_liner || '',
             pain_points: b.pain_points || [],
             outcomes: b.outcomes || [],
             not_for: b.not_for || []
         }));
 
+        // 診断の回答テキストを取得
+        const answerTexts = latestSession ? (latestSession.answers || []).map(a => a.option_text) : [];
+
         // 診断結果をテキスト化
         const diagnosisText = latestSession
             ? `ジャンル: ${latestSession.genre || '未設定'}
 悩みカテゴリ: ${latestSession.problem || '未設定'}
-診断スコア: ${JSON.stringify(latestSession.result_tags || [])}
-回答内容: ${(latestSession.answers || []).map(a => a.option_text).join('、')}`
+回答した選択肢（ユーザーの悩みの具体的な内容）:
+${answerTexts.map((t, i) => `  ${i + 1}. ${t}`).join('\n')}`
             : '診断未実施';
 
         const prompt = `あなたは本のレコメンド専門家AIです。
 
-【ユーザーの診断結果】
+【ユーザーが診断で選んだ回答（＝ユーザーの具体的な悩み）】
 ${diagnosisText}
-
-【ユーザープロフィール】
-目標: ${userProfile.goals || '未設定'}
-フォーカス領域: ${JSON.stringify(userProfile.focus_domains || [])}
 
 【本候補リスト】
 ${JSON.stringify(booksJson, null, 2)}
 
-【タスク】
-ユーザーの診断結果・悩み・目標と、各本の「pain_points（こんな悩みの人におすすめ）」「outcomes（読んだ後こうなれる）」「description（説明文）」を意味的に照合してください。
-文字列の一致ではなく、内容・意味の類似度で判断してください。
-また「not_for」に該当するユーザーへの本は除外してください。
+【マッチングルール】
+1. ユーザーの「回答した選択肢」のテキストと、各本の「pain_points（こんな悩みの人におすすめ）」を意味的に照合する。内容が近い本を優先する。
+2. 次に「outcomes（読んだ後こうなれる）」がユーザーの悩みの解決につながるかを確認する。
+3. 「description」「one_liner」も参考にして総合的に判断する。
+4. 「not_for」にユーザーの状況が当てはまる本は除外する。
+5. 文字列の完全一致ではなく、意味・文脈の類似度で判断する。
 
-最適な10冊を選び、なぜこのユーザーに合うかを具体的に1行で説明してください。
+最もマッチ度の高い10冊を順番に選び、「ユーザーのどの回答（悩み）」と「本のどのpain_points」が合致したかを具体的に1行で説明してください。
 
 【出力形式（JSON）】
 {
   "recommendations": [
     {
       "book_id": "本のID",
-      "reason": "おすすめ理由1行（ユーザーの悩みと本のpain_points/outcomesがどう合うかを具体的に）"
+      "reason": "おすすめ理由1行（例：「〇〇〇という悩みに対して、この本は△△△という観点で直接応えています」）"
     }
   ]
 }`;
