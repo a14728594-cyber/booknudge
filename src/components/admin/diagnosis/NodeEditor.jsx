@@ -114,7 +114,7 @@ export default function NodeEditor({ node, allNodes, onSave, onCancel, selectedG
     }, [opts, node?.id]);
 
     const handleSave = () => {
-        if (!form.prompt.trim()) return;
+        if (!form.prompt.trim() || !form.title?.trim()) return;
         onSave({ node: form, options: opts });
     };
 
