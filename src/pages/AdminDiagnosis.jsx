@@ -153,6 +153,63 @@ export default function AdminDiagnosis() {
         setEditingNode({ ...node, _options: nodeOptions(node.id) });
     };
 
+    // 選択肢の次ノードとして新規作成し、保存後に自動リンク
+    const [pendingLinkOption, setPendingLinkOption] = useState(null);
+
+    const openCreateFromOption = (sourceOption) => {
+        setPendingLinkOption(sourceOption);
+        setEditingMode('create');
+        setEditingNode({ node_type: 'question', prompt: '', order: nodes.length, _options: [] });
+        setTimeout(() => {
+            document.getElementById('node-editor-top')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    };
+
+    const handleSaveWithPendingLink = async ({ node: nodeData, options: optsData }) => {
+        // 通常保存
+        const isNew = editingMode === 'create';
+        let savedNode;
+        if (isNew) {
+            savedNode = await base44.entities.DiagnosisNode.create({
+                genre: selectedGenre,
+                ...nodeData,
+                is_active: nodeData.is_active ?? true,
+            });
+        } else {
+            await base44.entities.DiagnosisNode.update(editingNode.id, nodeData);
+            savedNode = { ...editingNode, ...nodeData };
+        }
+
+        const nodeId = savedNode.id || editingNode.id;
+
+        const existingOpts = options.filter(o => o.node_id === nodeId);
+        await Promise.all(existingOpts.map(o => base44.entities.DiagnosisOption.delete(o.id)));
+        await Promise.all(
+            optsData
+                .filter(o => o.option_text?.trim())
+                .map((o, idx) =>
+                    base44.entities.DiagnosisOption.create({
+                        node_id: nodeId,
+                        option_key: o.option_key || String.fromCharCode(65 + idx),
+                        option_text: o.option_text,
+                        next_node_id: o.next_node_id || null,
+                        tag_effects: o.tag_effects || [],
+                        order: idx,
+                    })
+                )
+        );
+
+        // pendingLinkOption があれば、その選択肢の next_node_id を更新
+        if (pendingLinkOption) {
+            await base44.entities.DiagnosisOption.update(pendingLinkOption.id, { next_node_id: nodeId });
+            setPendingLinkOption(null);
+        }
+
+        setEditingNode(null);
+        await loadData();
+        setHighlightedId(nodeId);
+    };
+
     // Find root nodes: nodes not referenced by any option's next_node_id
     const referencedIds = new Set(options.map(o => o.next_node_id).filter(Boolean));
     const rootNodes = nodes.filter(n => !referencedIds.has(n.id));
