@@ -3,7 +3,7 @@ import { Plus, Trash2, X, Check, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
-const NODE_TYPES = ['start', 'question', 'end'];
+const NODE_TYPES = ['question', 'end'];
 
 function OptionRow({ opt, index, allNodes, editingNode, onChange, onDelete }) {
     return (

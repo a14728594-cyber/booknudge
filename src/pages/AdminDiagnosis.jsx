@@ -201,9 +201,8 @@ export default function AdminDiagnosis() {
                     {/* 凡例 */}
                     <div className="flex items-center gap-4 text-xs text-gray-500 bg-white rounded-xl border border-gray-100 px-4 py-2.5">
                         <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-amber-400"></span>開始点（どの選択肢からも参照されていない質問）</span>
-                        <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-green-500"></span>start</span>
-                        <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-blue-500"></span>question</span>
-                        <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-red-400"></span>end / 終了</span>
+                        <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-blue-500"></span>question（質問）</span>
+                        <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-red-400"></span>end / 選択肢なし → 終了</span>
                     </div>
 
                     {/* エディター */}
