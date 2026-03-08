@@ -30,6 +30,7 @@ export default function DeepDiagnosis() {
     const [tagScores, setTagScores] = useState({});
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [visitedNodeIds, setVisitedNodeIds] = useState(new Set());
 
     useEffect(() => {
         base44.auth.me().then(setUser);
