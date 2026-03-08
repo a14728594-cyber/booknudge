@@ -63,7 +63,19 @@ export default function NodeCard({ node, options, allNodes, onEdit, onDelete, is
                                     {getNodeLabel(opt.next_node_id)}
                                 </button>
                             ) : (
-                                <span className="text-green-600 font-medium whitespace-nowrap">✓ 終了</span>
+                                <div className="flex items-center gap-1">
+                                    <span className="text-gray-400 font-medium whitespace-nowrap">未設定</span>
+                                    {onCreateFromOption && (
+                                        <button
+                                            onClick={() => onCreateFromOption(opt)}
+                                            className="text-indigo-500 hover:text-indigo-700 flex items-center gap-0.5 whitespace-nowrap"
+                                            title="この選択肢の次の質問を作成"
+                                        >
+                                            <PlusCircle className="w-3.5 h-3.5" />
+                                            <span className="text-[10px]">作成</span>
+                                        </button>
+                                    )}
+                                </div>
                             )}
                         </div>
                     ))
