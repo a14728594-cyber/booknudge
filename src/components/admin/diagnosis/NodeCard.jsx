@@ -7,7 +7,7 @@ const TYPE_COLORS = {
     end: 'bg-red-100 text-red-700 border-red-200',
 };
 
-export default function NodeCard({ node, options, allNodes, onEdit, onDelete, isRoot, isHighlighted, onClickNext }) {
+export default function NodeCard({ node, options, allNodes, onEdit, onDelete, isRoot, isHighlighted, onClickNext, onCreateFromOption }) {
     const getNodeLabel = (id) => {
         const n = allNodes.find(x => x.id === id);
         return n ? (n.title ? `[${n.title}] ${n.prompt?.slice(0, 25)}` : n.prompt?.slice(0, 35)) : `(ID: ${id.slice(0, 8)}...)`;
