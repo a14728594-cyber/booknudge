@@ -3,20 +3,91 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
-
-import { Loader2 } from 'lucide-react';
+import { Loader2, Zap, Sparkles, ChevronRight, Lock } from 'lucide-react';
 import Card from '@/components/common/Card';
-import SubscriptionGuard from '@/components/common/SubscriptionGuard';
 import QuizDistribution from '@/components/quiz/QuizDistribution';
 import QuizPaywall from '@/components/quiz/QuizPaywall';
 
+// クイズハブ：共通クイズ（無料）とパーソナライズクイズ（有料）の入口
 export default function Quiz() {
+    const navigate = useNavigate();
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        base44.auth.me().then(setUser).catch(() => {}).finally(() => setLoading(false));
+    }, []);
+
+    const isPremium = user?.subscription_status === 'active';
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            </div>
+        );
+    }
+
     return (
-        <SubscriptionGuard pagePath="/quiz">
-            <QuizPageContent />
-        </SubscriptionGuard>
+        <div className="max-w-2xl mx-auto px-6 py-12">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">クイズ</h1>
+            <p className="text-gray-500 mb-10">学びを深める2種類のクイズをご用意しています</p>
+
+            <div className="space-y-4">
+                {/* 共通クイズ（無料） */}
+                <button
+                    onClick={() => navigate(createPageUrl('CommonQuiz'))}
+                    className="w-full bg-white border border-gray-200 rounded-2xl px-6 py-6 flex items-center justify-between hover:border-indigo-400 hover:shadow-md transition-all group text-left"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center">
+                            <Zap className="w-6 h-6 text-indigo-600" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-lg font-semibold text-gray-900 group-hover:text-indigo-700">事例クイズ</span>
+                                <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">無料</span>
+                            </div>
+                            <p className="text-sm text-gray-500">実際のビジネス事例を題材にした5択クイズ</p>
+                        </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-indigo-500 flex-shrink-0" />
+                </button>
+
+                {/* パーソナライズクイズ（有料） */}
+                <button
+                    onClick={() => {
+                        if (isPremium) {
+                            navigate(createPageUrl('PersonalizedQuiz'));
+                        } else {
+                            navigate(createPageUrl('paywall') + '?next=' + encodeURIComponent('/PersonalizedQuiz') + '&from=quiz');
+                        }
+                    }}
+                    className="w-full bg-white border border-gray-200 rounded-2xl px-6 py-6 flex items-center justify-between hover:border-purple-400 hover:shadow-md transition-all group text-left"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
+                            <Sparkles className="w-6 h-6 text-purple-600" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-lg font-semibold text-gray-900 group-hover:text-purple-700">パーソナライズクイズ</span>
+                                {isPremium ? (
+                                    <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">PRO</span>
+                                ) : (
+                                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                                        <Lock className="w-3 h-3" />有料
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-sm text-gray-500">あなた専用にカスタマイズされたクイズ</p>
+                        </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-500 flex-shrink-0" />
+                </button>
+            </div>
+        </div>
     );
 }
 

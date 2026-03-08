@@ -91,6 +91,8 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Tokushoho from './pages/Tokushoho';
 import genreDomain from './pages/genre[domain]';
+import CommonQuiz from './pages/CommonQuiz';
+import PersonalizedQuiz from './pages/PersonalizedQuiz';
 import __Layout from './Layout.jsx';
 
 
@@ -139,6 +141,8 @@ export const PAGES = {
     "Terms": Terms,
     "Tokushoho": Tokushoho,
     "genre[domain]": genreDomain,
+    "CommonQuiz": CommonQuiz,
+    "PersonalizedQuiz": PersonalizedQuiz,
 }
 
 export const pagesConfig = {
