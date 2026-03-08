@@ -262,7 +262,6 @@ export default function DeepDiagnosis() {
                                 onClick={() => {
                                     setStep(STEPS.GENRE);
                                     setSelectedGenre(null);
-                                    setSelectedProblem(null);
                                     setAnswers([]);
                                     setTagScores({});
                                     setCurrentNode(null);
