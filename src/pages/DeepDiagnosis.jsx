@@ -164,8 +164,7 @@ export default function DeepDiagnosis() {
                     <button
                         onClick={() => {
                             if (step === STEPS.GENRE) navigate(createPageUrl('home'));
-                            else if (step === STEPS.PROBLEM) setStep(STEPS.GENRE);
-                            else if (step === STEPS.QUESTION) setStep(STEPS.PROBLEM);
+                            else if (step === STEPS.QUESTION) setStep(STEPS.GENRE);
                         }}
                         className="p-2 rounded-xl hover:bg-white text-gray-500"
                     >
