@@ -13,6 +13,9 @@ export default function AdminBooks() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [duplicates, setDuplicates] = useState([]);
+    const [selectedGenre, setSelectedGenre] = useState('すべて');
+
+    const GENRES = ['すべて', 'マーケティング', '営業', 'アイデア', '人間関係', '習慣', 'マインドセット'];
 
     useEffect(() => {
         checkAdminAndLoad();
