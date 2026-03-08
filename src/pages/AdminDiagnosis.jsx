@@ -5,8 +5,9 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Check, X } from 'lucide-react';
-import NodeCard from '@/components/admin/diagnosis/NodeCard';
+import TreeNodeView from '@/components/admin/diagnosis/TreeNodeView';
 import NodeEditor from '@/components/admin/diagnosis/NodeEditor';
+import InlineNodeForm from '@/components/admin/diagnosis/InlineNodeForm';
 
 export default function AdminDiagnosis() {
     const navigate = useNavigate();
@@ -15,9 +16,9 @@ export default function AdminDiagnosis() {
     const [loading, setLoading] = useState(false);
     const [genres, setGenres] = useState([]);
     const [selectedGenre, setSelectedGenre] = useState(null);
-    const [editingNode, setEditingNode] = useState(null); // null = 非表示, {} = 新規, node = 編集
+    const [editingNode, setEditingNode] = useState(null);
     const [editingMode, setEditingMode] = useState('create');
-    const [highlightedId, setHighlightedId] = useState(null);
+    const [showRootForm, setShowRootForm] = useState(false);
     const [newGenreText, setNewGenreText] = useState('');
     const [addingGenre, setAddingGenre] = useState(false);
 
@@ -29,15 +30,6 @@ export default function AdminDiagnosis() {
     useEffect(() => {
         if (selectedGenre) loadData();
     }, [selectedGenre]);
-
-    // Highlight scroll
-    useEffect(() => {
-        if (highlightedId) {
-            document.getElementById(`node-${highlightedId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            const t = setTimeout(() => setHighlightedId(null), 2000);
-            return () => clearTimeout(t);
-        }
-    }, [highlightedId]);
 
     const checkAdmin = async () => {
         const user = await base44.auth.me();
@@ -76,82 +68,83 @@ export default function AdminDiagnosis() {
     const loadData = async () => {
         setLoading(true);
         const [allNodes, allOptions] = await Promise.all([
-            base44.entities.DiagnosisNode.filter({ genre: selectedGenre }, 'order', 200),
-            base44.entities.DiagnosisOption.list('order', 1000),
+            base44.entities.DiagnosisNode.filter({ genre: selectedGenre }, 'order', 500),
+            base44.entities.DiagnosisOption.list('order', 2000),
         ]);
         setNodes(allNodes);
         setOptions(allOptions);
         setLoading(false);
     };
 
-    const nodeOptions = (nodeId) =>
-        options.filter(o => o.node_id === nodeId).sort((a, b) => (a.order || 0) - (b.order || 0));
-
-
-
-    const handleDelete = async (node) => {
-        // Check if this node is referenced by any option
-        const refs = options.filter(o => o.next_node_id === node.id);
-        if (refs.length > 0) {
-            const refTexts = refs.map(o => `「${o.option_text}」`).join(', ');
-            if (!confirm(`このノードは ${refs.length}個の選択肢（${refTexts}）から参照されています。\n削除しますか？`)) return;
-        } else {
-            if (!confirm('このノードと関連する選択肢を削除しますか？')) return;
-        }
-
-        const nodeOpts = options.filter(o => o.node_id === node.id);
-        await Promise.all(nodeOpts.map(o => base44.entities.DiagnosisOption.delete(o.id)));
-        await base44.entities.DiagnosisNode.delete(node.id);
-        loadData();
+    // ルートノードを作成（どの選択肢からも参照されていない）
+    const handleCreateRoot = async ({ title, prompt, node_type, nodeOptions }) => {
+        const newNode = await base44.entities.DiagnosisNode.create({
+            genre: selectedGenre,
+            title,
+            prompt,
+            node_type,
+            order: nodes.length,
+            is_active: true,
+        });
+        const validOpts = nodeOptions.filter(o => o.option_text.trim());
+        await Promise.all(
+            validOpts.map((o, idx) =>
+                base44.entities.DiagnosisOption.create({
+                    node_id: newNode.id,
+                    option_key: o.option_key,
+                    option_text: o.option_text,
+                    tag_effects: [],
+                    order: idx,
+                })
+            )
+        );
+        setShowRootForm(false);
+        await loadData();
     };
 
-    const openCreate = () => {
-        setEditingMode('create');
-        setEditingNode({ node_type: 'question', prompt: '', order: nodes.length, _options: [] });
+    // 選択肢から派生して子ノードを作成 & 自動リンク
+    const handleAddChild = async (parentOption, { title, prompt, node_type, nodeOptions }) => {
+        const newNode = await base44.entities.DiagnosisNode.create({
+            genre: selectedGenre,
+            title,
+            prompt,
+            node_type,
+            order: nodes.length,
+            is_active: true,
+        });
+        const validOpts = nodeOptions.filter(o => o.option_text.trim());
+        await Promise.all(
+            validOpts.map((o, idx) =>
+                base44.entities.DiagnosisOption.create({
+                    node_id: newNode.id,
+                    option_key: o.option_key,
+                    option_text: o.option_text,
+                    tag_effects: [],
+                    order: idx,
+                })
+            )
+        );
+        // 親選択肢にリンク
+        await base44.entities.DiagnosisOption.update(parentOption.id, { next_node_id: newNode.id });
+        await loadData();
     };
 
-    const openEdit = (node) => {
+    const handleEdit = (node) => {
+        const nodeOpts = options.filter(o => o.node_id === node.id).sort((a, b) => (a.order || 0) - (b.order || 0));
         setEditingMode('edit');
-        setEditingNode({ ...node, _options: nodeOptions(node.id) });
+        setEditingNode({ ...node, _options: nodeOpts });
     };
 
-    // 選択肢の次ノードとして新規作成し、保存後に自動リンク
-    const [pendingLinkOption, setPendingLinkOption] = useState(null);
-
-    const openCreateFromOption = (sourceOption) => {
-        setPendingLinkOption(sourceOption);
-        setEditingMode('create');
-        setEditingNode({ node_type: 'question', prompt: '', order: nodes.length, _options: [] });
-        setTimeout(() => {
-            document.getElementById('node-editor-top')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-    };
-
-    const handleSaveWithPendingLink = async ({ node: nodeData, options: optsData }) => {
-        // 通常保存
-        const isNew = editingMode === 'create';
-        let savedNode;
-        if (isNew) {
-            savedNode = await base44.entities.DiagnosisNode.create({
-                genre: selectedGenre,
-                ...nodeData,
-                is_active: nodeData.is_active ?? true,
-            });
-        } else {
-            await base44.entities.DiagnosisNode.update(editingNode.id, nodeData);
-            savedNode = { ...editingNode, ...nodeData };
-        }
-
-        const nodeId = savedNode.id || editingNode.id;
-
-        const existingOpts = options.filter(o => o.node_id === nodeId);
+    const handleSaveEdit = async ({ node: nodeData, options: optsData }) => {
+        await base44.entities.DiagnosisNode.update(editingNode.id, nodeData);
+        const existingOpts = options.filter(o => o.node_id === editingNode.id);
         await Promise.all(existingOpts.map(o => base44.entities.DiagnosisOption.delete(o.id)));
         await Promise.all(
             optsData
                 .filter(o => o.option_text?.trim())
                 .map((o, idx) =>
                     base44.entities.DiagnosisOption.create({
-                        node_id: nodeId,
+                        node_id: editingNode.id,
                         option_key: o.option_key || String.fromCharCode(65 + idx),
                         option_text: o.option_text,
                         next_node_id: o.next_node_id || null,
@@ -160,28 +153,35 @@ export default function AdminDiagnosis() {
                     })
                 )
         );
-
-        // pendingLinkOption があれば、その選択肢の next_node_id を更新
-        if (pendingLinkOption) {
-            await base44.entities.DiagnosisOption.update(pendingLinkOption.id, { next_node_id: nodeId });
-            setPendingLinkOption(null);
-        }
-
         setEditingNode(null);
         await loadData();
-        setHighlightedId(nodeId);
     };
 
-    // Find root nodes: nodes not referenced by any option's next_node_id
+    const handleDelete = async (node) => {
+        const refs = options.filter(o => o.next_node_id === node.id);
+        if (refs.length > 0) {
+            if (!confirm(`このノードは${refs.length}個の選択肢から参照されています。削除しますか？`)) return;
+            // 参照している選択肢の next_node_id をクリア
+            await Promise.all(refs.map(o => base44.entities.DiagnosisOption.update(o.id, { next_node_id: null })));
+        } else {
+            if (!confirm('このノードと選択肢を削除しますか？')) return;
+        }
+        const nodeOpts = options.filter(o => o.node_id === node.id);
+        await Promise.all(nodeOpts.map(o => base44.entities.DiagnosisOption.delete(o.id)));
+        await base44.entities.DiagnosisNode.delete(node.id);
+        await loadData();
+    };
+
+    // ルートノード（どの選択肢からも参照されていないノード）を特定
     const referencedIds = new Set(options.map(o => o.next_node_id).filter(Boolean));
     const rootNodes = nodes.filter(n => !referencedIds.has(n.id));
 
     return (
-        <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="max-w-4xl mx-auto px-6 py-8">
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">深掘り診断 管理</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">分岐式質問ツリーの管理</p>
+                    <p className="text-sm text-gray-500 mt-0.5">ツリー型で診断フローを作成</p>
                 </div>
             </div>
 
@@ -213,73 +213,76 @@ export default function AdminDiagnosis() {
                 )}
             </div>
 
+            {/* 編集モーダル */}
+            {editingNode && (
+                <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setEditingNode(null)}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                        <div className="p-6">
+                            <h2 className="text-lg font-bold mb-4 text-gray-900">質問を編集</h2>
+                            <NodeEditor
+                                node={editingNode}
+                                allNodes={nodes}
+                                onSave={handleSaveEdit}
+                                onCancel={() => setEditingNode(null)}
+                                selectedGenre={selectedGenre}
+                                mode="edit"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {loading ? (
                 <div className="text-center py-12 text-gray-400">読み込み中...</div>
             ) : (
                 <div className="space-y-6">
-                    {/* 凡例 */}
-                    <div className="flex items-center gap-4 text-xs text-gray-500 bg-white rounded-xl border border-gray-100 px-4 py-2.5">
-                        <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-amber-400"></span>開始点（どの選択肢からも参照されていない質問）</span>
-                        <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-blue-500"></span>question（質問）</span>
-                        <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-red-400"></span>end / 選択肢なし → 終了</span>
-                    </div>
-
-                    {/* ペンディングリンク通知 */}
-                    {pendingLinkOption && (
-                        <div className="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-2.5 text-sm text-indigo-700">
-                            <span className="font-medium">📎 リンク待機中：</span>
-                            <span>「{pendingLinkOption.option_text}」の次の質問として保存後に自動接続されます</span>
-                            <button onClick={() => setPendingLinkOption(null)} className="ml-auto text-indigo-400 hover:text-indigo-600 text-xs">キャンセル</button>
-                        </div>
-                    )}
-
-                    {/* エディター */}
-                    {editingNode && (
-                        <div id="node-editor-top">
-                            <NodeEditor
-                                node={editingNode}
-                                allNodes={nodes}
-                                onSave={handleSaveWithPendingLink}
-                                onCancel={() => { setEditingNode(null); setPendingLinkOption(null); }}
-                                selectedGenre={selectedGenre}
-                                mode={editingMode}
-                            />
-                        </div>
-                    )}
-
-                    {/* ノード一覧 */}
-                    {nodes.length === 0 ? (
+                    {/* ツリー表示 */}
+                    {rootNodes.length === 0 && !showRootForm && (
                         <div className="text-center py-16 text-gray-400">
-                            <p className="mb-4">このジャンルの質問はまだありません</p>
-                            <Button onClick={openCreate} className="gap-2">
-                                <Plus className="w-4 h-4" /> 最初の質問を追加
+                            <p className="mb-2 text-base font-medium text-gray-600">診断フローがまだありません</p>
+                            <p className="mb-6 text-sm">最初の質問から作成してください</p>
+                            <Button onClick={() => setShowRootForm(true)} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+                                <Plus className="w-4 h-4" /> 最初の質問を作成
                             </Button>
                         </div>
-                    ) : (
-                        <div className="space-y-3">
-                            {nodes.map(node => (
-                                <div key={node.id} id={`node-${node.id}`}>
-                                    <NodeCard
-                                        node={node}
-                                        options={nodeOptions(node.id)}
-                                        allNodes={nodes}
-                                        isRoot={rootNodes.some(r => r.id === node.id)}
-                                        isHighlighted={highlightedId === node.id}
-                                        onEdit={() => openEdit(node)}
-                                        onDelete={() => handleDelete(node)}
-                                        onClickNext={(id) => setHighlightedId(id)}
-                                        onCreateFromOption={openCreateFromOption}
-                                    />
-                                </div>
-                            ))}
-                        </div>
                     )}
 
-                    {/* 追加ボタン */}
-                    {nodes.length > 0 && !editingNode && (
-                        <Button onClick={openCreate} variant="outline" className="gap-2 w-full border-dashed">
-                            <Plus className="w-4 h-4" /> 質問を追加
+                    {rootNodes.map(rootNode => (
+                        <TreeNodeView
+                            key={rootNode.id}
+                            node={rootNode}
+                            options={options.filter(o => o.node_id === rootNode.id)}
+                            allNodes={nodes}
+                            allOptions={options}
+                            depth={0}
+                            isRoot={true}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                            onAddChild={handleAddChild}
+                        />
+                    ))}
+
+                    {/* 孤立ノード（参照済みだが他のルートから辿れないものは表示しない） */}
+
+                    {/* 新しいルート質問を追加 */}
+                    {!showRootForm && rootNodes.length > 0 && (
+                        <Button
+                            onClick={() => setShowRootForm(true)}
+                            variant="outline"
+                            className="gap-2 w-full border-dashed text-gray-500 hover:text-indigo-600 hover:border-indigo-400"
+                        >
+                            <Plus className="w-4 h-4" /> 別の開始質問を追加（別フロー）
                         </Button>
+                    )}
+
+                    {showRootForm && (
+                        <div className="bg-white border-2 border-indigo-200 rounded-xl p-5 space-y-1">
+                            <h3 className="font-semibold text-gray-800 mb-3 text-sm">開始質問を作成</h3>
+                            <InlineNodeForm
+                                onSave={handleCreateRoot}
+                                onCancel={() => setShowRootForm(false)}
+                            />
+                        </div>
                     )}
                 </div>
             )}
