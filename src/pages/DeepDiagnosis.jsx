@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 const GENRES = [
-    { key: 'マーケ', label: '📣 マーケ・ブランディング' },
+    { key: 'マーケティング', label: '📣 マーケ・ブランディング' },
     { key: '営業', label: '💼 営業・セールス' },
     { key: 'アイデア', label: '💡 アイデア・差別化' },
     { key: '人間関係', label: '🤝 人間関係・コミュニケーション' },
