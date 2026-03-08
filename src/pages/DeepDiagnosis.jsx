@@ -93,19 +93,19 @@ export default function DeepDiagnosis() {
 
         // 終点 or 上限超過
         if (!nextNodeId || newAnswers.length >= 10) {
-            await saveSession(selectedProblem, newAnswers, newScores);
+            await saveSession(newAnswers, newScores);
             return;
         }
 
         // ループ防止
         if (visitedNodeIds.has(nextNodeId)) {
-            await saveSession(selectedProblem, newAnswers, newScores);
+            await saveSession(newAnswers, newScores);
             return;
         }
 
         const nextNode = nodes.find(n => n.id === nextNodeId) || null;
         if (!nextNode || nextNode.node_type === 'end') {
-            await saveSession(selectedProblem, newAnswers, newScores);
+            await saveSession(newAnswers, newScores);
             return;
         }
 
