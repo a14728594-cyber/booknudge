@@ -53,7 +53,6 @@ import AdminBooks from './pages/AdminBooks';
 import AdminCaseQuiz from './pages/AdminCaseQuiz';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminDebug from './pages/AdminDebug';
-import AdminDiagnosis from './pages/AdminDiagnosis';
 import AdminInquiries from './pages/AdminInquiries';
 import AdminQuizForm from './pages/AdminQuizForm';
 import AdminQuizzes from './pages/AdminQuizzes';
@@ -103,7 +102,6 @@ export const PAGES = {
     "AdminCaseQuiz": AdminCaseQuiz,
     "AdminDashboard": AdminDashboard,
     "AdminDebug": AdminDebug,
-    "AdminDiagnosis": AdminDiagnosis,
     "AdminInquiries": AdminInquiries,
     "AdminQuizForm": AdminQuizForm,
     "AdminQuizzes": AdminQuizzes,
