@@ -183,9 +183,7 @@ export default function DeepDiagnosis() {
     };
 
     const currentOptions = currentNode ? (options[currentNode.id] || []).sort((a, b) => (a.order || 0) - (b.order || 0)) : [];
-    const questionNodes = nodes.filter(n => n.problem === selectedProblem && n.node_type === 'question');
-    const currentIndex = questionNodes.findIndex(n => n.id === currentNode?.id);
-    const progress = questionNodes.length > 0 ? ((answers.length / Math.min(questionNodes.length, 7)) * 100) : 0;
+    const progress = Math.min((answers.length / 10) * 100, 95);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-6">
