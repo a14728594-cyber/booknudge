@@ -261,7 +261,7 @@ export default function DeepDiagnosis() {
                         <div className="mb-6">
                             <div className="flex justify-between text-sm text-gray-500 mb-2">
                                 <span>{selectedGenre} / {selectedProblem}</span>
-                                <span>{answers.length + 1} / {Math.min(questionNodes.length, 7)}</span>
+                                <span>Q{answers.length + 1}</span>
                             </div>
                             <div className="h-2 bg-gray-200 rounded-full">
                                 <div
