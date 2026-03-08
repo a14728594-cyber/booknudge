@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit2, Trash2, ArrowRight, Star } from 'lucide-react';
+import { Edit2, Trash2, ArrowRight, Star, PlusCircle } from 'lucide-react';
 
 const TYPE_COLORS = {
     start: 'bg-green-100 text-green-700 border-green-200',
