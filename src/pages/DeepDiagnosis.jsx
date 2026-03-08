@@ -194,35 +194,6 @@ export default function DeepDiagnosis() {
                     </div>
                 )}
 
-                {/* 悩み選択 */}
-                {step === STEPS.PROBLEM && (
-                    <div>
-                        <div className="mb-2 text-sm font-medium text-indigo-600">{selectedGenre}</div>
-                        <h2 className="text-lg font-semibold text-gray-800 mb-6">具体的にどんな悩みがありますか？</h2>
-                        {loading ? (
-                            <div className="text-center py-12 text-gray-500">読み込み中...</div>
-                        ) : problems.length === 0 ? (
-                            <div className="text-center py-12 text-gray-400">
-                                <p className="mb-2">このジャンルの質問はまだ準備中です</p>
-                                <Button variant="outline" onClick={() => setStep(STEPS.GENRE)}>戻る</Button>
-                            </div>
-                        ) : (
-                            <div className="space-y-3">
-                                {problems.map(p => (
-                                    <button
-                                        key={p.id}
-                                        onClick={() => handleProblemSelect(p)}
-                                        className="w-full p-4 bg-white rounded-2xl border-2 border-gray-100 hover:border-indigo-400 hover:shadow-md transition-all text-left"
-                                    >
-                                        <div className="font-medium text-gray-800">{p.problem}</div>
-                                        {p.title && <div className="text-sm text-gray-500 mt-1">{p.title}</div>}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
-
                 {/* 質問ステップ */}
                 {step === STEPS.QUESTION && (
                     <div>
