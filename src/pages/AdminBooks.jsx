@@ -80,11 +80,15 @@ export default function AdminBooks() {
 
     const filteredBooks = books.filter(book => {
         const query = searchQuery.toLowerCase();
-        return (
+        const matchesSearch = (
             book.title?.toLowerCase().includes(query) ||
             book.authors?.some(author => author.toLowerCase().includes(query)) ||
             book.tags?.some(tag => tag.toLowerCase().includes(query))
         );
+        const matchesGenre = selectedGenre === 'すべて' ||
+            book.tags?.some(tag => tag.includes(selectedGenre)) ||
+            (book.title + (book.description || '')).includes(selectedGenre);
+        return matchesSearch && matchesGenre;
     });
 
     if (loading) {
