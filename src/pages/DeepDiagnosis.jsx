@@ -57,29 +57,13 @@ export default function DeepDiagnosis() {
         setStep(STEPS.PROBLEM);
     };
 
-    // 悩み選択後、最初の質問ノードを取得
+    // 悩み選択後、startノードから質問ツリーをロードして開始
     const handleProblemSelect = async (problemNode) => {
         setSelectedProblem(problemNode.problem);
         setLoading(true);
         try {
-            // problemに紐づくquestionノードを取得
-            const questionNodes = nodes.filter(
-                n => n.problem === problemNode.problem && n.node_type === 'question'
-            ).sort((a, b) => (a.order || 0) - (b.order || 0));
-
-            if (questionNodes.length === 0) {
-                // 質問がない場合はすぐ完了
-                await saveSession(problemNode.problem, [], {});
-                return;
-            }
-
-            // 全ノードの選択肢を取得
-            const allNodeIds = [...questionNodes.map(n => n.id), problemNode.id];
-            const allOptions = await base44.entities.DiagnosisOption.filter(
-                {},
-                'order',
-                200
-            );
+            // このジャンル・problemの全ノードと全選択肢を一括取得
+            const allOptions = await base44.entities.DiagnosisOption.list('order', 1000);
             const optionMap = {};
             allOptions.forEach(opt => {
                 if (!optionMap[opt.node_id]) optionMap[opt.node_id] = [];
@@ -87,9 +71,30 @@ export default function DeepDiagnosis() {
             });
             setOptions(optionMap);
 
-            setCurrentNode(questionNodes[0]);
+            // startノードの次の質問 = startノードの選択肢がなければ、最初のquestionノードを探す
+            // startノードの選択肢から最初の質問へ
+            const startOpts = (optionMap[problemNode.id] || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+            let firstNode = null;
+            if (startOpts.length > 0 && startOpts[0].next_node_id) {
+                firstNode = nodes.find(n => n.id === startOpts[0].next_node_id) || null;
+            }
+            // fallback: 同problemの最初のquestionノード
+            if (!firstNode) {
+                const questionNodes = nodes.filter(
+                    n => n.problem === problemNode.problem && n.node_type === 'question'
+                ).sort((a, b) => (a.order || 0) - (b.order || 0));
+                firstNode = questionNodes[0] || null;
+            }
+
+            if (!firstNode) {
+                await saveSession(problemNode.problem, [], {});
+                return;
+            }
+
+            setCurrentNode(firstNode);
             setAnswers([]);
             setTagScores({});
+            setVisitedNodeIds(new Set([firstNode.id]));
         } catch (e) {
             console.error(e);
         } finally {
@@ -98,9 +103,8 @@ export default function DeepDiagnosis() {
         setStep(STEPS.QUESTION);
     };
 
-    // 選択肢を選んだ時
+    // 選択肢を選んだ時（分岐式）
     const handleOptionSelect = async (option) => {
-        // タグスコアを更新
         const newScores = { ...tagScores };
         (option.tag_effects || []).forEach(({ tag, delta }) => {
             newScores[tag] = (newScores[tag] || 0) + (delta || 1);
@@ -113,33 +117,28 @@ export default function DeepDiagnosis() {
         ];
         setAnswers(newAnswers);
 
-        // 次のノードを決定
         const nextNodeId = option.next_node_id;
-        let nextNode = null;
 
-        if (nextNodeId) {
-            // 指定された分岐先
-            const allNodes = await base44.entities.DiagnosisNode.filter(
-                { genre: selectedGenre, problem: selectedProblem, is_active: true },
-                'order',
-                50
-            );
-            nextNode = allNodes.find(n => n.id === nextNodeId) || null;
-        } else {
-            // 次のorderのquestionノードへ
-            const currentOrder = currentNode.order || 0;
-            const allNodes = nodes.filter(
-                n => n.problem === selectedProblem && n.node_type === 'question'
-            ).sort((a, b) => (a.order || 0) - (b.order || 0));
-            nextNode = allNodes.find(n => (n.order || 0) > currentOrder) || null;
-        }
-
-        if (!nextNode || newAnswers.length >= 7) {
-            // 完了
+        // 終点 or 上限超過
+        if (!nextNodeId || newAnswers.length >= 10) {
             await saveSession(selectedProblem, newAnswers, newScores);
-        } else {
-            setCurrentNode(nextNode);
+            return;
         }
+
+        // ループ防止
+        if (visitedNodeIds.has(nextNodeId)) {
+            await saveSession(selectedProblem, newAnswers, newScores);
+            return;
+        }
+
+        const nextNode = nodes.find(n => n.id === nextNodeId) || null;
+        if (!nextNode || nextNode.node_type === 'end') {
+            await saveSession(selectedProblem, newAnswers, newScores);
+            return;
+        }
+
+        setVisitedNodeIds(prev => new Set([...prev, nextNodeId]));
+        setCurrentNode(nextNode);
     };
 
     const saveSession = async (problem, answersData, scores) => {
