@@ -262,16 +262,27 @@ export default function AdminDiagnosis() {
                         <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-red-400"></span>end / 選択肢なし → 終了</span>
                     </div>
 
+                    {/* ペンディングリンク通知 */}
+                    {pendingLinkOption && (
+                        <div className="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-2.5 text-sm text-indigo-700">
+                            <span className="font-medium">📎 リンク待機中：</span>
+                            <span>「{pendingLinkOption.option_text}」の次の質問として保存後に自動接続されます</span>
+                            <button onClick={() => setPendingLinkOption(null)} className="ml-auto text-indigo-400 hover:text-indigo-600 text-xs">キャンセル</button>
+                        </div>
+                    )}
+
                     {/* エディター */}
                     {editingNode && (
-                        <NodeEditor
-                            node={editingNode}
-                            allNodes={nodes}
-                            onSave={handleSave}
-                            onCancel={() => setEditingNode(null)}
-                            selectedGenre={selectedGenre}
-                            mode={editingMode}
-                        />
+                        <div id="node-editor-top">
+                            <NodeEditor
+                                node={editingNode}
+                                allNodes={nodes}
+                                onSave={handleSaveWithPendingLink}
+                                onCancel={() => { setEditingNode(null); setPendingLinkOption(null); }}
+                                selectedGenre={selectedGenre}
+                                mode={editingMode}
+                            />
+                        </div>
                     )}
 
                     {/* ノード一覧 */}
