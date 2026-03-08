@@ -213,7 +213,7 @@ export default function NodeEditor({ node, allNodes, onSave, onCancel, selectedG
             </div>
 
             <div className="flex gap-2 pt-1">
-                <Button onClick={handleSave} disabled={!form.prompt.trim()} className="bg-indigo-600 hover:bg-indigo-700">
+                <Button onClick={handleSave} disabled={!form.prompt.trim() || !form.title?.trim()} className="bg-indigo-600 hover:bg-indigo-700">
                     <Check className="w-4 h-4 mr-1" /> 保存
                 </Button>
                 <Button variant="outline" onClick={onCancel}>キャンセル</Button>
