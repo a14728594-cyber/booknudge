@@ -12,7 +12,7 @@ export default function AdminDiagnosis() {
     const navigate = useNavigate();
     const [nodes, setNodes] = useState([]);
     const [options, setOptions] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [genres, setGenres] = useState([]);
     const [selectedGenre, setSelectedGenre] = useState(null);
     const [editingNode, setEditingNode] = useState(null); // null = 非表示, {} = 新規, node = 編集
