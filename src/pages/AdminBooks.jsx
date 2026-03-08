@@ -129,7 +129,7 @@ export default function AdminBooks() {
                 </div>
 
                 <Card className="mb-6">
-                    <div className="relative">
+                    <div className="relative mb-4">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <Input
                             value={searchQuery}
@@ -137,6 +137,29 @@ export default function AdminBooks() {
                             placeholder="タイトル、著者、タグで検索..."
                             className="pl-10"
                         />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {GENRES.map(genre => (
+                            <button
+                                key={genre}
+                                onClick={() => setSelectedGenre(genre)}
+                                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                                    selectedGenre === genre
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                            >
+                                {genre}
+                                {genre !== 'すべて' && (
+                                    <span className="ml-1.5 text-xs opacity-75">
+                                        ({books.filter(b =>
+                                            b.tags?.some(t => t.includes(genre)) ||
+                                            (b.title + (b.description || '')).includes(genre)
+                                        ).length})
+                                    </span>
+                                )}
+                            </button>
+                        ))}
                     </div>
                 </Card>
 
