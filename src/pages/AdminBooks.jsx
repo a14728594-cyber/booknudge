@@ -107,7 +107,7 @@ export default function AdminBooks() {
                         <BookOpen className="w-8 h-8 text-indigo-600" />
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900">本管理</h1>
-                            <p className="text-sm text-gray-600 mt-1">全{books.length}冊</p>
+                            <p className="text-sm text-gray-600 mt-1">全{books.length}冊 / 表示中{filteredBooks.length}冊</p>
                         </div>
                     </div>
                     <div className="flex gap-2">
