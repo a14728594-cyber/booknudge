@@ -170,6 +170,9 @@ export default function NodeEditor({ node, allNodes, onSave, onCancel, selectedG
         base44.entities.DiagnosisResultType.list('order', 100).then(setResultTypes).catch(() => {});
     }, []);
 
+    // ジャンルでタイプ候補を絞り込む（genreが空のタイプは全ジャンルで表示）
+    const filteredTypes = resultTypes.filter(t => !t.genre || t.genre === form.genre);
+
     const getNodeType = () => {
         if (flagEnd) return 'end';
         if (flagStart) return 'start';
