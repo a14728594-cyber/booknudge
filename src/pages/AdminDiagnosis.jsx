@@ -120,7 +120,7 @@ export default function AdminDiagnosis() {
     const handleSaveEdit = async ({ node: nodeData, options: optsData }) => {
         await base44.entities.DiagnosisNode.update(editingNode.id, nodeData);
         const existingOpts = options[editingNode.id] || [];
-        await Promise.all(existingOpts.map(o => base44.entities.DiagnosisOption.delete(o.id)));
+        await Promise.allSettled(existingOpts.map(o => base44.entities.DiagnosisOption.delete(o.id)));
         await Promise.all(
             optsData
                 .filter(o => o.option_text?.trim())
