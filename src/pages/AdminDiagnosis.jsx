@@ -76,7 +76,13 @@ export default function AdminDiagnosis() {
             base44.entities.DiagnosisOption.list('order', 2000),
         ]);
         setNodes(allNodes);
-        setOptions(allOptions);
+        // optionMapに変換
+        const optMap = {};
+        allOptions.forEach(o => {
+            if (!optMap[o.node_id]) optMap[o.node_id] = [];
+            optMap[o.node_id].push(o);
+        });
+        setOptions(optMap);
         setLoading(false);
     };
 
