@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 
 const GENRES = [
     { key: 'マーケティング', label: '📣 マーケ・ブランディング' },
@@ -14,7 +14,7 @@ const GENRES = [
     { key: 'マインドセット', label: '🧠 マインドセット' },
 ];
 
-const STEPS = { GENRE: 'genre', QUESTION: 'question', RESULT: 'result' };
+const STEPS = { GENRE: 'genre', QUESTION: 'question' };
 
 export default function DeepDiagnosis() {
     const navigate = useNavigate();
@@ -26,15 +26,15 @@ export default function DeepDiagnosis() {
     const [currentNode, setCurrentNode] = useState(null);
     const [answers, setAnswers] = useState([]);
     const [tagScores, setTagScores] = useState({});
+    const [resultType, setResultType] = useState(null);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [visitedNodeIds, setVisitedNodeIds] = useState(new Set());
 
     useEffect(() => {
-        base44.auth.me().then(setUser);
+        base44.auth.me().then(setUser).catch(() => {});
     }, []);
 
-    // ジャンル選択後、即1問目へ
     const handleGenreSelect = async (genre) => {
         setSelectedGenre(genre);
         setLoading(true);
@@ -54,7 +54,9 @@ export default function DeepDiagnosis() {
 
             // ルートノード = どの選択肢からも参照されていないノード
             const referencedIds = new Set(allOptions.map(o => o.next_node_id).filter(Boolean));
-            const rootNodes = genreNodes.filter(n => !referencedIds.has(n.id)).sort((a, b) => (a.order || 0) - (b.order || 0));
+            const rootNodes = genreNodes
+                .filter(n => !referencedIds.has(n.id))
+                .sort((a, b) => (a.order || 0) - (b.order || 0));
             const firstNode = rootNodes[0] || genreNodes[0] || null;
 
             if (!firstNode) {
@@ -66,6 +68,7 @@ export default function DeepDiagnosis() {
             setCurrentNode(firstNode);
             setAnswers([]);
             setTagScores({});
+            setResultType(null);
             setVisitedNodeIds(new Set([firstNode.id]));
         } catch (e) {
             console.error(e);
@@ -75,13 +78,17 @@ export default function DeepDiagnosis() {
         setStep(STEPS.QUESTION);
     };
 
-    // 選択肢を選んだ時（分岐式）
     const handleOptionSelect = async (option) => {
+        // タグスコア更新
         const newScores = { ...tagScores };
         (option.tag_effects || []).forEach(({ tag, delta }) => {
             newScores[tag] = (newScores[tag] || 0) + (delta || 1);
         });
         setTagScores(newScores);
+
+        // 結果タイプを追跡（設定されていれば上書き）
+        const newResultType = option.result_type || resultType;
+        setResultType(newResultType);
 
         const newAnswers = [
             ...answers,
@@ -91,21 +98,19 @@ export default function DeepDiagnosis() {
 
         const nextNodeId = option.next_node_id;
 
-        // 終点 or 上限超過
+        // 終点判定
         if (!nextNodeId || newAnswers.length >= 10) {
-            await saveSession(newAnswers, newScores);
+            await saveSession(newAnswers, newScores, newResultType);
             return;
         }
-
-        // ループ防止
         if (visitedNodeIds.has(nextNodeId)) {
-            await saveSession(newAnswers, newScores);
+            await saveSession(newAnswers, newScores, newResultType);
             return;
         }
 
         const nextNode = nodes.find(n => n.id === nextNodeId) || null;
         if (!nextNode || nextNode.node_type === 'end') {
-            await saveSession(newAnswers, newScores);
+            await saveSession(newAnswers, newScores, newResultType);
             return;
         }
 
@@ -113,7 +118,7 @@ export default function DeepDiagnosis() {
         setCurrentNode(nextNode);
     };
 
-    const saveSession = async (answersData, scores) => {
+    const saveSession = async (answersData, scores, typeKey) => {
         setSaving(true);
         try {
             const result_tags = Object.entries(scores).map(([tag, score]) => ({ tag, score }));
@@ -127,38 +132,35 @@ export default function DeepDiagnosis() {
                     await base44.entities.DiagnosisSession.update(s.id, { is_latest: false });
                 }
 
-                // セッションを保存
                 const session = await base44.entities.DiagnosisSession.create({
                     user_id: user.id,
                     genre: selectedGenre,
                     answers: answersData,
                     result_tags,
+                    result_type: typeKey || null,
                     is_latest: true,
                 });
 
-                // AIおすすめを生成してセッションに保存（失敗しても診断完了は表示する）
-                try {
-                    const recResult = await base44.functions.invoke('generateRecommendations', {});
-                    if (recResult?.data?.recommendations) {
-                        await base44.entities.DiagnosisSession.update(session.id, {
-                            recommended_books: recResult.data.recommendations
-                        });
-                    }
-                } catch (recError) {
-                    console.error('recommendations error:', recError);
-                }
+                navigate(createPageUrl('DiagnosisResult') + `?sessionId=${session.id}`);
+            } else {
+                // 未ログインの場合はタイプパラメータで遷移
+                const params = typeKey ? `?type=${encodeURIComponent(typeKey)}` : '';
+                navigate(createPageUrl('DiagnosisResult') + params);
             }
-            setStep(STEPS.RESULT);
         } catch (e) {
             console.error(e);
-            setStep(STEPS.RESULT); // エラーでも結果画面へ
+            navigate(createPageUrl('DiagnosisResult'));
         } finally {
             setSaving(false);
         }
     };
 
-    const currentOptions = currentNode ? (options[currentNode.id] || []).sort((a, b) => (a.order || 0) - (b.order || 0)) : [];
-    const progress = Math.min((answers.length / 10) * 100, 95);
+    const currentOptions = currentNode
+        ? (options[currentNode.id] || []).sort((a, b) => (a.order || 0) - (b.order || 0))
+        : [];
+
+    // プログレス: 最大5問想定（浅い分岐）
+    const progress = Math.min((answers.length / 5) * 100, 95);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-6">
@@ -169,22 +171,23 @@ export default function DeepDiagnosis() {
                     <button
                         onClick={() => {
                             if (step === STEPS.GENRE) navigate(createPageUrl('home'));
-                            else if (step === STEPS.QUESTION) setStep(STEPS.GENRE);
+                            else setStep(STEPS.GENRE);
                         }}
                         className="p-2 rounded-xl hover:bg-white text-gray-500"
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
-                        <h1 className="text-xl font-bold text-gray-900">おすすめ精度を上げる診断</h1>
-                        <p className="text-sm text-gray-500">診断するたびにおすすめが最適化されます</p>
+                        <h1 className="text-xl font-bold text-gray-900">深掘り診断</h1>
+                        <p className="text-sm text-gray-500">あなたにぴったりの本を見つけます</p>
                     </div>
                 </div>
 
                 {/* ジャンル選択 */}
                 {step === STEPS.GENRE && (
                     <div>
-                        <h2 className="text-lg font-semibold text-gray-800 mb-6">どのジャンルで悩んでいますか？</h2>
+                        <h2 className="text-lg font-semibold text-gray-800 mb-2">今、どんなことで悩んでいますか？</h2>
+                        <p className="text-sm text-gray-500 mb-6">最も近いジャンルを選んでください</p>
                         <div className="grid grid-cols-2 gap-3">
                             {GENRES.map(g => (
                                 <button
@@ -203,21 +206,24 @@ export default function DeepDiagnosis() {
                 {step === STEPS.QUESTION && (
                     <div>
                         {/* プログレスバー */}
-                        <div className="mb-6">
+                        <div className="mb-8">
                             <div className="flex justify-between text-sm text-gray-500 mb-2">
-                                <span>{selectedGenre}</span>
+                                <span className="font-medium text-indigo-600">{selectedGenre}</span>
                                 <span>Q{answers.length + 1}</span>
                             </div>
-                            <div className="h-2 bg-gray-200 rounded-full">
+                            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                 <div
-                                    className="h-2 bg-indigo-500 rounded-full transition-all"
+                                    className="h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
                                     style={{ width: `${progress}%` }}
                                 />
                             </div>
                         </div>
 
                         {loading || saving ? (
-                            <div className="text-center py-12 text-gray-500">処理中...</div>
+                            <div className="flex flex-col items-center py-16 text-gray-500 gap-4">
+                                <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                                <p>{saving ? '結果を保存中...' : '読み込み中...'}</p>
+                            </div>
                         ) : currentNode ? (
                             <div>
                                 <h2 className="text-xl font-semibold text-gray-800 mb-8 leading-relaxed">
@@ -225,56 +231,37 @@ export default function DeepDiagnosis() {
                                 </h2>
                                 <div className="space-y-3">
                                     {currentOptions.length === 0 ? (
-                                        <div className="text-center py-8 text-gray-400">選択肢が登録されていません</div>
+                                        <div className="text-center py-8 text-gray-400">
+                                            選択肢が登録されていません
+                                        </div>
                                     ) : (
                                         currentOptions.map(opt => (
                                             <button
                                                 key={opt.id}
                                                 onClick={() => handleOptionSelect(opt)}
-                                                className="w-full p-4 bg-white rounded-2xl border-2 border-gray-100 hover:border-indigo-400 hover:shadow-md transition-all text-left flex items-center gap-4"
+                                                className="w-full p-4 bg-white rounded-2xl border-2 border-gray-100 hover:border-indigo-400 hover:shadow-md transition-all text-left flex items-center gap-4 group"
                                             >
-                                                <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center text-sm flex-shrink-0">
+                                                <span className="w-8 h-8 rounded-full bg-indigo-50 group-hover:bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center text-sm flex-shrink-0 transition-colors">
                                                     {opt.option_key}
                                                 </span>
-                                                <span className="text-gray-800">{opt.option_text}</span>
+                                                <span className="text-gray-800 text-sm leading-relaxed">{opt.option_text}</span>
                                             </button>
                                         ))
                                     )}
                                 </div>
                             </div>
-                        ) : null}
-                    </div>
-                )}
-
-                {/* 完了 */}
-                {step === STEPS.RESULT && (
-                    <div className="text-center py-8">
-                        <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">診断完了！</h2>
-                        <p className="text-gray-600 mb-8">
-                            診断結果を元に、おすすめの本が更新されました。<br />
-                            ホームに戻って確認してみましょう。
-                        </p>
-                        <div className="flex gap-3 justify-center">
-                            <Button
-                                onClick={() => navigate(createPageUrl('home'))}
-                                className="bg-indigo-600 hover:bg-indigo-700"
-                            >
-                                ホームへ <ArrowRight className="w-4 h-4 ml-2" />
-                            </Button>
-                            <Button
-                                variant="outline"
-                                onClick={() => {
-                                    setStep(STEPS.GENRE);
-                                    setSelectedGenre(null);
-                                    setAnswers([]);
-                                    setTagScores({});
-                                    setCurrentNode(null);
-                                }}
-                            >
-                                もう一度診断する
-                            </Button>
-                        </div>
+                        ) : (
+                            <div className="text-center py-12 text-gray-400">
+                                <p>このジャンルの質問がまだ登録されていません</p>
+                                <Button
+                                    variant="outline"
+                                    className="mt-4"
+                                    onClick={() => setStep(STEPS.GENRE)}
+                                >
+                                    ジャンル選択に戻る
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
