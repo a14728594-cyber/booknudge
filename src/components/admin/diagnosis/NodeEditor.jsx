@@ -165,9 +165,13 @@ export default function NodeEditor({ node, allNodes, onSave, onCancel, selectedG
     const [flagEnd, setFlagEnd] = useState(isEnd);
     const [opts, setOpts] = useState((node?._options || []).map(o => ({ ...o })));
     const [resultTypes, setResultTypes] = useState([]);
+    const [genres, setGenres] = useState([]);
+    const [problemCategories, setProblemCategories] = useState([]);
 
     useEffect(() => {
         base44.entities.DiagnosisResultType.list('order', 100).then(setResultTypes).catch(() => {});
+        base44.entities.Genre.list('order', 100).then(gs => setGenres(gs.filter(g => g.is_active !== false))).catch(() => {});
+        base44.entities.ProblemCategory.list('order', 200).then(setProblemCategories).catch(() => {});
     }, []);
 
     // ジャンルでタイプ候補を絞り込む（genreが空のタイプは全ジャンルで表示）
