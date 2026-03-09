@@ -113,7 +113,8 @@ export default function AdminBookEdit() {
 
     // マッピング管理
     const addMapping = () => {
-        setMappings(prev => [...prev, { _isNew: true, book_id: bookId || 'new', diagnosis_type_key: '', role: 'priority', recommendation_text: '', priority_order: prev.length }]);
+        if (mappings.length >= 3) return;
+        setMappings(prev => [...prev, { _isNew: true, book_id: bookId || 'new', diagnosis_type_key: '', relevance_score: 2, recommendation_text: '' }]);
     };
 
     const updateMapping = (idx, field, value) => {
