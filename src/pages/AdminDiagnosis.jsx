@@ -204,6 +204,8 @@ export default function AdminDiagnosis() {
 
             {activeTab === '診断タイプ管理' ? (
                 <DiagnosisResultTypeManager />
+            ) : activeTab === 'ジャンル・悩み管理' ? (
+                <GenreProblemManager />
             ) : (
                 <>
                     {/* ジャンル切り替え */}
