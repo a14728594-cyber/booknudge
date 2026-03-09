@@ -139,13 +139,13 @@ export default function AdminDiagnosis() {
     };
 
     const handleEdit = (node) => {
-        const nodeOpts = options.filter(o => o.node_id === node.id).sort((a, b) => (a.order || 0) - (b.order || 0));
+        const nodeOpts = (options[node.id] || []).sort((a, b) => (a.order || 0) - (b.order || 0));
         setEditingNode({ ...node, _options: nodeOpts });
     };
 
     const handleSaveEdit = async ({ node: nodeData, options: optsData }) => {
         await base44.entities.DiagnosisNode.update(editingNode.id, nodeData);
-        const existingOpts = options.filter(o => o.node_id === editingNode.id);
+        const existingOpts = options[editingNode.id] || [];
         await Promise.all(existingOpts.map(o => base44.entities.DiagnosisOption.delete(o.id)));
         await Promise.all(
             optsData
