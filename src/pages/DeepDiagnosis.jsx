@@ -4,7 +4,6 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-// diagnosisTypes は DiagnosisResult ページで使用
 
 const GENRES = [
     { key: 'マーケティング', label: '📣 マーケ・ブランディング' },
@@ -26,11 +25,11 @@ export default function DeepDiagnosis() {
     const [options, setOptions] = useState({});
     const [currentNode, setCurrentNode] = useState(null);
     const [answers, setAnswers] = useState([]);
-    const [tagScores, setTagScores] = useState({});
-    const [resultType, setResultType] = useState(null);
+    const [typeScores, setTypeScores] = useState({}); // { type_key: score }
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [visitedNodeIds, setVisitedNodeIds] = useState(new Set());
+    const [questionCount, setQuestionCount] = useState(0);
 
     useEffect(() => {
         base44.auth.me().then(setUser).catch(() => {});
@@ -68,8 +67,8 @@ export default function DeepDiagnosis() {
 
             setCurrentNode(firstNode);
             setAnswers([]);
-            setTagScores({});
-            setResultType(null);
+            setTypeScores({});
+            setQuestionCount(0);
             setVisitedNodeIds(new Set([firstNode.id]));
         } catch (e) {
             console.error(e);
@@ -80,38 +79,51 @@ export default function DeepDiagnosis() {
     };
 
     const handleOptionSelect = async (option) => {
-        // タグスコア更新
-        const newScores = { ...tagScores };
-        (option.tag_effects || []).forEach(({ tag, delta }) => {
-            newScores[tag] = (newScores[tag] || 0) + (delta || 1);
-        });
-        setTagScores(newScores);
+        // 質問の重みを取得（デフォルト1）
+        const nodeWeight = currentNode?.weight ?? 1;
 
-        // 結果タイプを追跡（設定されていれば上書き）
-        const newResultType = option.result_type || resultType;
-        setResultType(newResultType);
+        // タイプスコア更新（重みを乗算）
+        const newScores = { ...typeScores };
+        (option.type_scores || []).forEach(({ type_key, score }) => {
+            if (type_key) {
+                newScores[type_key] = (newScores[type_key] || 0) + ((score || 1) * nodeWeight);
+            }
+        });
+        // 後方互換: 旧 tag_effects も処理
+        (option.tag_effects || []).forEach(({ tag, delta }) => {
+            if (tag) {
+                newScores[tag] = (newScores[tag] || 0) + ((delta || 1) * nodeWeight);
+            }
+        });
+        setTypeScores(newScores);
 
         const newAnswers = [
             ...answers,
-            { node_id: currentNode.id, option_key: option.option_key, option_text: option.option_text }
+            {
+                node_id: currentNode.id,
+                option_key: option.option_key,
+                option_text: option.option_text,
+                node_weight: nodeWeight,
+            }
         ];
         setAnswers(newAnswers);
+        setQuestionCount(prev => prev + 1);
 
         const nextNodeId = option.next_node_id;
 
         // 終点判定
         if (!nextNodeId || newAnswers.length >= 10) {
-            await saveSession(newAnswers, newScores, newResultType);
+            await saveSession(newAnswers, newScores);
             return;
         }
         if (visitedNodeIds.has(nextNodeId)) {
-            await saveSession(newAnswers, newScores, newResultType);
+            await saveSession(newAnswers, newScores);
             return;
         }
 
         const nextNode = nodes.find(n => n.id === nextNodeId) || null;
         if (!nextNode || nextNode.node_type === 'end') {
-            await saveSession(newAnswers, newScores, newResultType);
+            await saveSession(newAnswers, newScores);
             return;
         }
 
@@ -119,33 +131,40 @@ export default function DeepDiagnosis() {
         setCurrentNode(nextNode);
     };
 
-    const saveSession = async (answersData, scores, typeKey) => {
+    const saveSession = async (answersData, scores) => {
         setSaving(true);
         try {
-            const result_tags = Object.entries(scores).map(([tag, score]) => ({ tag, score }));
+            // スコア集計 → メイン/サブタイプ判定
+            const sortedScores = Object.entries(scores)
+                .sort(([, a], [, b]) => b - a);
+
+            const mainType = sortedScores[0]?.[0] || null;
+            const subType = sortedScores[1]?.[0] || null;
+            const typeScoresArray = sortedScores.map(([type_key, score]) => ({ type_key, score }));
 
             if (user) {
-                // 既存の is_latest を false に
                 const prevSessions = await base44.entities.DiagnosisSession.filter(
                     { user_id: user.id, is_latest: true }
                 );
-                for (const s of prevSessions) {
-                    await base44.entities.DiagnosisSession.update(s.id, { is_latest: false });
-                }
+                await Promise.all(prevSessions.map(s =>
+                    base44.entities.DiagnosisSession.update(s.id, { is_latest: false })
+                ));
 
                 const session = await base44.entities.DiagnosisSession.create({
                     user_id: user.id,
                     genre: selectedGenre,
                     answers: answersData,
-                    result_tags,
-                    result_type: typeKey || null,
+                    type_scores: typeScoresArray,
+                    main_type: mainType,
+                    sub_type: subType,
                     is_latest: true,
                 });
 
                 navigate(createPageUrl('DiagnosisResult') + `?sessionId=${session.id}`);
             } else {
-                // 未ログインの場合はタイプパラメータで遷移
-                const params = typeKey ? `?type=${encodeURIComponent(typeKey)}` : '';
+                const params = mainType
+                    ? `?main_type=${encodeURIComponent(mainType)}${subType ? `&sub_type=${encodeURIComponent(subType)}` : ''}`
+                    : '';
                 navigate(createPageUrl('DiagnosisResult') + params);
             }
         } catch (e) {
@@ -160,14 +179,11 @@ export default function DeepDiagnosis() {
         ? (options[currentNode.id] || []).sort((a, b) => (a.order || 0) - (b.order || 0))
         : [];
 
-    // プログレス: 最大5問想定（浅い分岐）
     const progress = Math.min((answers.length / 5) * 100, 95);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-6">
             <div className="max-w-2xl mx-auto">
-
-                {/* ヘッダー */}
                 <div className="flex items-center gap-4 mb-8">
                     <button
                         onClick={() => {
@@ -206,7 +222,6 @@ export default function DeepDiagnosis() {
                 {/* 質問ステップ */}
                 {step === STEPS.QUESTION && (
                     <div>
-                        {/* プログレスバー */}
                         <div className="mb-8">
                             <div className="flex justify-between text-sm text-gray-500 mb-2">
                                 <span className="font-medium text-indigo-600">{selectedGenre}</span>
@@ -223,10 +238,15 @@ export default function DeepDiagnosis() {
                         {loading || saving ? (
                             <div className="flex flex-col items-center py-16 text-gray-500 gap-4">
                                 <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-                                <p>{saving ? '結果を保存中...' : '読み込み中...'}</p>
+                                <p>{saving ? '結果を集計中...' : '読み込み中...'}</p>
                             </div>
                         ) : currentNode ? (
                             <div>
+                                {currentNode.weight && currentNode.weight > 1 && (
+                                    <div className="mb-3 inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-xs font-medium px-3 py-1 rounded-full border border-amber-200">
+                                        ⭐ 重要な質問
+                                    </div>
+                                )}
                                 <h2 className="text-xl font-semibold text-gray-800 mb-8 leading-relaxed">
                                     {currentNode.prompt}
                                 </h2>
