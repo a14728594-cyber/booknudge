@@ -25,9 +25,11 @@ export default function InlineNodeForm({ onSave, onCancel }) {
         setOpts(next);
     };
 
+    const [weight, setWeight] = useState(1);
+
     const handleSave = () => {
         if (!title.trim() || !prompt.trim()) return;
-        onSave({ title, prompt, node_type: nodeType, nodeOptions: opts });
+        onSave({ title, prompt, node_type: nodeType, weight, nodeOptions: opts });
     };
 
     const isEnd = nodeType === 'end';
