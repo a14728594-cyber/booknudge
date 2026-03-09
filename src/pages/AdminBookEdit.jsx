@@ -66,7 +66,7 @@ export default function AdminBookEdit() {
             if (bookId && bookId !== 'new') {
                 const [book, existingMappings] = await Promise.all([
                     base44.entities.Book.get(bookId),
-                    base44.entities.BookDiagnosisMapping.filter({ book_id: bookId }, 'priority_order', 50),
+                    base44.entities.BookDiagnosisMapping.filter({ book_id: bookId }, '-relevance_score', 50),
                 ]);
                 setFormData({
                     title: book.title || '',
