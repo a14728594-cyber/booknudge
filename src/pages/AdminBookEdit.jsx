@@ -391,15 +391,18 @@ JSON形式で返してください:
 
                     {/* 診断タイプ紐付け（本×タイプのマッピング） */}
                     <div>
-                        <div className="flex items-center justify-between mb-4">
-                            <div>
-                                <h2 className="text-xl font-bold text-gray-900">🎯 診断タイプ紐付け</h2>
-                                <p className="text-sm text-gray-500 mt-1">タイプごとに役割・推薦文・優先順位を個別設定できます</p>
-                            </div>
-                            <Button onClick={addMapping} variant="outline" className="gap-2 text-sm">
+                        <div className="flex items-center justify-between mb-2">
+                            <h2 className="text-xl font-bold text-gray-900">🎯 診断タイプ紐付け</h2>
+                            <Button
+                                onClick={addMapping}
+                                variant="outline"
+                                className="gap-2 text-sm"
+                                disabled={mappings.length >= 3}
+                            >
                                 <Plus className="w-4 h-4" /> 紐付けを追加
                             </Button>
                         </div>
+                        <p className="text-sm text-gray-500 mb-4">この本が特に役立つ診断タイプを最大3つまで設定できます。各タイプには1〜3点で関連度を付けてください。</p>
 
                         {resultTypes.length === 0 && (
                             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700">
@@ -408,69 +411,73 @@ JSON形式で返してください:
                         )}
 
                         <div className="space-y-3">
-                            {mappings.map((mapping, idx) => (
-                                <div key={idx} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium text-gray-700">紐付け #{idx + 1}</span>
-                                        <button onClick={() => removeMapping(idx)} className="text-gray-400 hover:text-red-500">
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="text-xs text-gray-500 mb-1 block">診断タイプ *</label>
-                                            <select
-                                                value={mapping.diagnosis_type_key}
-                                                onChange={e => updateMapping(idx, 'diagnosis_type_key', e.target.value)}
-                                                className="w-full border rounded-lg text-sm px-2 py-1.5 bg-white"
-                                            >
-                                                <option value="">選択してください</option>
-                                                {resultTypes.map(t => (
-                                                    <option key={t.id} value={t.key}>{t.emoji || ''} {t.label}</option>
-                                                ))}
-                                            </select>
+                            {[...mappings]
+                                .sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0))
+                                .map((mapping, idx) => {
+                                    const realIdx = mappings.indexOf(mapping);
+                                    return (
+                                        <div key={idx} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm font-medium text-gray-700">紐付け #{idx + 1}</span>
+                                                <button onClick={() => removeMapping(realIdx)} className="text-gray-400 hover:text-red-500">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className="text-xs text-gray-500 mb-1 block">診断タイプ *</label>
+                                                    <select
+                                                        value={mapping.diagnosis_type_key}
+                                                        onChange={e => updateMapping(realIdx, 'diagnosis_type_key', e.target.value)}
+                                                        className="w-full border rounded-lg text-sm px-2 py-1.5 bg-white"
+                                                    >
+                                                        <option value="">選択してください</option>
+                                                        {resultTypes.map(t => (
+                                                            <option key={t.id} value={t.key}>{t.emoji || ''} {t.label}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs text-gray-500 mb-1 block">関連度スコア</label>
+                                                    <div className="flex gap-2">
+                                                        {SCORE_OPTIONS.map(s => (
+                                                            <button
+                                                                key={s.value}
+                                                                type="button"
+                                                                onClick={() => updateMapping(realIdx, 'relevance_score', s.value)}
+                                                                className={`flex-1 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
+                                                                    (mapping.relevance_score || 2) === s.value
+                                                                        ? 'bg-indigo-600 text-white border-indigo-600'
+                                                                        : 'bg-white text-gray-600 border-gray-300 hover:border-indigo-400'
+                                                                }`}
+                                                                title={s.desc}
+                                                            >
+                                                                {s.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    <p className="text-xs text-gray-400 mt-1">
+                                                        {SCORE_OPTIONS.find(s => s.value === (mapping.relevance_score || 2))?.desc}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-gray-500 mb-1 block">推薦文（任意）</label>
+                                                <Textarea
+                                                    value={mapping.recommendation_text || ''}
+                                                    onChange={e => updateMapping(realIdx, 'recommendation_text', e.target.value)}
+                                                    placeholder="例：集客手段を増やす前に、まず自分の強みを言語化することが重要です。この本ではその方法を体系的に学べます。"
+                                                    rows={2}
+                                                    className="text-sm"
+                                                />
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="text-xs text-gray-500 mb-1 block">役割</label>
-                                            <select
-                                                value={mapping.role || 'priority'}
-                                                onChange={e => updateMapping(idx, 'role', e.target.value)}
-                                                className="w-full border rounded-lg text-sm px-2 py-1.5 bg-white"
-                                            >
-                                                {ROLE_OPTIONS.map(r => (
-                                                    <option key={r.value} value={r.value}>{r.label}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="text-xs text-gray-500 mb-1 block">表示優先順位（小さいほど上位）</label>
-                                            <Input
-                                                type="number"
-                                                value={mapping.priority_order || 0}
-                                                onChange={e => updateMapping(idx, 'priority_order', Number(e.target.value))}
-                                                className="text-sm h-8"
-                                                min={0}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs text-gray-500 mb-1 block">推薦文（なぜ今のあなたに合うのか）</label>
-                                        <Textarea
-                                            value={mapping.recommendation_text || ''}
-                                            onChange={e => updateMapping(idx, 'recommendation_text', e.target.value)}
-                                            placeholder="例：集客手段を増やす前に、まず自分の強みを言語化することが重要です。この本ではその方法を体系的に学べます。"
-                                            rows={2}
-                                            className="text-sm"
-                                        />
-                                    </div>
-                                </div>
-                            ))}
+                                    );
+                                })}
                             {mappings.length === 0 && (
                                 <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 text-sm">
                                     <p>まだ診断タイプが紐付けられていません</p>
-                                    <p className="mt-1 text-xs">「紐付けを追加」ボタンから設定してください</p>
+                                    <p className="mt-1 text-xs">「紐付けを追加」ボタンから設定してください（最大3つ）</p>
                                 </div>
                             )}
                         </div>
