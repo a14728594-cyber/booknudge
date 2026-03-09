@@ -299,7 +299,7 @@ export default function NodeEditor({ node, allNodes, onSave, onCancel, selectedG
                                 editingNodeId={node?.id}
                                 onChange={(field, val) => updateOpt(idx, field, val)}
                                 onDelete={() => removeOpt(idx)}
-                                resultTypes={resultTypes}
+                                resultTypes={filteredTypes}
                             />
                         ))}
                         {opts.length === 0 && (
