@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, RotateCcw, BookOpen } from 'lucide-react';
-import { getTypeInfo, BOOK_ROLES } from '@/lib/diagnosisTypes';
+import { getTypeInfo, BOOK_ROLES } from '@/components/common/diagnosisTypes';
 
 export default function DiagnosisResult() {
     const navigate = useNavigate();

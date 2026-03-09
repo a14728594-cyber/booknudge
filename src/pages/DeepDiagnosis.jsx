@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+// diagnosisTypes は DiagnosisResult ページで使用
 
 const GENRES = [
     { key: 'マーケティング', label: '📣 マーケ・ブランディング' },
