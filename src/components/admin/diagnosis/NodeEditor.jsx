@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 
 function TypeScoreRow({ typeKey, score, onChange, onDelete, resultTypes }) {
-    const found = resultTypes.find(t => t.key === typeKey);
     return (
         <div className="flex items-center gap-2 bg-white rounded-lg px-2 py-1.5 border border-emerald-200">
             <select
@@ -19,14 +18,17 @@ function TypeScoreRow({ typeKey, score, onChange, onDelete, resultTypes }) {
                 ))}
             </select>
             <span className="text-emerald-600 font-bold text-xs">+</span>
-            <Input
-                type="number"
-                value={score}
-                onChange={e => onChange('score', Number(e.target.value))}
-                className="w-12 h-6 text-xs text-center p-0 border-emerald-200"
-                min={1}
-                max={10}
-            />
+            <div className="flex gap-1">
+                {[1, 2].map(pt => (
+                    <button
+                        key={pt}
+                        onClick={() => onChange('score', pt)}
+                        className={`w-7 h-6 rounded text-xs font-bold border transition-colors ${score === pt ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-gray-500 border-gray-200 hover:border-emerald-400'}`}
+                    >
+                        {pt}
+                    </button>
+                ))}
+            </div>
             <span className="text-xs text-gray-400">点</span>
             <button onClick={onDelete} className="text-gray-300 hover:text-red-400 ml-1">
                 <X className="w-3 h-3" />
