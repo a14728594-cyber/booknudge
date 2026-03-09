@@ -37,6 +37,15 @@ function TypeForm({ form, setForm, onSave, onCancel, title }) {
                     />
                 </div>
                 <div>
+                    <label className="text-xs text-gray-500 mb-1 block">ジャンル（絞り込み用）</label>
+                    <Input
+                        value={form.genre}
+                        onChange={e => setForm(p => ({ ...p, genre: e.target.value }))}
+                        placeholder="例：マーケ（空=全ジャンル）"
+                        className="text-sm h-8"
+                    />
+                </div>
+                <div>
                     <label className="text-xs text-gray-500 mb-1 block">表示順</label>
                     <Input
                         type="number"
