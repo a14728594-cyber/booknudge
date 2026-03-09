@@ -69,21 +69,31 @@ export default function InlineNodeForm({ onSave, onCancel, selectedGenre = '' })
             <div className="grid grid-cols-2 gap-3">
                 <div>
                     <label className="text-xs text-gray-500 mb-1 block">ジャンル</label>
-                    <Input
+                    <select
                         value={genre}
-                        onChange={e => setGenre(e.target.value)}
-                        placeholder="例：マーケ"
-                        className="bg-white text-sm h-8"
-                    />
+                        onChange={e => { setGenre(e.target.value); setProblem(''); }}
+                        className="w-full border rounded-md px-2 py-1.5 text-sm bg-white h-8"
+                    >
+                        <option value="">選択してください</option>
+                        {genres.map(g => <option key={g.id} value={g.name}>{g.name}</option>)}
+                    </select>
                 </div>
                 <div>
                     <label className="text-xs text-gray-500 mb-1 block">悩み大分類</label>
-                    <Input
+                    <select
                         value={problem}
                         onChange={e => setProblem(e.target.value)}
-                        placeholder="例：集客できない"
-                        className="bg-white text-sm h-8"
-                    />
+                        className="w-full border rounded-md px-2 py-1.5 text-sm bg-white h-8"
+                        disabled={!genre}
+                    >
+                        <option value="">選択してください</option>
+                        {problemCategories
+                            .filter(p => {
+                                const g = genres.find(g => g.name === genre);
+                                return g && p.genre_id === g.id;
+                            })
+                            .map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                    </select>
                 </div>
                 <div>
                     <label className="text-xs text-gray-500 mb-1 block">タイトル（識別子）<span className="text-red-500">*</span></label>
