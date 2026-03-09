@@ -112,32 +112,6 @@ export default function AdminDiagnosis() {
         await loadData();
     };
 
-    const handleAddChild = async (parentOption, { title, prompt, node_type, weight, nodeOptions }) => {
-        const newNode = await base44.entities.DiagnosisNode.create({
-            genre: selectedGenre,
-            title,
-            prompt,
-            node_type,
-            weight: weight || 1,
-            order: nodes.length,
-            is_active: true,
-        });
-        const validOpts = nodeOptions.filter(o => o.option_text.trim());
-        await Promise.all(
-            validOpts.map((o, idx) =>
-                base44.entities.DiagnosisOption.create({
-                    node_id: newNode.id,
-                    option_key: o.option_key,
-                    option_text: o.option_text,
-                    type_scores: o.type_scores || [],
-                    order: idx,
-                })
-            )
-        );
-        await base44.entities.DiagnosisOption.update(parentOption.id, { next_node_id: newNode.id });
-        await loadData();
-    };
-
     const handleEdit = (node) => {
         const nodeOpts = (options[node.id] || []).sort((a, b) => (a.order || 0) - (b.order || 0));
         setEditingNode({ ...node, _options: nodeOpts });
