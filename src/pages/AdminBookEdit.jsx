@@ -218,7 +218,7 @@ JSON形式で返してください:
 
             // マッピングを保存（既存を削除して再作成）
             if (savedBookId && savedBookId !== 'new') {
-                const existingMappings = await base44.entities.BookDiagnosisMapping.filter({ book_id: savedBookId }, 'priority_order', 50);
+                const existingMappings = await base44.entities.BookDiagnosisMapping.filter({ book_id: savedBookId }, '-relevance_score', 50);
                 await Promise.all(existingMappings.map(m => base44.entities.BookDiagnosisMapping.delete(m.id)));
                 await Promise.all(
                     mappings
@@ -226,9 +226,9 @@ JSON形式で返してください:
                         .map(m => base44.entities.BookDiagnosisMapping.create({
                             book_id: savedBookId,
                             diagnosis_type_key: m.diagnosis_type_key,
-                            role: m.role || 'priority',
+                            relevance_score: m.relevance_score || 2,
                             recommendation_text: m.recommendation_text || '',
-                            priority_order: m.priority_order || 0,
+                            priority_order: m.relevance_score || 2,
                         }))
                 );
             }
