@@ -5,95 +5,67 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
-const GENRES = [
-    { key: 'マーケティング', label: '📣 マーケ・ブランディング' },
-    { key: '営業', label: '💼 営業・セールス' },
-    { key: 'アイデア', label: '💡 アイデア・差別化' },
-    { key: '人間関係', label: '🤝 人間関係・コミュニケーション' },
-    { key: '習慣', label: '⏰ 習慣・仕事術' },
-    { key: 'マインドセット', label: '🧠 マインドセット' },
-];
-
 const STEPS = { GENRE: 'genre', QUESTION: 'question' };
 
 export default function DeepDiagnosis() {
     const navigate = useNavigate();
     const [step, setStep] = useState(STEPS.GENRE);
     const [user, setUser] = useState(null);
+    const [genres, setGenres] = useState([]);
     const [selectedGenre, setSelectedGenre] = useState(null);
-    const [nodes, setNodes] = useState([]);
-    const [options, setOptions] = useState({});
-    const [currentNode, setCurrentNode] = useState(null);
+    const [nodes, setNodes] = useState([]);       // order順の質問リスト
+    const [optionMap, setOptionMap] = useState({}); // node_id -> options[]
+    const [currentIndex, setCurrentIndex] = useState(0);
     const [answers, setAnswers] = useState([]);
-    const [typeScores, setTypeScores] = useState({}); // { type_key: score }
+    const [typeScores, setTypeScores] = useState({});
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [visitedNodeIds, setVisitedNodeIds] = useState(new Set());
-    const [questionCount, setQuestionCount] = useState(0);
 
     useEffect(() => {
         base44.auth.me().then(setUser).catch(() => {});
+        loadGenres();
     }, []);
 
-    const handleGenreSelect = async (genre) => {
-        setSelectedGenre(genre);
+    const loadGenres = async () => {
+        const gs = await base44.entities.Genre.filter({ is_active: true }, 'order', 100);
+        setGenres(gs);
+    };
+
+    const handleGenreSelect = async (genreName) => {
+        setSelectedGenre(genreName);
         setLoading(true);
-        try {
-            const [genreNodes, allOptions] = await Promise.all([
-                base44.entities.DiagnosisNode.filter({ genre, is_active: true }, 'order', 200),
-                base44.entities.DiagnosisOption.list('order', 1000),
-            ]);
+        const [genreNodes, allOptions] = await Promise.all([
+            base44.entities.DiagnosisNode.filter({ genre: genreName, is_active: true }, 'order', 200),
+            base44.entities.DiagnosisOption.list('order', 1000),
+        ]);
 
-            const optionMap = {};
-            allOptions.forEach(opt => {
-                if (!optionMap[opt.node_id]) optionMap[opt.node_id] = [];
-                optionMap[opt.node_id].push(opt);
-            });
-            setOptions(optionMap);
-            setNodes(genreNodes);
+        const map = {};
+        allOptions.forEach(opt => {
+            if (!map[opt.node_id]) map[opt.node_id] = [];
+            map[opt.node_id].push(opt);
+        });
 
-            // ルートノード = どの選択肢からも参照されていないノード
-            const referencedIds = new Set(allOptions.map(o => o.next_node_id).filter(Boolean));
-            const rootNodes = genreNodes
-                .filter(n => !referencedIds.has(n.id))
-                .sort((a, b) => (a.order || 0) - (b.order || 0));
-            const firstNode = rootNodes[0] || genreNodes[0] || null;
-
-            if (!firstNode) {
-                setLoading(false);
-                setStep(STEPS.QUESTION);
-                return;
-            }
-
-            setCurrentNode(firstNode);
-            setAnswers([]);
-            setTypeScores({});
-            setQuestionCount(0);
-            setVisitedNodeIds(new Set([firstNode.id]));
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoading(false);
-        }
+        setNodes(genreNodes);
+        setOptionMap(map);
+        setCurrentIndex(0);
+        setAnswers([]);
+        setTypeScores({});
+        setLoading(false);
         setStep(STEPS.QUESTION);
     };
 
+    const currentNode = nodes[currentIndex] || null;
+    const currentOptions = currentNode
+        ? (optionMap[currentNode.id] || []).sort((a, b) => (a.order || 0) - (b.order || 0))
+        : [];
+
     const handleOptionSelect = async (option) => {
-        // 質問の重みを取得（デフォルト1）
         const nodeWeight = currentNode?.weight ?? 1;
 
-        // タイプスコア更新（重みを乗算）
+        // スコア加算
         const newScores = { ...typeScores };
         (option.type_scores || []).forEach(({ type_key, score }) => {
-            if (type_key) {
-                newScores[type_key] = (newScores[type_key] || 0) + ((score || 1) * nodeWeight);
-            }
-        });
-        // 後方互換: 旧 tag_effects も処理
-        (option.tag_effects || []).forEach(({ tag, delta }) => {
-            if (tag) {
-                newScores[tag] = (newScores[tag] || 0) + ((delta || 1) * nodeWeight);
-            }
+            if (type_key) newScores[type_key] = (newScores[type_key] || 0) + ((score || 1) * nodeWeight);
         });
         setTypeScores(newScores);
 
@@ -103,83 +75,53 @@ export default function DeepDiagnosis() {
                 node_id: currentNode.id,
                 option_key: option.option_key,
                 option_text: option.option_text,
-                node_weight: nodeWeight,
             }
         ];
         setAnswers(newAnswers);
-        setQuestionCount(prev => prev + 1);
 
-        const nextNodeId = option.next_node_id;
+        const nextIndex = currentIndex + 1;
 
-        // 終点判定
-        if (!nextNodeId || newAnswers.length >= 10) {
+        if (nextIndex >= nodes.length) {
+            // 全質問終了
             await saveSession(newAnswers, newScores);
-            return;
+        } else {
+            setCurrentIndex(nextIndex);
         }
-        if (visitedNodeIds.has(nextNodeId)) {
-            await saveSession(newAnswers, newScores);
-            return;
-        }
-
-        const nextNode = nodes.find(n => n.id === nextNodeId) || null;
-        if (!nextNode || nextNode.node_type === 'end') {
-            await saveSession(newAnswers, newScores);
-            return;
-        }
-
-        setVisitedNodeIds(prev => new Set([...prev, nextNodeId]));
-        setCurrentNode(nextNode);
     };
 
     const saveSession = async (answersData, scores) => {
         setSaving(true);
-        try {
-            // スコア集計 → メイン/サブタイプ判定
-            const sortedScores = Object.entries(scores)
-                .sort(([, a], [, b]) => b - a);
+        const sortedScores = Object.entries(scores).sort(([, a], [, b]) => b - a);
+        const mainType = sortedScores[0]?.[0] || null;
+        const subType = sortedScores[1]?.[0] || null;
+        const typeScoresArray = sortedScores.map(([type_key, score]) => ({ type_key, score }));
 
-            const mainType = sortedScores[0]?.[0] || null;
-            const subType = sortedScores[1]?.[0] || null;
-            const typeScoresArray = sortedScores.map(([type_key, score]) => ({ type_key, score }));
-
-            if (user) {
-                const prevSessions = await base44.entities.DiagnosisSession.filter(
-                    { user_id: user.id, is_latest: true }
-                );
-                await Promise.all(prevSessions.map(s =>
-                    base44.entities.DiagnosisSession.update(s.id, { is_latest: false })
-                ));
-
-                const session = await base44.entities.DiagnosisSession.create({
-                    user_id: user.id,
-                    genre: selectedGenre,
-                    answers: answersData,
-                    type_scores: typeScoresArray,
-                    main_type: mainType,
-                    sub_type: subType,
-                    is_latest: true,
-                });
-
-                navigate(createPageUrl('DiagnosisResult') + `?sessionId=${session.id}`);
-            } else {
-                const params = mainType
-                    ? `?main_type=${encodeURIComponent(mainType)}${subType ? `&sub_type=${encodeURIComponent(subType)}` : ''}`
-                    : '';
-                navigate(createPageUrl('DiagnosisResult') + params);
-            }
-        } catch (e) {
-            console.error(e);
-            navigate(createPageUrl('DiagnosisResult'));
-        } finally {
-            setSaving(false);
+        if (user) {
+            const prevSessions = await base44.entities.DiagnosisSession.filter({ user_id: user.id, is_latest: true });
+            await Promise.all(prevSessions.map(s =>
+                base44.entities.DiagnosisSession.update(s.id, { is_latest: false })
+            ));
+            const session = await base44.entities.DiagnosisSession.create({
+                user_id: user.id,
+                genre: selectedGenre,
+                answers: answersData,
+                type_scores: typeScoresArray,
+                main_type: mainType,
+                sub_type: subType,
+                is_latest: true,
+            });
+            navigate(createPageUrl('DiagnosisResult') + `?sessionId=${session.id}`);
+        } else {
+            const params = mainType
+                ? `?main_type=${encodeURIComponent(mainType)}${subType ? `&sub_type=${encodeURIComponent(subType)}` : ''}`
+                : '';
+            navigate(createPageUrl('DiagnosisResult') + params);
         }
+        setSaving(false);
     };
 
-    const currentOptions = currentNode
-        ? (options[currentNode.id] || []).sort((a, b) => (a.order || 0) - (b.order || 0))
-        : [];
-
-    const progress = Math.min((answers.length / 5) * 100, 95);
+    const totalQuestions = nodes.length;
+    const progress = totalQuestions > 0 ? Math.round((currentIndex / totalQuestions) * 100) : 0;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-6">
@@ -205,17 +147,21 @@ export default function DeepDiagnosis() {
                     <div>
                         <h2 className="text-lg font-semibold text-gray-800 mb-2">今、どんなことで悩んでいますか？</h2>
                         <p className="text-sm text-gray-500 mb-6">最も近いジャンルを選んでください</p>
-                        <div className="grid grid-cols-2 gap-3">
-                            {GENRES.map(g => (
-                                <button
-                                    key={g.key}
-                                    onClick={() => handleGenreSelect(g.key)}
-                                    className="p-4 bg-white rounded-2xl border-2 border-gray-100 hover:border-indigo-400 hover:shadow-md transition-all text-left font-medium text-gray-700"
-                                >
-                                    {g.label}
-                                </button>
-                            ))}
-                        </div>
+                        {genres.length === 0 ? (
+                            <p className="text-center text-gray-400 py-12">ジャンルがまだ登録されていません</p>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-3">
+                                {genres.map(g => (
+                                    <button
+                                        key={g.id}
+                                        onClick={() => handleGenreSelect(g.name)}
+                                        className="p-4 bg-white rounded-2xl border-2 border-gray-100 hover:border-indigo-400 hover:shadow-md transition-all text-left font-medium text-gray-700"
+                                    >
+                                        {g.name}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -225,7 +171,7 @@ export default function DeepDiagnosis() {
                         <div className="mb-8">
                             <div className="flex justify-between text-sm text-gray-500 mb-2">
                                 <span className="font-medium text-indigo-600">{selectedGenre}</span>
-                                <span>Q{answers.length + 1}</span>
+                                <span>{currentIndex + 1} / {totalQuestions}</span>
                             </div>
                             <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                 <div
@@ -242,7 +188,7 @@ export default function DeepDiagnosis() {
                             </div>
                         ) : currentNode ? (
                             <div>
-                                {currentNode.weight && currentNode.weight > 1 && (
+                                {currentNode.weight > 1 && (
                                     <div className="mb-3 inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-xs font-medium px-3 py-1 rounded-full border border-amber-200">
                                         ⭐ 重要な質問
                                     </div>
@@ -252,9 +198,7 @@ export default function DeepDiagnosis() {
                                 </h2>
                                 <div className="space-y-3">
                                     {currentOptions.length === 0 ? (
-                                        <div className="text-center py-8 text-gray-400">
-                                            選択肢が登録されていません
-                                        </div>
+                                        <p className="text-center py-8 text-gray-400">選択肢が登録されていません</p>
                                     ) : (
                                         currentOptions.map(opt => (
                                             <button
@@ -274,11 +218,7 @@ export default function DeepDiagnosis() {
                         ) : (
                             <div className="text-center py-12 text-gray-400">
                                 <p>このジャンルの質問がまだ登録されていません</p>
-                                <Button
-                                    variant="outline"
-                                    className="mt-4"
-                                    onClick={() => setStep(STEPS.GENRE)}
-                                >
+                                <Button variant="outline" className="mt-4" onClick={() => setStep(STEPS.GENRE)}>
                                     ジャンル選択に戻る
                                 </Button>
                             </div>
