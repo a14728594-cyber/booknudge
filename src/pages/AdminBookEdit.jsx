@@ -542,6 +542,57 @@ export default function AdminBookEdit() {
                         </div>
                     </div>
 
+                    {/* 診断タイプ紐付け */}
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900 mb-4">🎯 診断タイプ紐付け</h2>
+                        <p className="text-sm text-gray-500 mb-4">この本が表示される診断結果タイプを選択してください（複数可）</p>
+                        <div className="grid grid-cols-2 gap-2 mb-4">
+                            {getAllTypeKeys().map(typeKey => (
+                                <label key={typeKey} className="flex items-center gap-2 p-2 rounded-lg border hover:bg-gray-50 cursor-pointer text-sm">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.diagnosis_types.includes(typeKey)}
+                                        onChange={(e) => {
+                                            const current = formData.diagnosis_types;
+                                            if (e.target.checked) {
+                                                setFormData({ ...formData, diagnosis_types: [...current, typeKey] });
+                                            } else {
+                                                setFormData({ ...formData, diagnosis_types: current.filter(t => t !== typeKey) });
+                                            }
+                                        }}
+                                        className="rounded"
+                                    />
+                                    <span>{typeKey}</span>
+                                </label>
+                            ))}
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <Label>この本の役割</Label>
+                                <select
+                                    value={formData.book_role}
+                                    onChange={(e) => setFormData({ ...formData, book_role: e.target.value })}
+                                    className="w-full border border-input rounded-md px-3 py-2 text-sm bg-transparent"
+                                >
+                                    <option value="">未設定</option>
+                                    {Object.entries(BOOK_ROLES).map(([key, info]) => (
+                                        <option key={key} value={key}>{info.emoji} {info.label} - {info.description}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <Label>推薦文（なぜ今のあなたに合うのか）</Label>
+                                <Textarea
+                                    value={formData.recommendation_text}
+                                    onChange={(e) => setFormData({ ...formData, recommendation_text: e.target.value })}
+                                    placeholder="例：集客手段を増やす前に、まず自分の強みを言語化することが重要です。この本ではその方法を体系的に学べます。"
+                                    rows={3}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="flex justify-end gap-3 pt-6 border-t">
                         <Button
                             onClick={() => navigate(createPageUrl('AdminBooks'))}
