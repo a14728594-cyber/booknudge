@@ -4,18 +4,25 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, RotateCcw, BookOpen } from 'lucide-react';
-import { getTypeInfo, BOOK_ROLES } from '@/components/common/diagnosisTypes';
+
+const ROLE_CONFIG = {
+    priority: { emoji: '⭐', label: 'まずこれを読む', bgClass: 'bg-amber-50', textClass: 'text-amber-700', borderClass: 'border-amber-200' },
+    perspective: { emoji: '🔭', label: '視点を広げる', bgClass: 'bg-blue-50', textClass: 'text-blue-700', borderClass: 'border-blue-200' },
+    action: { emoji: '⚡', label: '行動に落とす', bgClass: 'bg-green-50', textClass: 'text-green-700', borderClass: 'border-green-200' },
+};
 
 export default function DiagnosisResult() {
     const navigate = useNavigate();
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('sessionId');
-    const typeParam = urlParams.get('type'); // ログインなしフォールバック
+    const mainTypeParam = urlParams.get('main_type');
+    const subTypeParam = urlParams.get('sub_type');
 
     const [loading, setLoading] = useState(true);
     const [session, setSession] = useState(null);
-    const [typeInfo, setTypeInfo] = useState(null);
-    const [resultTypeKey, setResultTypeKey] = useState(null);
+    const [mainTypeInfo, setMainTypeInfo] = useState(null);
+    const [subTypeInfo, setSubTypeInfo] = useState(null);
+    const [mainTypeKey, setMainTypeKey] = useState(null);
     const [books, setBooks] = useState([]);
 
     useEffect(() => {
@@ -25,49 +32,80 @@ export default function DiagnosisResult() {
     const loadResult = async () => {
         try {
             let targetSession = null;
-            let typeKey = typeParam || null;
+            let mainType = mainTypeParam || null;
+            let subType = subTypeParam || null;
 
             if (sessionId) {
                 targetSession = await base44.entities.DiagnosisSession.get(sessionId);
-                typeKey = targetSession?.result_type || typeKey;
-            } else if (!typeKey) {
-                // セッションIDもタイプもない場合は最新セッションを取得
+                mainType = targetSession?.main_type || mainType;
+                subType = targetSession?.sub_type || subType;
+            } else if (!mainType) {
                 try {
                     const user = await base44.auth.me();
                     const sessions = await base44.entities.DiagnosisSession.filter(
                         { user_id: user.id, is_latest: true }, '-created_date', 1
                     );
                     targetSession = sessions[0];
-                    typeKey = targetSession?.result_type || null;
+                    mainType = targetSession?.main_type || null;
+                    subType = targetSession?.sub_type || null;
                 } catch (e) {
                     // 未ログイン
                 }
             }
 
             setSession(targetSession);
-            setResultTypeKey(typeKey);
+            setMainTypeKey(mainType);
 
-            const info = getTypeInfo(typeKey);
-            setTypeInfo(info);
+            // 診断タイプ情報を取得
+            const [mainInfo, subInfo] = await Promise.all([
+                mainType ? fetchTypeInfo(mainType) : Promise.resolve(null),
+                subType ? fetchTypeInfo(subType) : Promise.resolve(null),
+            ]);
+            setMainTypeInfo(mainInfo);
+            setSubTypeInfo(subInfo);
 
-            // 該当タイプの本を取得
-            if (typeKey) {
-                const allBooks = await base44.entities.Book.list('-created_date', 300);
-                const typeBooks = allBooks.filter(b =>
-                    b.diagnosis_types && b.diagnosis_types.includes(typeKey)
-                );
+            // 本を取得 (メインタイプ優先、サブタイプも追加)
+            if (mainType) {
+                const [mainMappings, subMappings, allBooks] = await Promise.all([
+                    base44.entities.BookDiagnosisMapping.filter({ diagnosis_type_key: mainType }, 'priority_order', 20),
+                    subType ? base44.entities.BookDiagnosisMapping.filter({ diagnosis_type_key: subType }, 'priority_order', 10) : Promise.resolve([]),
+                    base44.entities.Book.list('-created_date', 300),
+                ]);
 
-                // role順でソート (priority → perspective → action → 未設定)
-                const roleOrder = { priority: 0, perspective: 1, action: 2 };
-                const sorted = typeBooks.sort((a, b) =>
-                    (roleOrder[a.book_role] ?? 3) - (roleOrder[b.book_role] ?? 3)
-                );
-                setBooks(sorted.slice(0, 3));
+                const bookMap = {};
+                allBooks.forEach(b => { bookMap[b.id] = b; });
+
+                // メインタイプ本 (最大2冊)
+                const mainBooks = mainMappings
+                    .filter(m => bookMap[m.book_id])
+                    .sort((a, b) => (a.priority_order || 0) - (b.priority_order || 0))
+                    .slice(0, 2)
+                    .map(m => ({ ...bookMap[m.book_id], _mapping: m }));
+
+                // サブタイプ本（メインと重複しないもの1冊）
+                const mainBookIds = new Set(mainBooks.map(b => b.id));
+                const subBooks = subMappings
+                    .filter(m => bookMap[m.book_id] && !mainBookIds.has(m.book_id))
+                    .sort((a, b) => (a.priority_order || 0) - (b.priority_order || 0))
+                    .slice(0, 1)
+                    .map(m => ({ ...bookMap[m.book_id], _mapping: m, _isSubType: true }));
+
+                const combined = [...mainBooks, ...subBooks].slice(0, 3);
+                setBooks(combined);
             }
         } catch (e) {
             console.error(e);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchTypeInfo = async (typeKey) => {
+        try {
+            const types = await base44.entities.DiagnosisResultType.filter({ key: typeKey }, 'order', 1);
+            return types[0] || null;
+        } catch {
+            return null;
         }
     };
 
@@ -82,13 +120,12 @@ export default function DiagnosisResult() {
         );
     }
 
-    const priorityBook = books.find(b => b.book_role === 'priority') || books[0];
-    const otherBooks = books.filter(b => b.id !== priorityBook?.id).slice(0, 2);
+    const priorityBook = books.find(b => b._mapping?.role === 'priority') || books[0];
+    const otherBooks = books.filter(b => b.id !== priorityBook?.id);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-6">
             <div className="max-w-2xl mx-auto">
-
                 {/* ヘッダー */}
                 <div className="flex items-center gap-4 mb-8">
                     <button
@@ -103,24 +140,36 @@ export default function DiagnosisResult() {
                     </div>
                 </div>
 
-                {/* タイプカード */}
-                {typeInfo ? (
-                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-8 text-white mb-8">
-                        <div className="text-4xl mb-3">{typeInfo.emoji}</div>
+                {/* メインタイプカード */}
+                {mainTypeInfo ? (
+                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-8 text-white mb-6">
+                        <div className="text-4xl mb-3">{mainTypeInfo.emoji || '🎯'}</div>
                         <p className="text-indigo-200 text-sm mb-2">あなたは今...</p>
-                        <h2 className="text-3xl font-bold mb-4">{typeInfo.label}</h2>
-                        <p className="text-indigo-100 text-base leading-relaxed mb-4">{typeInfo.description}</p>
-                        <div className="bg-white/20 rounded-2xl p-4">
-                            <p className="text-white font-semibold text-sm">💡 今必要なこと</p>
-                            <p className="text-indigo-100 text-sm mt-1">{typeInfo.direction}</p>
-                        </div>
+                        <h2 className="text-3xl font-bold mb-4">{mainTypeInfo.label}</h2>
+                        <p className="text-indigo-100 text-base leading-relaxed mb-4">{mainTypeInfo.description}</p>
+                        {mainTypeInfo.direction && (
+                            <div className="bg-white/20 rounded-2xl p-4">
+                                <p className="text-white font-semibold text-sm">💡 今必要なこと</p>
+                                <p className="text-indigo-100 text-sm mt-1">{mainTypeInfo.direction}</p>
+                            </div>
+                        )}
                     </div>
                 ) : (
-                    <div className="bg-gradient-to-r from-gray-500 to-gray-600 rounded-3xl p-8 text-white mb-8">
+                    <div className="bg-gradient-to-r from-gray-500 to-gray-600 rounded-3xl p-8 text-white mb-6">
                         <div className="text-4xl mb-3">📊</div>
-                        <p className="text-gray-200 text-sm mb-2">診断が完了しました</p>
-                        <h2 className="text-2xl font-bold mb-4">診断結果タイプ未設定</h2>
-                        <p className="text-gray-200 text-sm">管理者が診断フローに結果タイプを設定すると、ここに詳細が表示されます。</p>
+                        <h2 className="text-2xl font-bold mb-4">診断が完了しました</h2>
+                        <p className="text-gray-200 text-sm">管理者が診断タイプを設定すると、ここに詳細が表示されます。</p>
+                    </div>
+                )}
+
+                {/* サブタイプバッジ */}
+                {subTypeInfo && (
+                    <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
+                        <span className="text-2xl">{subTypeInfo.emoji || '📌'}</span>
+                        <div>
+                            <p className="text-xs text-gray-500">サブタイプ</p>
+                            <p className="font-semibold text-gray-800">{subTypeInfo.label}</p>
+                        </div>
                     </div>
                 )}
 
@@ -130,20 +179,25 @@ export default function DiagnosisResult() {
 
                     {books.length > 0 ? (
                         <div className="space-y-4">
-                            {/* 最優先の1冊 */}
                             {priorityBook && (
                                 <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5">
                                     <div className="flex items-center gap-2 mb-3">
                                         <span className="text-amber-500 text-lg">⭐</span>
                                         <span className="text-amber-700 font-bold text-sm">迷ったらまずこれ</span>
                                     </div>
-                                    <BookResultCard book={priorityBook} />
+                                    <BookResultCard book={priorityBook} subTypeInfo={subTypeInfo} />
                                 </div>
                             )}
-
-                            {/* その他の2冊 */}
                             {otherBooks.map(book => (
-                                <div key={book.id} className="bg-white border border-gray-100 rounded-2xl p-5">
+                                <div key={book.id} className={`bg-white border rounded-2xl p-5 ${book._isSubType ? 'border-purple-200' : 'border-gray-100'}`}>
+                                    {book._isSubType && (
+                                        <div className="flex items-center gap-1 mb-3">
+                                            <span className="text-purple-500 text-sm">📌</span>
+                                            <span className="text-purple-700 text-xs font-medium">
+                                                {subTypeInfo?.label}にも対応
+                                            </span>
+                                        </div>
+                                    )}
                                     <BookResultCard book={book} />
                                 </div>
                             ))}
@@ -181,7 +235,8 @@ export default function DiagnosisResult() {
 }
 
 function BookResultCard({ book }) {
-    const roleInfo = book.book_role ? BOOK_ROLES[book.book_role] : null;
+    const roleInfo = book._mapping?.role ? ROLE_CONFIG[book._mapping.role] : null;
+    const recText = book._mapping?.recommendation_text;
 
     return (
         <div>
@@ -206,8 +261,8 @@ function BookResultCard({ book }) {
                     )}
                     <h4 className="font-bold text-gray-900 text-sm leading-tight mb-1">{book.title}</h4>
                     <p className="text-xs text-gray-500 mb-2">{(book.authors || []).join(', ')}</p>
-                    {book.recommendation_text && (
-                        <p className="text-xs text-gray-600 leading-relaxed">{book.recommendation_text}</p>
+                    {recText && (
+                        <p className="text-xs text-gray-600 leading-relaxed">{recText}</p>
                     )}
                 </div>
             </div>
