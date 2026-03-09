@@ -36,7 +36,10 @@ export default function AdminBookEdit() {
         pain_points: [''],
         outcomes: [''],
         not_for: [''],
-        one_liner: ''
+        one_liner: '',
+        diagnosis_types: [],
+        book_role: '',
+        recommendation_text: ''
     });
 
     useEffect(() => {
@@ -69,7 +72,10 @@ export default function AdminBookEdit() {
                     pain_points: book.pain_points?.length > 0 ? book.pain_points : [''],
                     outcomes: book.outcomes?.length > 0 ? book.outcomes : [''],
                     not_for: book.not_for?.length > 0 ? book.not_for : [''],
-                    one_liner: book.one_liner || ''
+                    one_liner: book.one_liner || '',
+                    diagnosis_types: book.diagnosis_types || [],
+                    book_role: book.book_role || '',
+                    recommendation_text: book.recommendation_text || ''
                 });
             }
         } catch (error) {
@@ -212,6 +218,9 @@ export default function AdminBookEdit() {
                 outcomes: cleanedOutcomes,
                 not_for: formData.not_for.filter(n => n.trim()),
                 one_liner: formData.one_liner || undefined,
+                diagnosis_types: formData.diagnosis_types || [],
+                book_role: formData.book_role || undefined,
+                recommendation_text: formData.recommendation_text || undefined,
                 search_text: searchText
             };
 
