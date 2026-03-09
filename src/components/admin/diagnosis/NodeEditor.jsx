@@ -210,21 +210,31 @@ export default function NodeEditor({ node, allNodes, onSave, onCancel, selectedG
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <label className="text-xs text-gray-500 mb-1 block">ジャンル</label>
-                        <Input
+                        <select
                             value={form.genre || ''}
-                            onChange={e => setForm(p => ({ ...p, genre: e.target.value }))}
-                            placeholder="例：マーケ、営業"
-                            className="text-sm h-8 bg-white"
-                        />
+                            onChange={e => setForm(p => ({ ...p, genre: e.target.value, problem: '' }))}
+                            className="w-full border rounded-md px-2 py-1.5 text-sm bg-white h-8"
+                        >
+                            <option value="">選択してください</option>
+                            {genres.map(g => <option key={g.id} value={g.name}>{g.name}</option>)}
+                        </select>
                     </div>
                     <div>
                         <label className="text-xs text-gray-500 mb-1 block">悩み大分類</label>
-                        <Input
+                        <select
                             value={form.problem || ''}
                             onChange={e => setForm(p => ({ ...p, problem: e.target.value }))}
-                            placeholder="例：集客できない"
-                            className="text-sm h-8 bg-white"
-                        />
+                            className="w-full border rounded-md px-2 py-1.5 text-sm bg-white h-8"
+                            disabled={!form.genre}
+                        >
+                            <option value="">選択してください</option>
+                            {problemCategories
+                                .filter(p => {
+                                    const g = genres.find(g => g.name === form.genre);
+                                    return g && p.genre_id === g.id;
+                                })
+                                .map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                        </select>
                     </div>
                     <div>
                         <label className="text-xs text-gray-500 mb-1 block">タイトル（識別子）<span className="text-red-500">*</span></label>
