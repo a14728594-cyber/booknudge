@@ -94,7 +94,7 @@ export default function DiagnosisResultTypeManager() {
     };
 
     const resetForm = () => {
-        setForm({ key: '', label: '', emoji: '', description: '', direction: '', order: types.length });
+        setForm({ key: '', label: '', emoji: '', genre: '', description: '', direction: '', order: types.length });
     };
 
     const handleEdit = (t) => {
