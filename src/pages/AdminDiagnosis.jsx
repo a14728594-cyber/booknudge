@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Check, X, Settings } from 'lucide-react';
-import TreeNodeView from '@/components/admin/diagnosis/TreeNodeView';
+import NodeListView from '@/components/admin/diagnosis/NodeListView';
 import NodeEditor from '@/components/admin/diagnosis/NodeEditor';
 import InlineNodeForm from '@/components/admin/diagnosis/InlineNodeForm';
 import DiagnosisResultTypeManager from '@/components/admin/diagnosis/DiagnosisResultTypeManager';
