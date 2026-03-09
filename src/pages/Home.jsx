@@ -216,25 +216,14 @@ export default function Home() {
                     </form>
                 </div>
 
-                {/* Diagnosis CTAs */}
-                <div className="mb-12 max-w-2xl mx-auto flex flex-col sm:flex-row gap-3">
-                    <Link to={createPageUrl('onboarding')} className="flex-1">
-                        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-5 text-white hover:shadow-xl transition-shadow cursor-pointer h-full">
+                {/* 深掘り診断CTA */}
+                <div className="mb-12 max-w-2xl mx-auto">
+                    <Link to={createPageUrl('DeepDiagnosis')}>
+                        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white hover:shadow-xl transition-shadow cursor-pointer">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h3 className="text-base font-bold mb-1">📝 初回診断</h3>
-                                    <p className="text-indigo-100 text-xs">プロフィールを元に本を提案</p>
-                                </div>
-                                <ArrowRight className="w-6 h-6 flex-shrink-0" />
-                            </div>
-                        </div>
-                    </Link>
-                    <Link to={createPageUrl('DeepDiagnosis')} className="flex-1">
-                        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-5 text-white hover:shadow-xl transition-shadow cursor-pointer h-full">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-base font-bold mb-1">🎯 おすすめ精度を上げる診断</h3>
-                                    <p className="text-emerald-100 text-xs">何度でも試せる深掘り診断</p>
+                                    <h3 className="text-lg font-bold mb-1">🎯 深掘り診断</h3>
+                                    <p className="text-indigo-100 text-sm">悩みに合わせた本を3冊厳選してご紹介します</p>
                                 </div>
                                 <ArrowRight className="w-6 h-6 flex-shrink-0" />
                             </div>
