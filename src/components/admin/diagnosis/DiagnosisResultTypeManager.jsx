@@ -80,7 +80,7 @@ export default function DiagnosisResultTypeManager() {
     const [loading, setLoading] = useState(true);
     const [editingId, setEditingId] = useState(null);
     const [showForm, setShowForm] = useState(false);
-    const [form, setForm] = useState({ key: '', label: '', emoji: '', description: '', direction: '', order: 0 });
+    const [form, setForm] = useState({ key: '', label: '', emoji: '', genre: '', description: '', direction: '', order: 0 });
 
     useEffect(() => {
         loadTypes();
