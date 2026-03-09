@@ -207,26 +207,34 @@ export default function NodeEditor({ node, allNodes, onSave, onCancel, selectedG
             <div className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-200">
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">基本設定</h4>
 
-                {/* 最初・最後フラグ */}
-                <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                        <div
-                            onClick={() => { setFlagStart(!flagStart); if (!flagStart) setFlagEnd(false); }}
-                            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${flagStart ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300'}`}
-                        >
-                            {flagStart && <Check className="w-3 h-3 text-white" />}
-                        </div>
-                        <span className="text-sm font-medium text-gray-700">🚀 最初の質問</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                        <div
-                            onClick={() => { setFlagEnd(!flagEnd); if (!flagEnd) setFlagStart(false); }}
-                            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${flagEnd ? 'bg-orange-500 border-orange-500' : 'border-gray-300'}`}
-                        >
-                            {flagEnd && <Check className="w-3 h-3 text-white" />}
-                        </div>
-                        <span className="text-sm font-medium text-gray-700">🏁 最後の質問</span>
-                    </label>
+                {/* ノードタイプ選択 */}
+                <div>
+                    <label className="text-xs text-gray-500 mb-1 block">質問の種類</label>
+                    <div className="flex gap-2">
+                        {[
+                            { value: 'start', label: '🚀 最初の質問', color: 'indigo' },
+                            { value: 'question', label: '💬 通常の質問', color: 'gray' },
+                            { value: 'end', label: '🏁 最後の質問', color: 'orange' },
+                        ].map(opt => (
+                            <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => {
+                                    setFlagStart(opt.value === 'start');
+                                    setFlagEnd(opt.value === 'end');
+                                }}
+                                className={`flex-1 py-2 px-3 rounded-lg border-2 text-xs font-medium transition-colors ${
+                                    (opt.value === 'start' && flagStart) || (opt.value === 'end' && flagEnd) || (opt.value === 'question' && !flagStart && !flagEnd)
+                                        ? opt.value === 'start' ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                        : opt.value === 'end' ? 'border-orange-500 bg-orange-50 text-orange-700'
+                                        : 'border-gray-500 bg-gray-100 text-gray-700'
+                                        : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                                }`}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
