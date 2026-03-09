@@ -256,27 +256,7 @@ export default function NodeEditor({ node, allNodes, onSave, onCancel, selectedG
                     </div>
                 </div>
 
-                {/* 最初・最後フラグ */}
-                <div className="flex gap-4 pt-1">
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                        <div
-                            onClick={() => { setFlagStart(!flagStart); if (!flagStart) setFlagEnd(false); }}
-                            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${flagStart ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300'}`}
-                        >
-                            {flagStart && <Check className="w-3 h-3 text-white" />}
-                        </div>
-                        <span className="text-sm font-medium text-gray-700">🚀 最初の質問（診断開始）</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                        <div
-                            onClick={() => { setFlagEnd(!flagEnd); if (!flagEnd) setFlagStart(false); }}
-                            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${flagEnd ? 'bg-orange-500 border-orange-500' : 'border-gray-300'}`}
-                        >
-                            {flagEnd && <Check className="w-3 h-3 text-white" />}
-                        </div>
-                        <span className="text-sm font-medium text-gray-700">🏁 最後の質問（診断完了）</span>
-                    </label>
-                </div>
+
             </div>
 
             {/* セクション2: 質問文 */}
