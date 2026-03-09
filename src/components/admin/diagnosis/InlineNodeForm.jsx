@@ -141,7 +141,7 @@ export default function InlineNodeForm({ onSave, onCancel, selectedGenre = '' })
             </div>
 
             {/* 選択肢 */}
-            {!isEnd && (
+            {(
                 <div>
                     <div className="flex items-center justify-between mb-2">
                         <p className="text-xs font-medium text-gray-600">選択肢</p>
