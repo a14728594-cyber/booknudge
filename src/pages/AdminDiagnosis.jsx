@@ -229,45 +229,37 @@ export default function AdminDiagnosis() {
                     {loading ? (
                         <div className="text-center py-12 text-gray-400">読み込み中...</div>
                     ) : (
-                        <div className="space-y-6">
-                            {rootNodes.length === 0 && !showRootForm && (
+                        <div className="space-y-4">
+                            {nodes.length === 0 && !showRootForm && (
                                 <div className="text-center py-16 text-gray-400">
-                                    <p className="mb-2 text-base font-medium text-gray-600">診断フローがまだありません</p>
-                                    <p className="mb-6 text-sm">最初の質問から作成してください</p>
+                                    <p className="mb-2 text-base font-medium text-gray-600">質問がまだありません</p>
+                                    <p className="mb-6 text-sm">質問を追加してください（order順に出題されます）</p>
                                     <Button onClick={() => setShowRootForm(true)} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
-                                        <Plus className="w-4 h-4" /> 最初の質問を作成
+                                        <Plus className="w-4 h-4" /> 質問を作成
                                     </Button>
                                 </div>
                             )}
 
-                            {rootNodes.map(rootNode => (
-                                <TreeNodeView
-                                    key={rootNode.id}
-                                    node={rootNode}
-                                    options={options.filter(o => o.node_id === rootNode.id)}
-                                    allNodes={nodes}
-                                    allOptions={options}
-                                    depth={0}
-                                    isRoot={true}
-                                    onEdit={handleEdit}
-                                    onDelete={handleDelete}
-                                    onAddChild={handleAddChild}
-                                />
-                            ))}
+                            <NodeListView
+                                nodes={nodes}
+                                options={options}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                            />
 
-                            {!showRootForm && rootNodes.length > 0 && (
+                            {!showRootForm && (
                                 <Button
                                     onClick={() => setShowRootForm(true)}
                                     variant="outline"
                                     className="gap-2 w-full border-dashed text-gray-500 hover:text-indigo-600 hover:border-indigo-400"
                                 >
-                                    <Plus className="w-4 h-4" /> 別の開始質問を追加（別フロー）
+                                    <Plus className="w-4 h-4" /> 質問を追加
                                 </Button>
                             )}
 
                             {showRootForm && (
                                 <div className="bg-white border-2 border-indigo-200 rounded-xl p-5">
-                                    <h3 className="font-semibold text-gray-800 mb-3 text-sm">開始質問を作成</h3>
+                                    <h3 className="font-semibold text-gray-800 mb-3 text-sm">質問を作成</h3>
                                     <InlineNodeForm
                                         onSave={handleCreateRoot}
                                         onCancel={() => setShowRootForm(false)}
