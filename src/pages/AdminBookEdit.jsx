@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import Card from '@/components/common/Card';
 import { Save, ArrowLeft, Plus, X, Loader2, Sparkles } from 'lucide-react';
-import { getAllTypeKeys, BOOK_ROLES } from '@/components/common/diagnosisTypes';
+import { getAllTypeKeys, BOOK_ROLES } from '../components/common/diagnosisTypes';
 
 export default function AdminBookEdit() {
     const navigate = useNavigate();
