@@ -106,27 +106,7 @@ export default function InlineNodeForm({ onSave, onCancel, selectedGenre = '' })
                 </div>
             </div>
 
-            {/* フラグ */}
-            <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                    <div
-                        onClick={() => { setFlagStart(!flagStart); if (!flagStart) setFlagEnd(false); }}
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${flagStart ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 bg-white'}`}
-                    >
-                        {flagStart && <Check className="w-3 h-3 text-white" />}
-                    </div>
-                    <span className="text-sm text-gray-700">🚀 最初の質問</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                    <div
-                        onClick={() => { setFlagEnd(!flagEnd); if (!flagEnd) setFlagStart(false); }}
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${flagEnd ? 'bg-orange-500 border-orange-500' : 'border-gray-300 bg-white'}`}
-                    >
-                        {flagEnd && <Check className="w-3 h-3 text-white" />}
-                    </div>
-                    <span className="text-sm text-gray-700">🏁 最後の質問</span>
-                </label>
-            </div>
+
 
             {/* 質問文 */}
             <div>
