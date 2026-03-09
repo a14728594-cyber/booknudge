@@ -99,7 +99,7 @@ export default function DiagnosisResultTypeManager() {
 
     const handleEdit = (t) => {
         setEditingId(t.id);
-        setForm({ key: t.key, label: t.label, emoji: t.emoji || '', description: t.description || '', direction: t.direction || '', order: t.order || 0 });
+        setForm({ key: t.key, label: t.label, emoji: t.emoji || '', genre: t.genre || '', description: t.description || '', direction: t.direction || '', order: t.order || 0 });
         setShowForm(false);
     };
 
