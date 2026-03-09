@@ -53,6 +53,11 @@ export default function InlineNodeForm({ onSave, onCancel }) {
                 onChange={e => setTitle(e.target.value)}
                 className="bg-white text-sm"
             />
+            <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                <label className="text-xs font-medium text-amber-800 whitespace-nowrap">⚖️ 重み:</label>
+                <input type="range" min={1} max={5} step={0.5} value={weight} onChange={e => setWeight(Number(e.target.value))} className="flex-1" />
+                <span className="text-amber-700 font-bold text-sm w-8 text-center">{weight}x</span>
+            </div>
             <textarea
                 placeholder="質問文"
                 value={prompt}
