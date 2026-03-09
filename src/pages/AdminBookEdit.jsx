@@ -9,10 +9,10 @@ import { Label } from '@/components/ui/label';
 import Card from '@/components/common/Card';
 import { Save, ArrowLeft, Plus, X, Loader2, Sparkles, Trash2 } from 'lucide-react';
 
-const ROLE_OPTIONS = [
-    { value: 'priority', label: '⭐ まずこれを読む', desc: '最優先の1冊' },
-    { value: 'perspective', label: '🔭 視点を広げる', desc: '考え方・発見の本' },
-    { value: 'action', label: '⚡ 行動に落とす', desc: '実践・実行の本' },
+const SCORE_OPTIONS = [
+    { value: 3, label: '3点', desc: 'かなり強く役立つ' },
+    { value: 2, label: '2点', desc: '明確に関連する' },
+    { value: 1, label: '1点', desc: '補助的に関連する' },
 ];
 
 export default function AdminBookEdit() {
