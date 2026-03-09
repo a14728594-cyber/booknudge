@@ -22,6 +22,9 @@ export default function InlineNodeForm({ onSave, onCancel, selectedGenre = '' })
         base44.entities.DiagnosisResultType.list('order', 100).then(setResultTypes).catch(() => {});
     }, []);
 
+    // ジャンルでタイプ候補を絞り込む（genreが空のタイプは全ジャンルで表示）
+    const filteredTypes = resultTypes.filter(t => !t.genre || t.genre === genre);
+
     const addOpt = () => {
         const key = String.fromCharCode(65 + opts.length);
         setOpts([...opts, { option_key: key, option_text: '', type_scores: [] }]);
