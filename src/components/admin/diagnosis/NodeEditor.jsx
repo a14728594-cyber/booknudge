@@ -292,44 +292,36 @@ export default function NodeEditor({ node, allNodes, onSave, onCancel, selectedG
             </div>
 
             {/* セクション3: 選択肢 */}
-            {!isEndNode && (
-                <div>
-                    <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">選択肢・分岐・加点設定</h4>
-                        <button
-                            onClick={addOpt}
-                            className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition-colors"
-                        >
-                            <Plus className="w-3 h-3" /> 選択肢を追加
-                        </button>
-                    </div>
-                    <div className="space-y-3">
-                        {opts.map((opt, idx) => (
-                            <OptionCard
-                                key={idx}
-                                opt={opt}
-                                index={idx}
-                                allNodes={allNodes}
-                                editingNodeId={node?.id}
-                                onChange={(field, val) => updateOpt(idx, field, val)}
-                                onDelete={() => removeOpt(idx)}
-                                resultTypes={filteredTypes}
-                            />
-                        ))}
-                        {opts.length === 0 && (
-                            <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 text-sm">
-                                選択肢なし — 「選択肢を追加」から追加してください
-                            </div>
-                        )}
-                    </div>
+            <div>
+                <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">選択肢・加点設定</h4>
+                    <button
+                        onClick={addOpt}
+                        className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition-colors"
+                    >
+                        <Plus className="w-3 h-3" /> 選択肢を追加
+                    </button>
                 </div>
-            )}
-
-            {isEndNode && (
-                <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 text-sm text-orange-700">
-                    🏁 終了ノードのため選択肢はありません。このノードに到達した時点で診断スコアを集計します。
+                <div className="space-y-3">
+                    {opts.map((opt, idx) => (
+                        <OptionCard
+                            key={idx}
+                            opt={opt}
+                            index={idx}
+                            allNodes={allNodes}
+                            editingNodeId={node?.id}
+                            onChange={(field, val) => updateOpt(idx, field, val)}
+                            onDelete={() => removeOpt(idx)}
+                            resultTypes={filteredTypes}
+                        />
+                    ))}
+                    {opts.length === 0 && (
+                        <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 text-sm">
+                            選択肢なし — 「選択肢を追加」から追加してください
+                        </div>
+                    )}
                 </div>
-            )}
+            </div>
 
             <div className="flex gap-2 pt-1 border-t border-gray-100">
                 <Button
