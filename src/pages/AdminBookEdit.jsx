@@ -7,18 +7,25 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import Card from '@/components/common/Card';
-import { Save, ArrowLeft, Plus, X, Loader2, Sparkles } from 'lucide-react';
-import { getAllTypeKeys, BOOK_ROLES } from '@/components/common/diagnosisTypes';
+import { Save, ArrowLeft, Plus, X, Loader2, Sparkles, Trash2 } from 'lucide-react';
+
+const ROLE_OPTIONS = [
+    { value: 'priority', label: '⭐ まずこれを読む', desc: '最優先の1冊' },
+    { value: 'perspective', label: '🔭 視点を広げる', desc: '考え方・発見の本' },
+    { value: 'action', label: '⚡ 行動に落とす', desc: '実践・実行の本' },
+];
 
 export default function AdminBookEdit() {
     const navigate = useNavigate();
     const urlParams = new URLSearchParams(window.location.search);
     const bookId = urlParams.get('bookId');
-    
+
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [resultTypes, setResultTypes] = useState([]);
+    const [mappings, setMappings] = useState([]); // BookDiagnosisMapping[]
 
     const [formData, setFormData] = useState({
         title: '',
@@ -37,9 +44,6 @@ export default function AdminBookEdit() {
         outcomes: [''],
         not_for: [''],
         one_liner: '',
-        diagnosis_types: [],
-        book_role: '',
-        recommendation_text: ''
     });
 
     useEffect(() => {
@@ -54,8 +58,16 @@ export default function AdminBookEdit() {
                 return;
             }
 
+            const [types] = await Promise.all([
+                base44.entities.DiagnosisResultType.list('order', 100),
+            ]);
+            setResultTypes(types);
+
             if (bookId && bookId !== 'new') {
-                const book = await base44.entities.Book.get(bookId);
+                const [book, existingMappings] = await Promise.all([
+                    base44.entities.Book.get(bookId),
+                    base44.entities.BookDiagnosisMapping.filter({ book_id: bookId }, 'priority_order', 50),
+                ]);
                 setFormData({
                     title: book.title || '',
                     authors: book.authors?.length > 0 ? book.authors : [''],
@@ -73,10 +85,8 @@ export default function AdminBookEdit() {
                     outcomes: book.outcomes?.length > 0 ? book.outcomes : [''],
                     not_for: book.not_for?.length > 0 ? book.not_for : [''],
                     one_liner: book.one_liner || '',
-                    diagnosis_types: book.diagnosis_types || [],
-                    book_role: book.book_role || '',
-                    recommendation_text: book.recommendation_text || ''
                 });
+                setMappings(existingMappings);
             }
         } catch (error) {
             console.error('Error:', error);
@@ -101,16 +111,27 @@ export default function AdminBookEdit() {
         setFormData({ ...formData, [field]: newArray.length > 0 ? newArray : [''] });
     };
 
+    // マッピング管理
+    const addMapping = () => {
+        setMappings(prev => [...prev, { _isNew: true, book_id: bookId || 'new', diagnosis_type_key: '', role: 'priority', recommendation_text: '', priority_order: prev.length }]);
+    };
+
+    const updateMapping = (idx, field, value) => {
+        setMappings(prev => prev.map((m, i) => i === idx ? { ...m, [field]: value } : m));
+    };
+
+    const removeMapping = (idx) => {
+        setMappings(prev => prev.filter((_, i) => i !== idx));
+    };
+
     const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
         setUploading(true);
         try {
             const { file_url } = await base44.integrations.Core.UploadFile({ file });
             setFormData({ ...formData, cover_url: file_url });
         } catch (error) {
-            console.error('Error uploading image:', error);
             alert('画像のアップロードに失敗しました');
         } finally {
             setUploading(false);
@@ -118,35 +139,22 @@ export default function AdminBookEdit() {
     };
 
     const handleGenerateAI = async () => {
-        if (!formData.title) {
-            alert('タイトルを入力してください');
-            return;
-        }
-
+        if (!formData.title) { alert('タイトルを入力してください'); return; }
         setGenerating(true);
         try {
-            const prompt = `以下の本について、マーケティング向けのコピーを生成してください。
-
+            const prompt = `以下の本についてマーケティング向けのコピーを生成してください。
 タイトル: ${formData.title}
 著者: ${formData.authors.filter(a => a).join(', ')}
-タグ: ${formData.tags.filter(t => t).join(', ')}
-説明: ${formData.description || 'なし'}
 
-以下の形式でJSONを返してください：
+JSON形式で返してください:
 {
   "pain_points": ["悩み1", "悩み2", "悩み3", "悩み4", "悩み5"],
   "outcomes": ["成果1", "成果2", "成果3", "成果4", "成果5"],
   "not_for": ["注意点1", "注意点2"],
-  "one_liner": "1行で刺さる説明"
-}
-
-- pain_points: この本を読むべき人の具体的な悩みや課題（3〜7個）
-- outcomes: 読後に得られる具体的な成果や変化（3〜7個）
-- not_for: 合わない人や注意点（0〜3個）
-- one_liner: 30文字程度で心に刺さる説明`;
-
+  "one_liner": "1行で刺さる説明（30文字程度）"
+}`;
             const response = await base44.integrations.Core.InvokeLLM({
-                prompt: prompt,
+                prompt,
                 response_json_schema: {
                     type: "object",
                     properties: {
@@ -157,16 +165,8 @@ export default function AdminBookEdit() {
                     }
                 }
             });
-
-            setFormData({
-                ...formData,
-                pain_points: response.pain_points || [''],
-                outcomes: response.outcomes || [''],
-                not_for: response.not_for?.length > 0 ? response.not_for : [''],
-                one_liner: response.one_liner || ''
-            });
+            setFormData({ ...formData, pain_points: response.pain_points || [''], outcomes: response.outcomes || [''], not_for: response.not_for?.length > 0 ? response.not_for : [''], one_liner: response.one_liner || '' });
         } catch (error) {
-            console.error('Error generating AI content:', error);
             alert('AI生成に失敗しました');
         } finally {
             setGenerating(false);
@@ -174,33 +174,19 @@ export default function AdminBookEdit() {
     };
 
     const normalizeSearchText = (title, authors) => {
-        const text = title + ' ' + (authors || []).join(' ');
-        let normalized = text.normalize('NFKC');
-        normalized = normalized.toLowerCase();
-        normalized = normalized.replace(/[・:！？（）『』「」【】\-\.\,\!\?\(\)\[\]\{\}]/g, '');
-        normalized = normalized.replace(/\s+/g, '');
-        return normalized;
+        let text = (title + ' ' + (authors || []).join(' ')).normalize('NFKC').toLowerCase();
+        return text.replace(/[・:！？（）『』「」【】\-\.\,\!\?\(\)\[\]\{\}]/g, '').replace(/\s+/g, '');
     };
 
     const handleSave = async () => {
-        if (!formData.title || !formData.amazon_url) {
-            alert('タイトルとAmazon URLは必須です');
-            return;
-        }
-
+        if (!formData.title || !formData.amazon_url) { alert('タイトルとAmazon URLは必須です'); return; }
         const cleanedPainPoints = formData.pain_points.filter(p => p.trim());
         const cleanedOutcomes = formData.outcomes.filter(o => o.trim());
-
-        if (cleanedPainPoints.length === 0 || cleanedOutcomes.length === 0) {
-            alert('「こんな悩み」と「読後の変化」は必須です');
-            return;
-        }
+        if (cleanedPainPoints.length === 0 || cleanedOutcomes.length === 0) { alert('「こんな悩み」と「読後の変化」は必須です'); return; }
 
         setSaving(true);
         try {
             const cleanedAuthors = formData.authors.filter(a => a.trim());
-            const searchText = normalizeSearchText(formData.title, cleanedAuthors);
-
             const data = {
                 title: formData.title,
                 authors: cleanedAuthors,
@@ -218,16 +204,32 @@ export default function AdminBookEdit() {
                 outcomes: cleanedOutcomes,
                 not_for: formData.not_for.filter(n => n.trim()),
                 one_liner: formData.one_liner || undefined,
-                diagnosis_types: formData.diagnosis_types || [],
-                book_role: formData.book_role || undefined,
-                recommendation_text: formData.recommendation_text || undefined,
-                search_text: searchText
+                search_text: normalizeSearchText(formData.title, cleanedAuthors),
             };
 
+            let savedBookId = bookId;
             if (bookId && bookId !== 'new') {
                 await base44.entities.Book.update(bookId, data);
             } else {
-                await base44.entities.Book.create(data);
+                const created = await base44.entities.Book.create(data);
+                savedBookId = created.id;
+            }
+
+            // マッピングを保存（既存を削除して再作成）
+            if (savedBookId && savedBookId !== 'new') {
+                const existingMappings = await base44.entities.BookDiagnosisMapping.filter({ book_id: savedBookId }, 'priority_order', 50);
+                await Promise.all(existingMappings.map(m => base44.entities.BookDiagnosisMapping.delete(m.id)));
+                await Promise.all(
+                    mappings
+                        .filter(m => m.diagnosis_type_key)
+                        .map(m => base44.entities.BookDiagnosisMapping.create({
+                            book_id: savedBookId,
+                            diagnosis_type_key: m.diagnosis_type_key,
+                            role: m.role || 'priority',
+                            recommendation_text: m.recommendation_text || '',
+                            priority_order: m.priority_order || 0,
+                        }))
+                );
             }
 
             navigate(createPageUrl('AdminBooks'));
@@ -241,7 +243,7 @@ export default function AdminBookEdit() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center">
                 <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
             </div>
         );
@@ -252,18 +254,10 @@ export default function AdminBookEdit() {
             <div className="max-w-4xl mx-auto">
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-3">
-                        <Button
-                            onClick={() => navigate(createPageUrl('AdminBooks'))}
-                            variant="outline"
-                            size="sm"
-                            className="gap-2"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            戻る
+                        <Button onClick={() => navigate(createPageUrl('AdminBooks'))} variant="outline" size="sm" className="gap-2">
+                            <ArrowLeft className="w-4 h-4" />戻る
                         </Button>
-                        <h1 className="text-3xl font-bold text-gray-900">
-                            {bookId === 'new' ? '本を新規登録' : '本を編集'}
-                        </h1>
+                        <h1 className="text-3xl font-bold text-gray-900">{bookId === 'new' ? '本を新規登録' : '本を編集'}</h1>
                     </div>
                 </div>
 
@@ -274,122 +268,53 @@ export default function AdminBookEdit() {
                         <div className="space-y-4">
                             <div>
                                 <Label>タイトル *</Label>
-                                <Input
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    placeholder="本のタイトル"
-                                />
+                                <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="本のタイトル" />
                             </div>
-
                             <div>
                                 <Label>著者</Label>
                                 {formData.authors.map((author, idx) => (
                                     <div key={idx} className="flex gap-2 mb-2">
-                                        <Input
-                                            value={author}
-                                            onChange={(e) => handleArrayChange('authors', idx, e.target.value)}
-                                            placeholder="著者名"
-                                        />
+                                        <Input value={author} onChange={(e) => handleArrayChange('authors', idx, e.target.value)} placeholder="著者名" />
                                         {formData.authors.length > 1 && (
-                                            <Button
-                                                onClick={() => removeArrayItem('authors', idx)}
-                                                variant="outline"
-                                                size="sm"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </Button>
+                                            <Button onClick={() => removeArrayItem('authors', idx)} variant="outline" size="sm"><X className="w-4 h-4" /></Button>
                                         )}
                                     </div>
                                 ))}
-                                <Button
-                                    onClick={() => addArrayItem('authors')}
-                                    variant="outline"
-                                    size="sm"
-                                    className="gap-2"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    著者を追加
-                                </Button>
+                                <Button onClick={() => addArrayItem('authors')} variant="outline" size="sm" className="gap-2"><Plus className="w-4 h-4" />著者を追加</Button>
                             </div>
-
                             <div>
                                 <Label>タグ</Label>
                                 {formData.tags.map((tag, idx) => (
                                     <div key={idx} className="flex gap-2 mb-2">
-                                        <Input
-                                            value={tag}
-                                            onChange={(e) => handleArrayChange('tags', idx, e.target.value)}
-                                            placeholder="タグ"
-                                        />
+                                        <Input value={tag} onChange={(e) => handleArrayChange('tags', idx, e.target.value)} placeholder="タグ" />
                                         {formData.tags.length > 1 && (
-                                            <Button
-                                                onClick={() => removeArrayItem('tags', idx)}
-                                                variant="outline"
-                                                size="sm"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </Button>
+                                            <Button onClick={() => removeArrayItem('tags', idx)} variant="outline" size="sm"><X className="w-4 h-4" /></Button>
                                         )}
                                     </div>
                                 ))}
-                                <Button
-                                    onClick={() => addArrayItem('tags')}
-                                    variant="outline"
-                                    size="sm"
-                                    className="gap-2"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    タグを追加
-                                </Button>
+                                <Button onClick={() => addArrayItem('tags')} variant="outline" size="sm" className="gap-2"><Plus className="w-4 h-4" />タグを追加</Button>
                             </div>
-
                             <div>
                                 <Label>説明</Label>
-                                <Textarea
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder="本の説明"
-                                    rows={4}
-                                />
+                                <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="本の説明" rows={4} />
                             </div>
-
                             <div>
                                 <Label>ISBN</Label>
-                                <Input
-                                    value={formData.isbn}
-                                    onChange={(e) => setFormData({ ...formData, isbn: e.target.value })}
-                                    placeholder="ISBN"
-                                />
+                                <Input value={formData.isbn} onChange={(e) => setFormData({ ...formData, isbn: e.target.value })} placeholder="ISBN" />
                             </div>
-
                             <div>
                                 <Label>表紙画像</Label>
                                 <div className="space-y-3">
                                     <div className="flex gap-3">
-                                        <Input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleImageUpload}
-                                            disabled={uploading}
-                                            className="flex-1"
-                                        />
+                                        <Input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} className="flex-1" />
                                         {uploading && <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />}
                                     </div>
                                     {formData.cover_url && (
                                         <div className="relative w-32 h-48">
-                                            <img
-                                                src={formData.cover_url}
-                                                alt="表紙プレビュー"
-                                                className="w-full h-full object-cover rounded-lg border border-gray-200"
-                                            />
+                                            <img src={formData.cover_url} alt="表紙プレビュー" className="w-full h-full object-cover rounded-lg border border-gray-200" />
                                         </div>
                                     )}
-                                    <Input
-                                        value={formData.cover_url}
-                                        onChange={(e) => setFormData({ ...formData, cover_url: e.target.value })}
-                                        placeholder="または画像URLを直接入力"
-                                        className="text-sm"
-                                    />
+                                    <Input value={formData.cover_url} onChange={(e) => setFormData({ ...formData, cover_url: e.target.value })} placeholder="または画像URLを直接入力" className="text-sm" />
                                 </div>
                             </div>
                         </div>
@@ -401,19 +326,11 @@ export default function AdminBookEdit() {
                         <div className="space-y-4">
                             <div>
                                 <Label>Amazon URL *</Label>
-                                <Input
-                                    value={formData.amazon_url}
-                                    onChange={(e) => setFormData({ ...formData, amazon_url: e.target.value })}
-                                    placeholder="https://amazon.co.jp/..."
-                                />
+                                <Input value={formData.amazon_url} onChange={(e) => setFormData({ ...formData, amazon_url: e.target.value })} placeholder="https://amazon.co.jp/..." />
                             </div>
                             <div>
                                 <Label>楽天ブックス URL</Label>
-                                <Input
-                                    value={formData.rakuten_url}
-                                    onChange={(e) => setFormData({ ...formData, rakuten_url: e.target.value })}
-                                    placeholder="https://books.rakuten.co.jp/..."
-                                />
+                                <Input value={formData.rakuten_url} onChange={(e) => setFormData({ ...formData, rakuten_url: e.target.value })} placeholder="https://books.rakuten.co.jp/..." />
                             </div>
                         </div>
                     </div>
@@ -422,194 +339,146 @@ export default function AdminBookEdit() {
                     <div>
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-bold text-gray-900">マーケティング情報</h2>
-                            <Button
-                                onClick={handleGenerateAI}
-                                disabled={generating || !formData.title}
-                                variant="outline"
-                                className="gap-2"
-                            >
-                                {generating ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Sparkles className="w-4 h-4" />
-                                )}
+                            <Button onClick={handleGenerateAI} disabled={generating || !formData.title} variant="outline" className="gap-2">
+                                {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                                 AIで生成
                             </Button>
                         </div>
-
                         <div className="space-y-6">
                             <div>
                                 <Label>1行で刺さる説明</Label>
-                                <Input
-                                    value={formData.one_liner}
-                                    onChange={(e) => setFormData({ ...formData, one_liner: e.target.value })}
-                                    placeholder="30文字程度で心に刺さる説明"
-                                />
+                                <Input value={formData.one_liner} onChange={(e) => setFormData({ ...formData, one_liner: e.target.value })} placeholder="30文字程度" />
                             </div>
-
                             <div>
                                 <Label>こんな悩みの人におすすめ *</Label>
                                 {formData.pain_points.map((point, idx) => (
                                     <div key={idx} className="flex gap-2 mb-2">
-                                        <Input
-                                            value={point}
-                                            onChange={(e) => handleArrayChange('pain_points', idx, e.target.value)}
-                                            placeholder="悩みや課題"
-                                        />
+                                        <Input value={point} onChange={(e) => handleArrayChange('pain_points', idx, e.target.value)} placeholder="悩みや課題" />
                                         {formData.pain_points.length > 1 && (
-                                            <Button
-                                                onClick={() => removeArrayItem('pain_points', idx)}
-                                                variant="outline"
-                                                size="sm"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </Button>
+                                            <Button onClick={() => removeArrayItem('pain_points', idx)} variant="outline" size="sm"><X className="w-4 h-4" /></Button>
                                         )}
                                     </div>
                                 ))}
-                                <Button
-                                    onClick={() => addArrayItem('pain_points')}
-                                    variant="outline"
-                                    size="sm"
-                                    className="gap-2"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    追加
-                                </Button>
+                                <Button onClick={() => addArrayItem('pain_points')} variant="outline" size="sm" className="gap-2"><Plus className="w-4 h-4" />追加</Button>
                             </div>
-
                             <div>
                                 <Label>読んだ後こうなれる *</Label>
                                 {formData.outcomes.map((outcome, idx) => (
                                     <div key={idx} className="flex gap-2 mb-2">
-                                        <Input
-                                            value={outcome}
-                                            onChange={(e) => handleArrayChange('outcomes', idx, e.target.value)}
-                                            placeholder="得られる成果や変化"
-                                        />
+                                        <Input value={outcome} onChange={(e) => handleArrayChange('outcomes', idx, e.target.value)} placeholder="得られる成果や変化" />
                                         {formData.outcomes.length > 1 && (
-                                            <Button
-                                                onClick={() => removeArrayItem('outcomes', idx)}
-                                                variant="outline"
-                                                size="sm"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </Button>
+                                            <Button onClick={() => removeArrayItem('outcomes', idx)} variant="outline" size="sm"><X className="w-4 h-4" /></Button>
                                         )}
                                     </div>
                                 ))}
-                                <Button
-                                    onClick={() => addArrayItem('outcomes')}
-                                    variant="outline"
-                                    size="sm"
-                                    className="gap-2"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    追加
-                                </Button>
+                                <Button onClick={() => addArrayItem('outcomes')} variant="outline" size="sm" className="gap-2"><Plus className="w-4 h-4" />追加</Button>
                             </div>
-
                             <div>
                                 <Label>合わないかも（任意）</Label>
                                 {formData.not_for.map((note, idx) => (
                                     <div key={idx} className="flex gap-2 mb-2">
-                                        <Input
-                                            value={note}
-                                            onChange={(e) => handleArrayChange('not_for', idx, e.target.value)}
-                                            placeholder="合わない人や注意点"
-                                        />
+                                        <Input value={note} onChange={(e) => handleArrayChange('not_for', idx, e.target.value)} placeholder="合わない人や注意点" />
                                         {formData.not_for.length > 1 && (
-                                            <Button
-                                                onClick={() => removeArrayItem('not_for', idx)}
-                                                variant="outline"
-                                                size="sm"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </Button>
+                                            <Button onClick={() => removeArrayItem('not_for', idx)} variant="outline" size="sm"><X className="w-4 h-4" /></Button>
                                         )}
                                     </div>
                                 ))}
-                                <Button
-                                    onClick={() => addArrayItem('not_for')}
-                                    variant="outline"
-                                    size="sm"
-                                    className="gap-2"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    追加
-                                </Button>
+                                <Button onClick={() => addArrayItem('not_for')} variant="outline" size="sm" className="gap-2"><Plus className="w-4 h-4" />追加</Button>
                             </div>
                         </div>
                     </div>
 
-                    {/* 診断タイプ紐付け */}
+                    {/* 診断タイプ紐付け（本×タイプのマッピング） */}
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">🎯 診断タイプ紐付け</h2>
-                        <p className="text-sm text-gray-500 mb-4">この本が表示される診断結果タイプを選択してください（複数可）</p>
-                        <div className="grid grid-cols-2 gap-2 mb-4">
-                            {getAllTypeKeys().map(typeKey => (
-                                <label key={typeKey} className="flex items-center gap-2 p-2 rounded-lg border hover:bg-gray-50 cursor-pointer text-sm">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.diagnosis_types.includes(typeKey)}
-                                        onChange={(e) => {
-                                            const current = formData.diagnosis_types;
-                                            if (e.target.checked) {
-                                                setFormData({ ...formData, diagnosis_types: [...current, typeKey] });
-                                            } else {
-                                                setFormData({ ...formData, diagnosis_types: current.filter(t => t !== typeKey) });
-                                            }
-                                        }}
-                                        className="rounded"
-                                    />
-                                    <span>{typeKey}</span>
-                                </label>
-                            ))}
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900">🎯 診断タイプ紐付け</h2>
+                                <p className="text-sm text-gray-500 mt-1">タイプごとに役割・推薦文・優先順位を個別設定できます</p>
+                            </div>
+                            <Button onClick={addMapping} variant="outline" className="gap-2 text-sm">
+                                <Plus className="w-4 h-4" /> 紐付けを追加
+                            </Button>
                         </div>
 
-                        <div className="space-y-4">
-                            <div>
-                                <Label>この本の役割</Label>
-                                <select
-                                    value={formData.book_role}
-                                    onChange={(e) => setFormData({ ...formData, book_role: e.target.value })}
-                                    className="w-full border border-input rounded-md px-3 py-2 text-sm bg-transparent"
-                                >
-                                    <option value="">未設定</option>
-                                    {Object.entries(BOOK_ROLES).map(([key, info]) => (
-                                        <option key={key} value={key}>{info.emoji} {info.label} - {info.description}</option>
-                                    ))}
-                                </select>
+                        {resultTypes.length === 0 && (
+                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700">
+                                診断タイプがまだ登録されていません。AdminDiagnosis &gt; 診断タイプ管理 から先に作成してください。
                             </div>
-                            <div>
-                                <Label>推薦文（なぜ今のあなたに合うのか）</Label>
-                                <Textarea
-                                    value={formData.recommendation_text}
-                                    onChange={(e) => setFormData({ ...formData, recommendation_text: e.target.value })}
-                                    placeholder="例：集客手段を増やす前に、まず自分の強みを言語化することが重要です。この本ではその方法を体系的に学べます。"
-                                    rows={3}
-                                />
-                            </div>
+                        )}
+
+                        <div className="space-y-3">
+                            {mappings.map((mapping, idx) => (
+                                <div key={idx} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium text-gray-700">紐付け #{idx + 1}</span>
+                                        <button onClick={() => removeMapping(idx)} className="text-gray-400 hover:text-red-500">
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-xs text-gray-500 mb-1 block">診断タイプ *</label>
+                                            <select
+                                                value={mapping.diagnosis_type_key}
+                                                onChange={e => updateMapping(idx, 'diagnosis_type_key', e.target.value)}
+                                                className="w-full border rounded-lg text-sm px-2 py-1.5 bg-white"
+                                            >
+                                                <option value="">選択してください</option>
+                                                {resultTypes.map(t => (
+                                                    <option key={t.id} value={t.key}>{t.emoji || ''} {t.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-gray-500 mb-1 block">役割</label>
+                                            <select
+                                                value={mapping.role || 'priority'}
+                                                onChange={e => updateMapping(idx, 'role', e.target.value)}
+                                                className="w-full border rounded-lg text-sm px-2 py-1.5 bg-white"
+                                            >
+                                                {ROLE_OPTIONS.map(r => (
+                                                    <option key={r.value} value={r.value}>{r.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-xs text-gray-500 mb-1 block">表示優先順位（小さいほど上位）</label>
+                                            <Input
+                                                type="number"
+                                                value={mapping.priority_order || 0}
+                                                onChange={e => updateMapping(idx, 'priority_order', Number(e.target.value))}
+                                                className="text-sm h-8"
+                                                min={0}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-gray-500 mb-1 block">推薦文（なぜ今のあなたに合うのか）</label>
+                                        <Textarea
+                                            value={mapping.recommendation_text || ''}
+                                            onChange={e => updateMapping(idx, 'recommendation_text', e.target.value)}
+                                            placeholder="例：集客手段を増やす前に、まず自分の強みを言語化することが重要です。この本ではその方法を体系的に学べます。"
+                                            rows={2}
+                                            className="text-sm"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                            {mappings.length === 0 && (
+                                <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 text-sm">
+                                    <p>まだ診断タイプが紐付けられていません</p>
+                                    <p className="mt-1 text-xs">「紐付けを追加」ボタンから設定してください</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     <div className="flex justify-end gap-3 pt-6 border-t">
-                        <Button
-                            onClick={() => navigate(createPageUrl('AdminBooks'))}
-                            variant="outline"
-                        >
-                            キャンセル
-                        </Button>
-                        <Button
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="bg-indigo-600 hover:bg-indigo-700 gap-2"
-                        >
-                            {saving ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <Save className="w-4 h-4" />
-                            )}
+                        <Button onClick={() => navigate(createPageUrl('AdminBooks'))} variant="outline">キャンセル</Button>
+                        <Button onClick={handleSave} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 gap-2">
+                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                             保存
                         </Button>
                     </div>
