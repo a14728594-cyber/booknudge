@@ -73,6 +73,7 @@ import DebugQuiz from './pages/DebugQuiz';
 import DebugSentry from './pages/DebugSentry';
 import DebugStatus from './pages/DebugStatus';
 import DeepDiagnosis from './pages/DeepDiagnosis';
+import DiagnosisResult from './pages/DiagnosisResult';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import MyProfile from './pages/MyProfile';
@@ -93,7 +94,6 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Tokushoho from './pages/Tokushoho';
 import genreDomain from './pages/genre[domain]';
-import DiagnosisResult from './pages/DiagnosisResult';
 import __Layout from './Layout.jsx';
 
 
@@ -124,6 +124,7 @@ export const PAGES = {
     "DebugSentry": DebugSentry,
     "DebugStatus": DebugStatus,
     "DeepDiagnosis": DeepDiagnosis,
+    "DiagnosisResult": DiagnosisResult,
     "Home": Home,
     "Landing": Landing,
     "MyProfile": MyProfile,
@@ -144,7 +145,6 @@ export const PAGES = {
     "Terms": Terms,
     "Tokushoho": Tokushoho,
     "genre[domain]": genreDomain,
-    "DiagnosisResult": DiagnosisResult,
 }
 
 export const pagesConfig = {

@@ -9,8 +9,9 @@ import TreeNodeView from '@/components/admin/diagnosis/TreeNodeView';
 import NodeEditor from '@/components/admin/diagnosis/NodeEditor';
 import InlineNodeForm from '@/components/admin/diagnosis/InlineNodeForm';
 import DiagnosisResultTypeManager from '@/components/admin/diagnosis/DiagnosisResultTypeManager';
+import GenreProblemManager from '@/components/admin/diagnosis/GenreProblemManager';
 
-const TABS = ['フロー管理', '診断タイプ管理'];
+const TABS = ['フロー管理', 'ジャンル・悩み管理', '診断タイプ管理'];
 
 export default function AdminDiagnosis() {
     const navigate = useNavigate();
