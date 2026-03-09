@@ -166,21 +166,12 @@ export default function AdminDiagnosis() {
     };
 
     const handleDelete = async (node) => {
-        const refs = options.filter(o => o.next_node_id === node.id);
-        if (refs.length > 0) {
-            if (!confirm(`このノードは${refs.length}個の選択肢から参照されています。削除しますか？`)) return;
-            await Promise.all(refs.map(o => base44.entities.DiagnosisOption.update(o.id, { next_node_id: null })));
-        } else {
-            if (!confirm('このノードと選択肢を削除しますか？')) return;
-        }
-        const nodeOpts = options.filter(o => o.node_id === node.id);
+        if (!confirm('このノードと選択肢を削除しますか？')) return;
+        const nodeOpts = options[node.id] || [];
         await Promise.all(nodeOpts.map(o => base44.entities.DiagnosisOption.delete(o.id)));
         await base44.entities.DiagnosisNode.delete(node.id);
         await loadData();
     };
-
-    const referencedIds = new Set(options.map(o => o.next_node_id).filter(Boolean));
-    const rootNodes = nodes.filter(n => !referencedIds.has(n.id));
 
     return (
         <div className="max-w-4xl mx-auto px-6 py-8">
