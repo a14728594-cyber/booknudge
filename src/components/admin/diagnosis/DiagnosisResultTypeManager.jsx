@@ -177,6 +177,10 @@ export default function DiagnosisResultTypeManager() {
                                         <span className="font-bold text-gray-900">{t.label}</span>
                                         <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-mono">{t.key}</span>
                                     </div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        {t.genre && <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">{t.genre}</span>}
+                                        {!t.genre && <span className="text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">全ジャンル</span>}
+                                    </div>
                                     {t.description && <p className="text-sm text-gray-600 mb-1">{t.description}</p>}
                                     {t.direction && <p className="text-xs text-indigo-600">💡 {t.direction}</p>}
                                 </div>
