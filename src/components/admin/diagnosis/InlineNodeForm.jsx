@@ -174,22 +174,26 @@ export default function InlineNodeForm({ onSave, onCancel, selectedGenre = '' })
                                                 className="flex-1 border rounded text-xs px-2 py-1 bg-white"
                                             >
                                                 <option value="">タイプ選択…</option>
-                                                {resultTypes.map(t => (
+                                                {filteredTypes.map(t => (
                                                     <option key={t.id} value={t.key}>{t.emoji || '🎯'} {t.label}</option>
                                                 ))}
                                             </select>
                                             <span className="text-emerald-600 text-xs font-bold">+</span>
-                                            <Input
-                                                type="number"
-                                                value={ts.score || 1}
-                                                onChange={e => {
-                                                    const scores = [...(o.type_scores || [])];
-                                                    scores[tsIdx] = { ...scores[tsIdx], score: Number(e.target.value) };
-                                                    updateOpt(idx, 'type_scores', scores);
-                                                }}
-                                                className="w-12 h-6 text-xs text-center"
-                                                min={1} max={10}
-                                            />
+                                            <div className="flex gap-1">
+                                                {[1, 2].map(pt => (
+                                                    <button
+                                                        key={pt}
+                                                        onClick={() => {
+                                                            const scores = [...(o.type_scores || [])];
+                                                            scores[tsIdx] = { ...scores[tsIdx], score: pt };
+                                                            updateOpt(idx, 'type_scores', scores);
+                                                        }}
+                                                        className={`w-7 h-6 rounded text-xs font-bold border transition-colors ${ts.score === pt ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-gray-500 border-gray-200 hover:border-emerald-400'}`}
+                                                    >
+                                                        {pt}
+                                                    </button>
+                                                ))}
+                                            </div>
                                             <span className="text-xs text-gray-400">点</span>
                                             <button
                                                 onClick={() => {
@@ -198,7 +202,7 @@ export default function InlineNodeForm({ onSave, onCancel, selectedGenre = '' })
                                                 }}
                                                 className="text-gray-300 hover:text-red-400"
                                             >
-                                                <span className="text-xs">✕</span>
+                                                <X className="w-3 h-3" />
                                             </button>
                                         </div>
                                     ))}
