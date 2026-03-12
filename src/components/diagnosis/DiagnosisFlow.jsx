@@ -12,7 +12,7 @@ const ROLE_CONFIG = {
     action: { emoji: '⚡', label: '行動に落とす', bgClass: 'bg-green-50', textClass: 'text-green-700' },
 };
 
-export default function DiagnosisFlow({ onClose }) {
+export default function DiagnosisFlow({ onClose, hideClose }) {
     const [step, setStep] = useState(STEPS.GENRE);
     const [genres, setGenres] = useState([]);
     const [selectedGenre, setSelectedGenre] = useState(null);
