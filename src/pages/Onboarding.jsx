@@ -122,7 +122,7 @@ export default function Onboarding() {
 
     useEffect(() => {
         base44.auth.isAuthenticated().then(isAuth => {
-            if (!isAuth) navigate(createPageUrl('landing'));
+            if (!isAuth) base44.auth.redirectToLogin(window.location.href);
         });
     }, []);
     const [formData, setFormData] = useState({
