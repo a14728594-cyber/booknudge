@@ -1,15 +1,15 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowRight, BookOpen, TrendingUp, Users, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { base44 } from '@/api/base44Client';
+import DiagnosisFlow from '@/components/diagnosis/DiagnosisFlow';
 
 export default function Landing() {
-    const navigate = useNavigate();
+    const [showDiagnosis, setShowDiagnosis] = useState(false);
 
     const handleStartDiagnosis = () => {
-        navigate(createPageUrl('onboarding'));
+        setShowDiagnosis(true);
     };
 
     return (
