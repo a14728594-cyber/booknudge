@@ -6,6 +6,17 @@ import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 
 export default function Landing() {
+    const navigate = useNavigate();
+
+    const handleStartDiagnosis = async () => {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+            navigate(createPageUrl('onboarding'));
+        } else {
+            base44.auth.redirectToLogin(window.location.origin + '/' + createPageUrl('onboarding'));
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 overflow-hidden">
             {/* Hero */}
