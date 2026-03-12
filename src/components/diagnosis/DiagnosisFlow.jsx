@@ -170,7 +170,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                 <div className="flex items-center gap-3 mb-10">
                     <button
                         onClick={() => {
-                            if (step === STEPS.GENRE) onClose();
+                            if (step === STEPS.GENRE) { if (!hideClose && onClose) onClose(); }
                             else if (step === STEPS.QUESTION) setStep(STEPS.GENRE);
                             else reset();
                         }}
