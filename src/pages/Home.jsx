@@ -67,12 +67,12 @@ export default function Home() {
         try {
             const user = await base44.auth.me();
             
-            // イベント記録
-            await base44.functions.invoke('trackEvent', {
+            // イベント記録（ノンブロッキング）
+            base44.functions.invoke('trackEvent', {
                 event_name: 'home_view',
                 event_value: {},
                 update_last_active: true
-            });
+            }).catch(() => {});
 
             // 主ジャンル判定
             const recentAnswers = await base44.entities.Answer.filter(
