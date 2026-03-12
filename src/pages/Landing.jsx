@@ -38,12 +38,10 @@ export default function Landing() {
                             診断からスタートして、あなたに最適な本を見つけ、毎日ちょっとずつ、楽しく実践しながら学べる
                         </p>
                         
-                        <Link to={createPageUrl('onboarding')}>
-                            <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-lg px-10 py-7 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
-                                無料で診断を始める
-                                <ArrowRight className="w-5 h-5 ml-2" />
-                            </Button>
-                        </Link>
+                        <Button size="lg" onClick={handleStartDiagnosis} className="bg-indigo-600 hover:bg-indigo-700 text-lg px-10 py-7 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+                            無料で診断を始める
+                            <ArrowRight className="w-5 h-5 ml-2" />
+                        </Button>
                     </div>
 
                     {/* Right: Illustration */}
