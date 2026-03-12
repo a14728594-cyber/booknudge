@@ -120,11 +120,7 @@ export default function Onboarding() {
     const [currentStep, setCurrentStep] = useState(0);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        base44.auth.isAuthenticated().then(isAuth => {
-            if (!isAuth) base44.auth.redirectToLogin(window.location.href);
-        });
-    }, []);
+    useEffect(() => {}, []);
     const [formData, setFormData] = useState({
         position: '',
         position_other: '',
