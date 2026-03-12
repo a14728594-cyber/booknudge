@@ -134,12 +134,10 @@ export default function Landing() {
                     <p className="text-indigo-100 text-lg mb-8">
                         5分の診断で、あなた専用の学習体験がスタート
                     </p>
-                    <Link to={createPageUrl('onboarding')}>
-                        <Button size="lg" variant="secondary" className="text-lg px-8 py-6 rounded-2xl">
-                            無料で診断を始める
-                            <ArrowRight className="w-5 h-5 ml-2" />
-                        </Button>
-                    </Link>
+                    <Button size="lg" variant="secondary" onClick={handleStartDiagnosis} className="text-lg px-8 py-6 rounded-2xl">
+                        無料で診断を始める
+                        <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
                 </div>
             </div>
 
