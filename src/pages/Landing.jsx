@@ -8,13 +8,8 @@ import { base44 } from '@/api/base44Client';
 export default function Landing() {
     const navigate = useNavigate();
 
-    const handleStartDiagnosis = async () => {
-        const isAuth = await base44.auth.isAuthenticated();
-        if (isAuth) {
-            navigate(createPageUrl('onboarding'));
-        } else {
-            base44.auth.redirectToLogin(window.location.origin + '/' + createPageUrl('onboarding'));
-        }
+    const handleStartDiagnosis = () => {
+        navigate(createPageUrl('onboarding'));
     };
 
     return (
