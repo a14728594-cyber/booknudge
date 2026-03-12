@@ -164,7 +164,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     const otherBooks = books.filter(b => b.id !== priorityBook?.id);
 
     return (
-        <div className="fixed inset-0 bg-gray-50 z-50 overflow-y-auto">
+        <div className="min-h-screen bg-gray-50 overflow-y-auto">
             <div className="max-w-xl mx-auto px-4 py-10">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-10">
