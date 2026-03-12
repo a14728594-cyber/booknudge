@@ -77,7 +77,6 @@ import DiagnosisResult from './pages/DiagnosisResult';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import MyProfile from './pages/MyProfile';
-import Onboarding from './pages/Onboarding';
 import Paywall from './pages/Paywall';
 import PersonalizedQuiz from './pages/PersonalizedQuiz';
 import Privacy from './pages/Privacy';
@@ -128,7 +127,6 @@ export const PAGES = {
     "Home": Home,
     "Landing": Landing,
     "MyProfile": MyProfile,
-    "Onboarding": Onboarding,
     "Paywall": Paywall,
     "PersonalizedQuiz": PersonalizedQuiz,
     "Privacy": Privacy,
