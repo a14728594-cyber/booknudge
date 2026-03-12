@@ -124,29 +124,32 @@ export default function DeepDiagnosis() {
     const progress = totalQuestions > 0 ? Math.round((currentIndex / totalQuestions) * 100) : 0;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-6">
-            <div className="max-w-2xl mx-auto">
-                <div className="flex items-center gap-4 mb-8">
+        <div className="min-h-screen bg-gray-50 py-10 px-4">
+            <div className="max-w-xl mx-auto">
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-10">
                     <button
                         onClick={() => {
                             if (step === STEPS.GENRE) navigate(createPageUrl('home'));
                             else setStep(STEPS.GENRE);
                         }}
-                        className="p-2 rounded-xl hover:bg-white text-gray-500"
+                        className="p-2 rounded-xl hover:bg-white border border-transparent hover:border-gray-200 text-gray-400 hover:text-gray-700 transition-all"
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
-                        <h1 className="text-xl font-bold text-gray-900">深掘り診断</h1>
-                        <p className="text-sm text-gray-500">あなたにぴったりの本を見つけます</p>
+                        <h1 className="text-lg font-bold text-gray-900 leading-none">深掘り診断</h1>
+                        <p className="text-xs text-gray-400 mt-0.5">あなたにぴったりの本を見つけます</p>
                     </div>
                 </div>
 
                 {/* ジャンル選択 */}
                 {step === STEPS.GENRE && (
                     <div>
-                        <h2 className="text-lg font-semibold text-gray-800 mb-2">今、どんなことで悩んでいますか？</h2>
-                        <p className="text-sm text-gray-500 mb-6">最も近いジャンルを選んでください</p>
+                        <div className="mb-8">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-2 leading-snug">今、どんなことで<br />悩んでいますか？</h2>
+                            <p className="text-sm text-gray-400">最も近いテーマを選んでください</p>
+                        </div>
                         {genres.length === 0 ? (
                             <p className="text-center text-gray-400 py-12">ジャンルがまだ登録されていません</p>
                         ) : (
@@ -155,9 +158,12 @@ export default function DeepDiagnosis() {
                                     <button
                                         key={g.id}
                                         onClick={() => handleGenreSelect(g.name)}
-                                        className="p-4 bg-white rounded-2xl border-2 border-gray-100 hover:border-indigo-400 hover:shadow-md transition-all text-left font-medium text-gray-700"
+                                        className="group relative p-5 bg-white rounded-2xl border border-gray-200 hover:border-indigo-400 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 text-left"
                                     >
-                                        {g.name}
+                                        <div className="font-bold text-gray-800 group-hover:text-indigo-700 transition-colors leading-tight">
+                                            {g.name}
+                                        </div>
+                                        <div className="mt-2 w-5 h-0.5 bg-gray-200 group-hover:bg-indigo-400 group-hover:w-8 transition-all duration-300 rounded-full" />
                                     </button>
                                 ))}
                             </div>
@@ -168,32 +174,33 @@ export default function DeepDiagnosis() {
                 {/* 質問ステップ */}
                 {step === STEPS.QUESTION && (
                     <div>
-                        <div className="mb-8">
-                            <div className="flex justify-between text-sm text-gray-500 mb-2">
-                                <span className="font-medium text-indigo-600">{selectedGenre}</span>
+                        {/* Progress */}
+                        <div className="mb-10">
+                            <div className="flex justify-between text-xs text-gray-400 mb-2">
+                                <span className="font-semibold text-indigo-600 text-sm">{selectedGenre}</span>
                                 <span>{currentIndex + 1} / {totalQuestions}</span>
                             </div>
-                            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                 <div
-                                    className="h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
+                                    className="h-1.5 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all duration-700"
                                     style={{ width: `${progress}%` }}
                                 />
                             </div>
                         </div>
 
                         {loading || saving ? (
-                            <div className="flex flex-col items-center py-16 text-gray-500 gap-4">
-                                <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-                                <p>{saving ? '結果を集計中...' : '読み込み中...'}</p>
+                            <div className="flex flex-col items-center py-24 text-gray-400 gap-4">
+                                <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
+                                <p className="text-sm">{saving ? '結果を集計しています...' : '読み込み中...'}</p>
                             </div>
                         ) : currentNode ? (
                             <div>
                                 {currentNode.weight > 1 && (
-                                    <div className="mb-3 inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-xs font-medium px-3 py-1 rounded-full border border-amber-200">
+                                    <div className="mb-4 inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 text-xs font-semibold px-3 py-1.5 rounded-full border border-amber-200">
                                         ⭐ 重要な質問
                                     </div>
                                 )}
-                                <h2 className="text-xl font-semibold text-gray-800 mb-8 leading-relaxed">
+                                <h2 className="text-xl font-bold text-gray-900 mb-8 leading-relaxed">
                                     {currentNode.prompt}
                                 </h2>
                                 <div className="space-y-3">
@@ -204,21 +211,21 @@ export default function DeepDiagnosis() {
                                             <button
                                                 key={opt.id}
                                                 onClick={() => handleOptionSelect(opt)}
-                                                className="w-full p-4 bg-white rounded-2xl border-2 border-gray-100 hover:border-indigo-400 hover:shadow-md transition-all text-left flex items-center gap-4 group"
+                                                className="group w-full bg-white hover:bg-indigo-600 rounded-2xl border border-gray-200 hover:border-indigo-600 hover:shadow-lg p-4 text-left flex items-center gap-4 transition-all duration-200 hover:-translate-y-0.5"
                                             >
-                                                <span className="w-8 h-8 rounded-full bg-indigo-50 group-hover:bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center text-sm flex-shrink-0 transition-colors">
+                                                <span className="w-8 h-8 rounded-xl bg-gray-100 group-hover:bg-white/20 text-gray-600 group-hover:text-white font-bold flex items-center justify-center text-sm flex-shrink-0 transition-colors">
                                                     {opt.option_key}
                                                 </span>
-                                                <span className="text-gray-800 text-sm leading-relaxed">{opt.option_text}</span>
+                                                <span className="text-sm leading-relaxed text-gray-700 group-hover:text-white transition-colors">{opt.option_text}</span>
                                             </button>
                                         ))
                                     )}
                                 </div>
                             </div>
                         ) : (
-                            <div className="text-center py-12 text-gray-400">
-                                <p>このジャンルの質問がまだ登録されていません</p>
-                                <Button variant="outline" className="mt-4" onClick={() => setStep(STEPS.GENRE)}>
+                            <div className="text-center py-16 text-gray-400">
+                                <p className="mb-4">このジャンルの質問がまだ登録されていません</p>
+                                <Button variant="outline" onClick={() => setStep(STEPS.GENRE)}>
                                     ジャンル選択に戻る
                                 </Button>
                             </div>

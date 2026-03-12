@@ -197,35 +197,70 @@ export default function Home() {
         );
     }
 
+    const dragScroll = (e) => {
+        const slider = e.currentTarget;
+        slider.style.cursor = 'grabbing';
+        let startX = e.pageX - slider.offsetLeft;
+        let scrollLeft = slider.scrollLeft;
+        const handleMouseMove = (ev) => {
+            const x = ev.pageX - slider.offsetLeft;
+            slider.scrollLeft = scrollLeft - (x - startX) * 2;
+        };
+        const handleMouseUp = () => {
+            slider.style.cursor = 'grab';
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+    };
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-            <div className="max-w-7xl mx-auto px-6 py-8">
-                {/* Search */}
-                <div className="mb-12">
-                    <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
-                        <div className="relative">
-                            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <div className="min-h-screen bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+
+                {/* Search + Diagnosis hero */}
+                <div className="mb-10 max-w-3xl mx-auto space-y-4">
+                    <form onSubmit={handleSearch}>
+                        <div className="relative group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-indigo-500 transition-colors" />
                             <Input
                                 type="text"
-                                placeholder="本のタイトル、著者、キーワードで検索..."
+                                placeholder="タイトル、著者、キーワードで探す..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-12 pr-4 py-6 text-lg rounded-2xl border-gray-200 focus:border-indigo-300"
+                                className="pl-12 pr-20 h-14 text-base rounded-2xl border-gray-200 bg-white shadow-sm focus-visible:ring-indigo-400 focus-visible:border-indigo-400"
                             />
+                            {searchQuery && (
+                                <button
+                                    type="submit"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-1.5 rounded-xl transition-colors"
+                                >
+                                    検索
+                                </button>
+                            )}
                         </div>
                     </form>
-                </div>
 
-                {/* 深掘り診断CTA */}
-                <div className="mb-12 max-w-2xl mx-auto">
+                    {/* Diagnosis CTA */}
                     <Link to={createPageUrl('DeepDiagnosis')}>
-                        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white hover:shadow-xl transition-shadow cursor-pointer">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-lg font-bold mb-1">🎯 深掘り診断</h3>
-                                    <p className="text-indigo-100 text-sm">悩みに合わせた本を3冊厳選してご紹介します</p>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-700 p-5 text-white hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+                            {/* subtle pattern */}
+                            <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '40px 40px'}} />
+                            <div className="relative flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-xl flex-shrink-0">
+                                        🎯
+                                    </div>
+                                    <div>
+                                        <div className="text-xs font-semibold uppercase tracking-widest text-indigo-200 mb-0.5">AI診断</div>
+                                        <h3 className="text-base font-bold leading-tight">深掘り診断で本を見つける</h3>
+                                        <p className="text-indigo-100 text-xs mt-0.5">悩みに合わせた本を厳選してご紹介します</p>
+                                    </div>
                                 </div>
-                                <ArrowRight className="w-6 h-6 flex-shrink-0" />
+                                <div className="flex-shrink-0 bg-white/20 hover:bg-white/30 rounded-xl p-2 transition-colors">
+                                    <ArrowRight className="w-5 h-5" />
+                                </div>
                             </div>
                         </div>
                     </Link>
@@ -233,160 +268,94 @@ export default function Home() {
 
                 {/* 診断結果ベースのおすすめ */}
                 {recommendedBooks.length > 0 && (
-                    <div className="mb-16">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-3">
-                                <span className="text-2xl">✨</span>
-                                <h2 className="text-2xl font-bold text-gray-900">あなたへのおすすめ</h2>
-                                <span className="text-sm text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full font-medium">診断結果から厳選</span>
+                    <section className="mb-14">
+                        <div className="flex items-end justify-between mb-5">
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-lg">✨</span>
+                                    <h2 className="text-xl font-bold text-gray-900">あなたへのおすすめ</h2>
+                                </div>
+                                <p className="text-xs text-gray-400 ml-7">診断結果から厳選</p>
                             </div>
-                            <div className="flex items-center gap-2 text-gray-500 text-sm">
-                                <ChevronRight className="w-4 h-4" />
-                                <span>スライドで見る</span>
-                            </div>
+                            <span className="text-xs text-gray-400 hidden sm:block">← スライド →</span>
                         </div>
                         <div
-                            className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing"
+                            className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing"
                             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                            onMouseDown={(e) => {
-                                const slider = e.currentTarget;
-                                let startX = e.pageX - slider.offsetLeft;
-                                let scrollLeft = slider.scrollLeft;
-                                const handleMouseMove = (e) => {
-                                    const x = e.pageX - slider.offsetLeft;
-                                    slider.scrollLeft = scrollLeft - (x - startX) * 2;
-                                };
-                                const handleMouseUp = () => {
-                                    document.removeEventListener('mousemove', handleMouseMove);
-                                    document.removeEventListener('mouseup', handleMouseUp);
-                                };
-                                document.addEventListener('mousemove', handleMouseMove);
-                                document.addEventListener('mouseup', handleMouseUp);
-                            }}
+                            onMouseDown={dragScroll}
                         >
                             {recommendedBooks.map(book => (
                                 <div
                                     key={book.id}
-                                    className="flex-shrink-0 w-72 snap-start"
+                                    className="flex-shrink-0 w-52 snap-start"
                                     onClick={() => handleBookClick(book.id, 'recommend')}
                                 >
                                     <BookCard book={book} />
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </section>
                 )}
 
                 {/* Main Domain Carousel */}
                 {topBooks[mainDomain]?.length > 0 && (
-                    <div className="mb-16">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-3">
-                                <TrendingUp className="w-6 h-6 text-indigo-600" />
-                                <h2 className="text-2xl font-bold text-gray-900">
+                    <section className="mb-14">
+                        <div className="flex items-end justify-between mb-5">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-1 h-6 bg-indigo-600 rounded-full" />
+                                <h2 className="text-xl font-bold text-gray-900">
                                     {domainConfig[mainDomain]?.label || mainDomain}
                                 </h2>
                             </div>
-                            <div className="flex items-center gap-2 text-gray-500 text-sm">
-                                <ChevronRight className="w-4 h-4" />
-                                <span>スライドで見る</span>
-                            </div>
+                            <span className="text-xs text-gray-400 hidden sm:block">← スライド →</span>
                         </div>
-                        <div 
-                            className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing"
-                            style={{ 
-                                scrollbarWidth: 'none',
-                                msOverflowStyle: 'none'
-                            }}
-                            onMouseDown={(e) => {
-                                const slider = e.currentTarget;
-                                slider.style.cursor = 'grabbing';
-                                let startX = e.pageX - slider.offsetLeft;
-                                let scrollLeft = slider.scrollLeft;
-                                
-                                const handleMouseMove = (e) => {
-                                    const x = e.pageX - slider.offsetLeft;
-                                    const walk = (x - startX) * 2;
-                                    slider.scrollLeft = scrollLeft - walk;
-                                };
-                                
-                                const handleMouseUp = () => {
-                                    slider.style.cursor = 'grab';
-                                    document.removeEventListener('mousemove', handleMouseMove);
-                                    document.removeEventListener('mouseup', handleMouseUp);
-                                };
-                                
-                                document.addEventListener('mousemove', handleMouseMove);
-                                document.addEventListener('mouseup', handleMouseUp);
-                            }}
+                        <div
+                            className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing"
+                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                            onMouseDown={dragScroll}
                         >
                             {topBooks[mainDomain].map(book => (
-                                <div 
-                                    key={book.id} 
-                                    className="flex-shrink-0 w-72 snap-start"
+                                <div
+                                    key={book.id}
+                                    className="flex-shrink-0 w-52 snap-start"
                                     onClick={() => handleBookClick(book.id, mainDomain)}
                                 >
                                     <BookCard book={book} />
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </section>
                 )}
 
                 {/* All Domains Carousels */}
                 {Object.keys(topBooks).map(domain => (
                     domain !== mainDomain && topBooks[domain]?.length > 0 && (
-                        <div key={domain} className="mb-16">
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-3">
-                                    <h2 className="text-2xl font-bold text-gray-900">
+                        <section key={domain} className="mb-14">
+                            <div className="flex items-end justify-between mb-5">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-1 h-6 bg-purple-400 rounded-full" />
+                                    <h2 className="text-xl font-bold text-gray-900">
                                         {domainConfig[domain]?.label || domain}
                                     </h2>
                                 </div>
-                                <div className="flex items-center gap-2 text-gray-500 text-sm">
-                                    <ChevronRight className="w-4 h-4" />
-                                    <span>スライドで見る</span>
-                                </div>
+                                <span className="text-xs text-gray-400 hidden sm:block">← スライド →</span>
                             </div>
-                            <div 
-                                className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing"
-                                style={{ 
-                                    scrollbarWidth: 'none',
-                                    msOverflowStyle: 'none'
-                                    }}
-                                onMouseDown={(e) => {
-                                    const slider = e.currentTarget;
-                                    slider.style.cursor = 'grabbing';
-                                    let startX = e.pageX - slider.offsetLeft;
-                                    let scrollLeft = slider.scrollLeft;
-                                    
-                                    const handleMouseMove = (e) => {
-                                        const x = e.pageX - slider.offsetLeft;
-                                        const walk = (x - startX) * 2;
-                                        slider.scrollLeft = scrollLeft - walk;
-                                    };
-                                    
-                                    const handleMouseUp = () => {
-                                        slider.style.cursor = 'grab';
-                                        document.removeEventListener('mousemove', handleMouseMove);
-                                        document.removeEventListener('mouseup', handleMouseUp);
-                                    };
-                                    
-                                    document.addEventListener('mousemove', handleMouseMove);
-                                    document.addEventListener('mouseup', handleMouseUp);
-                                }}
+                            <div
+                                className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing"
+                                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                onMouseDown={dragScroll}
                             >
                                 {topBooks[domain].map(book => (
-                                    <div 
-                                        key={book.id} 
-                                        className="flex-shrink-0 w-72 snap-start"
+                                    <div
+                                        key={book.id}
+                                        className="flex-shrink-0 w-52 snap-start"
                                         onClick={() => handleBookClick(book.id, domain)}
                                     >
                                         <BookCard book={book} />
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        </section>
                     )
                 ))}
             </div>

@@ -239,210 +239,202 @@ export default function Profile() {
     const isPrivateProfile = !isOwnProfile && profileUser?.profile_visibility === 'private';
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-6">
-            <div className="max-w-5xl mx-auto">
-                {/* Profile Header */}
-                <Card className="mb-8">
-                    <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                        <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                            <UserIcon className="w-10 h-10 text-white" />
-                        </div>
-                        
-                        <div className="flex-1">
-                            {editing ? (
-                                <div className="space-y-4">
-                                    <Input
-                                        value={displayName}
-                                        onChange={(e) => setDisplayName(e.target.value)}
-                                        placeholder="表示名"
-                                        className="rounded-xl"
-                                    />
-                                    <Textarea
-                                        value={bio}
-                                        onChange={(e) => setBio(e.target.value)}
-                                        placeholder="自己紹介"
-                                        className="rounded-xl"
-                                    />
-                                    <div className="flex gap-2">
-                                        <Button onClick={handleSaveProfile} size="sm" className="rounded-xl">
-                                            <Check className="w-4 h-4 mr-2" />
-                                            保存
-                                        </Button>
-                                        <Button onClick={() => setEditing(false)} variant="outline" size="sm" className="rounded-xl">
-                                            <X className="w-4 h-4 mr-2" />
-                                            キャンセル
-                                        </Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <h1 className="text-2xl font-bold text-gray-900">
-                                            {profileUser?.display_name || profileUser?.email || '名前なし'}
-                                        </h1>
-                                        {isOwnProfile && (
-                                            <Button onClick={() => setEditing(true)} variant="outline" size="sm" className="rounded-xl">
-                                                <Edit2 className="w-4 h-4" />
+        <div className="min-h-screen bg-gray-50 py-8 px-4">
+            <div className="max-w-4xl mx-auto">
+                {/* Profile Header Card */}
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                    {/* Banner */}
+                    <div className="h-24 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600" />
+
+                    <div className="px-6 pb-6">
+                        <div className="flex flex-col sm:flex-row items-start gap-4 -mt-10">
+                            {/* Avatar */}
+                            <div className="w-20 h-20 bg-gradient-to-br from-indigo-400 to-purple-600 rounded-2xl border-4 border-white shadow-md flex items-center justify-center flex-shrink-0">
+                                <span className="text-2xl font-bold text-white">
+                                    {(profileUser?.display_name || profileUser?.email || 'U')[0].toUpperCase()}
+                                </span>
+                            </div>
+
+                            <div className="flex-1 pt-12 sm:pt-2">
+                                {editing ? (
+                                    <div className="space-y-3">
+                                        <Input
+                                            value={displayName}
+                                            onChange={(e) => setDisplayName(e.target.value)}
+                                            placeholder="表示名"
+                                            className="rounded-xl"
+                                        />
+                                        <Textarea
+                                            value={bio}
+                                            onChange={(e) => setBio(e.target.value)}
+                                            placeholder="自己紹介"
+                                            className="rounded-xl"
+                                            rows={3}
+                                        />
+                                        <div className="flex gap-2">
+                                            <Button onClick={handleSaveProfile} size="sm" className="rounded-xl bg-indigo-600 hover:bg-indigo-700">
+                                                <Check className="w-4 h-4 mr-1.5" /> 保存
                                             </Button>
-                                        )}
-                                        {isPrivateProfile && (
-                                            <div className="flex items-center gap-1 text-gray-500 text-sm">
-                                                <Lock className="w-4 h-4" />
-                                                <span>非公開</span>
-                                            </div>
-                                        )}
+                                            <Button onClick={() => setEditing(false)} variant="outline" size="sm" className="rounded-xl">
+                                                <X className="w-4 h-4 mr-1.5" /> キャンセル
+                                            </Button>
+                                        </div>
                                     </div>
-                                    {!isPrivateProfile && (
-                                        <p className="text-gray-600 mb-4">
-                                            {profileUser?.bio || '自己紹介がありません'}
-                                        </p>
-                                    )}
-                                    <div className="flex gap-6 text-sm">
-                                        <button 
-                                            onClick={loadFollowing}
-                                            className="hover:underline"
-                                        >
-                                            <span className="font-semibold text-gray-900">{followingCount}</span>
-                                            <span className="text-gray-600 ml-1">フォロー中</span>
-                                        </button>
-                                        <button 
-                                            onClick={loadFollowers}
-                                            className="hover:underline"
-                                        >
-                                            <span className="font-semibold text-gray-900">{followersCount}</span>
-                                            <span className="text-gray-600 ml-1">フォロワー</span>
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-
-                        {!isOwnProfile && (
-                            <div className="flex gap-2">
-                                {isMutualFollow && (
-                                    <Button
-                                        onClick={handleMessageClick}
-                                        variant="outline"
-                                        className="rounded-xl"
-                                    >
-                                        <Send className="w-4 h-4 mr-2" />
-                                        メッセージ
-                                    </Button>
-                                )}
-                                <Button
-                                    onClick={handleFollowToggle}
-                                    variant={isFollowing ? 'outline' : 'default'}
-                                    className={`rounded-xl ${isFollowing ? '' : 'bg-indigo-600 hover:bg-indigo-700'}`}
-                                >
-                                    <Users className="w-4 h-4 mr-2" />
-                                    {isFollowing ? 'フォロー中' : 'フォローする'}
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-                </Card>
-
-                {/* プロフィール公開設定（自分のプロフィールのみ） */}
-                {isOwnProfile && (
-                    <Card className="mb-8">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                {profileVisibility === 'public' ? (
-                                    <Globe className="w-5 h-5 text-indigo-600" />
                                 ) : (
-                                    <Lock className="w-5 h-5 text-gray-400" />
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h1 className="text-xl font-bold text-gray-900">
+                                                    {profileUser?.display_name || profileUser?.email || '名前なし'}
+                                                </h1>
+                                                {isPrivateProfile && (
+                                                    <span className="flex items-center gap-1 text-gray-400 text-xs bg-gray-100 px-2 py-0.5 rounded-full">
+                                                        <Lock className="w-3 h-3" /> 非公開
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {!isPrivateProfile && (
+                                                <p className="text-sm text-gray-500 mb-3 leading-relaxed">
+                                                    {profileUser?.bio || '自己紹介がありません'}
+                                                </p>
+                                            )}
+                                            <div className="flex gap-5 text-sm">
+                                                <button onClick={loadFollowing} className="hover:text-indigo-600 transition-colors">
+                                                    <span className="font-bold text-gray-900">{followingCount}</span>
+                                                    <span className="text-gray-400 ml-1.5">フォロー</span>
+                                                </button>
+                                                <button onClick={loadFollowers} className="hover:text-indigo-600 transition-colors">
+                                                    <span className="font-bold text-gray-900">{followersCount}</span>
+                                                    <span className="text-gray-400 ml-1.5">フォロワー</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-2 flex-shrink-0 pt-1">
+                                            {isOwnProfile ? (
+                                                <Button onClick={() => setEditing(true)} variant="outline" size="sm" className="rounded-xl gap-1.5">
+                                                    <Edit2 className="w-3.5 h-3.5" /> 編集
+                                                </Button>
+                                            ) : (
+                                                <>
+                                                    {isMutualFollow && (
+                                                        <Button onClick={handleMessageClick} variant="outline" size="sm" className="rounded-xl gap-1.5">
+                                                            <Send className="w-3.5 h-3.5" /> メッセージ
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        onClick={handleFollowToggle}
+                                                        size="sm"
+                                                        variant={isFollowing ? 'outline' : 'default'}
+                                                        className={`rounded-xl gap-1.5 ${isFollowing ? '' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                                                    >
+                                                        <Users className="w-3.5 h-3.5" />
+                                                        {isFollowing ? 'フォロー中' : 'フォロー'}
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
                                 )}
-                                <div>
-                                    <Label htmlFor="profile-visibility" className="font-medium text-gray-900 cursor-pointer">
-                                        プロフィールを公開する
-                                    </Label>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        {profileVisibility === 'public' 
-                                            ? '他のユーザーがあなたのプロフィールを見ることができます'
-                                            : 'プロフィールは非公開です'}
-                                    </p>
-                                </div>
                             </div>
-                            <Switch
-                                id="profile-visibility"
-                                checked={profileVisibility === 'public'}
-                                onCheckedChange={handleVisibilityToggle}
-                            />
                         </div>
-                    </Card>
+                    </div>
+                </div>
+
+                {/* 公開設定 */}
+                {isOwnProfile && (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 mb-6 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            {profileVisibility === 'public'
+                                ? <Globe className="w-4 h-4 text-indigo-500" />
+                                : <Lock className="w-4 h-4 text-gray-400" />
+                            }
+                            <div>
+                                <Label htmlFor="profile-visibility" className="text-sm font-medium text-gray-800 cursor-pointer">
+                                    プロフィールを公開する
+                                </Label>
+                                <p className="text-xs text-gray-400 mt-0.5">
+                                    {profileVisibility === 'public' ? '他のユーザーに公開中' : '非公開設定中'}
+                                </p>
+                            </div>
+                        </div>
+                        <Switch
+                            id="profile-visibility"
+                            checked={profileVisibility === 'public'}
+                            onCheckedChange={handleVisibilityToggle}
+                        />
+                    </div>
                 )}
 
-                {/* Tabs - 非公開プロフィールの場合は非表示 */}
+                {/* Tabs */}
                 {!isPrivateProfile ? (
                     <Tabs defaultValue="favorites" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2 mb-6">
-                            <TabsTrigger value="favorites">お気に入りの本</TabsTrigger>
-                            <TabsTrigger value="answers">共有した回答</TabsTrigger>
+                        <TabsList className="grid w-full grid-cols-2 mb-6 bg-white border border-gray-100 shadow-sm rounded-2xl p-1 h-auto">
+                            <TabsTrigger value="favorites" className="rounded-xl py-2.5 text-sm font-medium data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
+                                <Heart className="w-4 h-4 mr-1.5" />
+                                お気に入りの本
+                            </TabsTrigger>
+                            <TabsTrigger value="answers" className="rounded-xl py-2.5 text-sm font-medium data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
+                                共有した回答
+                            </TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="favorites">
                             {!isOwnProfile && profileUser?.favorites_visibility === 'private' ? (
-                                <div className="text-center py-12 text-gray-600">
+                                <div className="bg-white rounded-2xl border border-gray-100 text-center py-14 text-gray-400 text-sm">
                                     このユーザーのお気に入りは非公開です
                                 </div>
                             ) : favoritesBooks.length > 0 ? (
-                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                     {favoritesBooks.map(book => (
                                         <BookCard key={book.id} book={book} />
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-12 text-gray-600">
-                                    お気に入りの本がまだありません
+                                <div className="bg-white rounded-2xl border border-gray-100 text-center py-14">
+                                    <Heart className="w-8 h-8 text-gray-200 mx-auto mb-3" />
+                                    <p className="text-sm text-gray-400">お気に入りの本がまだありません</p>
                                 </div>
                             )}
                         </TabsContent>
 
                         <TabsContent value="answers">
                             {sharedAnswers.length > 0 ? (
-                                <div className="space-y-4">
+                                <div className="space-y-3">
                                     {sharedAnswers.map(answer => (
-                                        <Card key={answer.id}>
-                                            <div className="flex items-start gap-4">
+                                        <div key={answer.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                                            <div className="flex items-start gap-3">
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2 mb-2">
                                                         <DomainBadge domain={answer.domain} />
-                                                        <span className="text-sm text-gray-500">
+                                                        <span className="text-xs text-gray-400">
                                                             {new Date(answer.created_date).toLocaleDateString('ja-JP')}
                                                         </span>
                                                     </div>
-                                                    <p className="text-gray-700 mb-3">
+                                                    <p className="text-sm text-gray-700 mb-3 leading-relaxed">
                                                         {answer.question_text}
                                                     </p>
-                                                    <div className="bg-indigo-50 rounded-xl p-4">
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="text-sm font-medium text-gray-600">
-                                                                スライダー値
-                                                            </span>
-                                                            <span className="text-2xl font-bold text-indigo-600">
-                                                                {answer.shared_slider_value}
-                                                            </span>
-                                                        </div>
+                                                    <div className="bg-indigo-50 rounded-xl px-4 py-3 flex items-center justify-between">
+                                                        <span className="text-xs font-medium text-gray-500">スライダー値</span>
+                                                        <span className="text-xl font-bold text-indigo-600">{answer.shared_slider_value}</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </Card>
+                                        </div>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-12 text-gray-600">
-                                    共有した回答がまだありません
+                                <div className="bg-white rounded-2xl border border-gray-100 text-center py-14">
+                                    <p className="text-sm text-gray-400">共有した回答がまだありません</p>
                                 </div>
                             )}
                         </TabsContent>
                     </Tabs>
                 ) : (
-                    <Card className="text-center py-12">
-                        <Lock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-600">
-                            このユーザーはプロフィールを非公開に設定しています
-                        </p>
-                    </Card>
+                    <div className="bg-white rounded-2xl border border-gray-100 text-center py-16">
+                        <Lock className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+                        <p className="text-sm text-gray-400">このユーザーはプロフィールを非公開に設定しています</p>
+                    </div>
                 )}
 
                 {/* フォロワー一覧モーダル */}
