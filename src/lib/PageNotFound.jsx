@@ -4,8 +4,7 @@ import { createPageUrl } from '@/utils';
 
 export default function PageNotFound() {
     const [isInAppBrowser, setIsInAppBrowser] = useState(false);
-    const [copied, setCopied] = useState(false);
-    const url = 'https://booknudge.base44.app';
+    const url = 'booknudge.base44.app';
 
     useEffect(() => {
         const ua = navigator.userAgent || '';
@@ -13,15 +12,6 @@ export default function PageNotFound() {
             setIsInAppBrowser(true);
         }
     }, []);
-
-    const copyUrl = () => {
-        navigator.clipboard.writeText(url).then(() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 3000);
-        }).catch(() => {
-            // fallback: select text
-        });
-    };
 
     if (isInAppBrowser) {
         return (
@@ -31,24 +21,14 @@ export default function PageNotFound() {
                     <h1 className="text-xl font-bold text-gray-900 mb-3">
                         ブラウザで開いてください
                     </h1>
-                    <p className="text-gray-600 mb-6 leading-relaxed text-sm">
-                        アプリ内のブラウザではログインできません。
-                        URLをコピーして、SafariやChromeで開いてください。
+                    <p className="text-gray-600 mb-5 leading-relaxed text-sm">
+                        アプリ内のブラウザではログインできません。<br />
+                        下のURLを長押しでコピーして、SafariやChromeのアドレスバーに貼り付けてください。
                     </p>
-                    <div className="bg-white border border-gray-200 rounded-xl p-3 mb-4 flex items-center gap-2">
-                        <span className="text-sm text-gray-600 flex-1 truncate">{url}</span>
+                    <div className="bg-white border-2 border-indigo-300 rounded-xl p-4 mb-3">
+                        <p className="text-indigo-700 font-bold text-base select-all">{url}</p>
                     </div>
-                    <button
-                        onClick={copyUrl}
-                        className="w-full bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors font-semibold"
-                    >
-                        {copied ? '✅ コピーしました！' : 'URLをコピーする'}
-                    </button>
-                    {copied && (
-                        <p className="text-sm text-indigo-600 mt-3 font-medium">
-                            SafariまたはChromeのアドレスバーに貼り付けてください
-                        </p>
-                    )}
+                    <p className="text-xs text-gray-400">↑ 長押しして「コピー」を選んでください</p>
                 </div>
             </div>
         );
