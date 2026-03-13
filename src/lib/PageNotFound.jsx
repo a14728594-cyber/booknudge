@@ -15,16 +15,6 @@ export default function PageNotFound() {
         setIsIOS(ios);
     }, []);
 
-    const openInBrowser = () => {
-        // iOSのX内蔵ブラウザ: x-safari-https:// スキームでSafariを直接起動
-        // Android: intent スキームでChromeを起動
-        if (isIOS) {
-            window.location.href = fullUrl.replace('https://', 'x-safari-https://');
-        } else {
-            window.location.href = `intent://${fullUrl.replace('https://', '')}#Intent;scheme=https;package=com.android.chrome;end`;
-        }
-    };
-
     if (isInAppBrowser) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 px-6">
@@ -37,12 +27,14 @@ export default function PageNotFound() {
                         アプリ内のブラウザではログインできません。<br />
                         {isIOS ? 'Safari' : 'Chrome'}で開いてからお試しください。
                     </p>
-                    <button
-                        onClick={openInBrowser}
-                        className="w-full bg-indigo-600 text-white px-6 py-4 rounded-xl text-base font-bold active:bg-indigo-700 transition-colors"
+                    <a
+                        href={fullUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full bg-indigo-600 text-white px-6 py-4 rounded-xl text-base font-bold text-center"
                     >
                         {isIOS ? 'Safariで開く' : 'ブラウザで開く'}
-                    </button>
+                    </a>
                 </div>
             </div>
         );
