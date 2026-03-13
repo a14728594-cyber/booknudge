@@ -154,9 +154,9 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     const handleGoHome = async () => {
         try {
             await base44.auth.me();
-            window.location.href = createPageUrl('home');
+            window.location.href = '/home';
         } catch {
-            base44.auth.redirectToLogin(createPageUrl('home'));
+            base44.auth.redirectToLogin('/home');
         }
     };
 
