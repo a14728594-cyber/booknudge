@@ -14,6 +14,7 @@ const ROLE_CONFIG = {
 };
 
 export default function DiagnosisFlow({ onClose, hideClose }) {
+    const navigate = useNavigate();
     const [step, setStep] = useState(STEPS.GENRE);
     const [genres, setGenres] = useState([]);
     const [selectedGenre, setSelectedGenre] = useState(null);
@@ -353,13 +354,16 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     );
 }
 
-function BookCard({ book }) {
+function BookCard({ book, onNavigate }) {
     const roleInfo = book._mapping?.role ? ROLE_CONFIG[book._mapping.role] : null;
     const recText = book._mapping?.recommendation_text;
 
     return (
         <div>
-            <div className="flex gap-4">
+            <button
+                onClick={() => onNavigate(book.id)}
+                className="w-full text-left flex gap-4 hover:opacity-80 transition-opacity"
+            >
                 {book.cover_url ? (
                     <img src={book.cover_url} alt={book.title} className="w-16 h-24 object-cover rounded-lg flex-shrink-0 shadow-sm" />
                 ) : (
@@ -378,7 +382,7 @@ function BookCard({ book }) {
                     <p className="text-xs text-gray-500 mb-2">{(book.authors || []).join(', ')}</p>
                     {recText && <p className="text-xs text-gray-600 leading-relaxed">{recText}</p>}
                 </div>
-            </div>
+            </button>
             {book.amazon_url && (
                 <a
                     href={book.amazon_url}
