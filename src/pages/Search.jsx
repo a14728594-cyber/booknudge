@@ -41,18 +41,20 @@ export default function Search() {
         setLoading(true);
         setShowSuggestions(false);
         try {
-            await base44.functions.invoke('trackEvent', {
+            // trackEventは失敗しても検索を止めない
+            base44.functions.invoke('trackEvent', {
                 event_name: 'search',
                 event_value: { query: searchQuery }
-            });
+            }).catch(() => {});
 
             const response = await base44.functions.invoke('searchBooks', {
                 query: searchQuery
             });
-            
-            setResults(response.data.books || []);
+            const books = response.data?.books || [];
+            console.log('[Search] クエリ:', searchQuery, '結果件数:', books.length);
+            setResults(books);
         } catch (error) {
-            console.error('Error searching:', error);
+            console.error('[Search] 検索エラー:', error);
         } finally {
             setLoading(false);
         }
