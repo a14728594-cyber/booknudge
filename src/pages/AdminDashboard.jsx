@@ -79,10 +79,10 @@ export default function AdminDashboard() {
 
             // Page views (landing / home visits including non-logged-in)
             const pageViewsToday = todayEvents.filter(e =>
-                e.event_name === 'home_view' || e.event_name === 'recommend_view'
+                e.event_name === 'home_view' || e.event_name === 'recommend_view' || e.event_name === 'landing_view'
             ).length;
             const pageViews7d = weekEvents.filter(e =>
-                e.event_name === 'home_view' || e.event_name === 'recommend_view'
+                e.event_name === 'home_view' || e.event_name === 'recommend_view' || e.event_name === 'landing_view'
             ).length;
 
             setKpis({
