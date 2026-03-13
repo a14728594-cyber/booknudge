@@ -472,7 +472,7 @@ export default function BookDetail() {
                             <p className="text-gray-600 mb-4">
                                 コメントを投稿するにはログインが必要です
                             </p>
-                            <Button onClick={() => base44.auth.redirectToLogin()}>
+                            <Button onClick={openLoginInBrowser}>
                                 ログイン
                             </Button>
                         </div>
