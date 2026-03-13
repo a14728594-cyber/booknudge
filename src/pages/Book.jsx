@@ -30,9 +30,7 @@ export default function BookDetail() {
     const loadData = async () => {
         setLoading(true);
         try {
-            const userData = await base44.auth.me();
-            setUser(userData);
-
+            // 本取得は認証不要（最重要）
             const books = await base44.entities.Book.filter({ id });
             if (books.length === 0) {
                 setBook(null);
@@ -41,26 +39,29 @@ export default function BookDetail() {
             }
             setBook(books[0]);
 
-            if (userData) {
-                const favorites = await base44.entities.Favorite.filter({
-                    user_id: userData.id,
-                    book_id: id
-                });
-                setIsFavorite(favorites.length > 0);
-            }
-
-            await base44.functions.invoke('trackEvent', {
-                event_name: 'book_view',
-                event_value: { book_id: id }
-            });
-
-            // コメントを読み込み
+            // コメントを読み込み（認証不要）
             await loadComments();
 
-            await base44.functions.invoke('trackEvent', {
-                event_name: 'comment_view',
-                event_value: { book_id: id }
-            });
+            // ログインユーザーのみの処理
+            try {
+                const userData = await base44.auth.me();
+                setUser(userData);
+
+                if (userData) {
+                    const favorites = await base44.entities.Favorite.filter({
+                        user_id: userData.id,
+                        book_id: id
+                    });
+                    setIsFavorite(favorites.length > 0);
+
+                    base44.functions.invoke('trackEvent', {
+                        event_name: 'book_view',
+                        event_value: { book_id: id }
+                    }).catch(() => {});
+                }
+            } catch (authError) {
+                // 未ログインは正常
+            }
         } catch (error) {
             console.error('Failed to load book:', error);
             setBook(null);
