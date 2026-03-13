@@ -26,6 +26,15 @@ export default function Landing() {
 
   const currentUrl = window.location.href;
 
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(currentUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {});
+  };
+
   if (isInAppBrowser) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 text-center">
@@ -33,20 +42,31 @@ export default function Landing() {
           <span className="text-3xl">📚</span>
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-3">BookNudge</h1>
-        <p className="text-gray-500 text-sm mb-8 leading-relaxed">
-          このままだと正しく動作しません。<br />
-          Safariまたはブラウザで開いてください。
+        <p className="text-gray-600 text-sm mb-8 leading-relaxed">
+          X（Twitter）アプリ内では正しく動作しません。<br />
+          <span className="font-semibold text-gray-800">Safariで開いてご利用ください。</span>
         </p>
-        <a
-          href={isIOS ? `x-safari-${currentUrl}` : currentUrl}
-          className="w-full max-w-xs bg-indigo-600 text-white font-bold py-4 rounded-2xl text-base mb-4 block"
+
+        {/* 手順 */}
+        <div className="w-full max-w-xs bg-gray-50 rounded-2xl p-5 mb-6 text-left space-y-3">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Safariで開く手順</p>
+          <div className="flex items-start gap-3">
+            <span className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
+            <p className="text-sm text-gray-700">画面下部の <span className="font-semibold">「…」ボタン</span> をタップ</p>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
+            <p className="text-sm text-gray-700"><span className="font-semibold">「Safariで開く」</span> を選択</p>
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-400 mb-3">または、URLをコピーしてSafariに貼り付け</p>
+        <button
+          onClick={handleCopy}
+          className="w-full max-w-xs border-2 border-indigo-300 text-indigo-600 font-bold py-3 rounded-2xl text-sm transition-colors"
         >
-          {isIOS ? 'Safariで開く' : 'ブラウザで開く'}
-        </a>
-        <p className="text-xs text-gray-400 leading-relaxed">
-          上のボタンが動作しない場合は、<br />
-          右下の「…」メニューから「ブラウザで開く」を選択してください。
-        </p>
+          {copied ? '✅ コピーしました！' : '🔗 URLをコピー'}
+        </button>
       </div>
     );
   }
