@@ -4,6 +4,17 @@ import { createPageUrl } from '@/utils';
 import DiagnosisFlow from '@/components/diagnosis/DiagnosisFlow';
 
 export default function Landing() {
+  useEffect(() => {
+    const ua = navigator.userAgent || '';
+    if (/Twitter|twitterandroid/i.test(ua)) {
+      const url = window.location.href;
+      if (/iPhone|iPad|iPod/i.test(ua)) {
+        window.location.href = url.replace('https://', 'x-safari-https://');
+      } else {
+        window.location.href = `intent://${url.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+      }
+    }
+  }, []);
     return (
         <>
             <DiagnosisFlow onClose={() => {}} hideClose={true} />
