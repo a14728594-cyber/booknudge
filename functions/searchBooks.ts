@@ -31,15 +31,19 @@ Deno.serve(async (req) => {
         
         const allBooks = await base44.entities.Book.list();
         const matchedBooks = allBooks.filter(book => {
-            // search_textがあればそれを使う、なければリアルタイムで正規化
-            let searchText = book.search_text;
-            if (!searchText) {
-                const titleText = book.title || '';
-                const authorText = (book.authors || []).join(' ');
-                searchText = normalizeText(titleText + ' ' + authorText);
-            }
-            
-            return searchText.includes(normalizedQuery);
+            const titleText = book.title || '';
+            const authorText = (book.authors || []).join(' ');
+            const tagsText = (book.tags || []).join(' ');
+            const descriptionText = book.description || '';
+            const oneLinerText = book.one_liner || '';
+            const painPointsText = (book.pain_points || []).join(' ');
+
+            const combined = normalizeText(
+                titleText + ' ' + authorText + ' ' + tagsText + ' ' +
+                descriptionText + ' ' + oneLinerText + ' ' + painPointsText
+            );
+
+            return combined.includes(normalizedQuery);
         });
 
         return Response.json({ books: matchedBooks.slice(0, 20) });
