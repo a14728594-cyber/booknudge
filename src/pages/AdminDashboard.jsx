@@ -215,6 +215,18 @@ export default function AdminDashboard() {
                         icon={BarChart3}
                         colorClass="text-rose-600"
                     />
+                    <KPICard
+                        title="ページ訪問（今日）"
+                        value={kpis.pageViewsToday.toLocaleString()}
+                        icon={Eye}
+                        colorClass="text-teal-600"
+                    />
+                    <KPICard
+                        title="ページ訪問（7日間）"
+                        value={kpis.pageViews7d.toLocaleString()}
+                        icon={Eye}
+                        colorClass="text-cyan-600"
+                    />
                 </div>
 
                 {/* Charts */}
