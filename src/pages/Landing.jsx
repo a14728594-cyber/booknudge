@@ -1,6 +1,7 @@
 import React from 'react';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import DiagnosisFlow from '@/components/diagnosis/DiagnosisFlow';
 
