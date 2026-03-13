@@ -356,6 +356,18 @@ export default function Home() {
                         </section>
                     )
                 ))}
+
+                {/* 本が0件のとき */}
+                {Object.keys(topBooks).length === 0 && !loading && (
+                    <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
+                        <div className="text-4xl mb-4">📚</div>
+                        <p className="text-gray-600 font-medium mb-2">まだ本が登録されていません</p>
+                        <p className="text-gray-400 text-sm mb-6">管理者が本を追加するまでお待ちください</p>
+                        <Link to={createPageUrl('DeepDiagnosis')} className="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors text-sm font-medium">
+                            深掘り診断を試す
+                        </Link>
+                    </div>
+                )}
             </div>
         </div>
     );
