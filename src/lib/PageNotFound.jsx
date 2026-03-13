@@ -4,16 +4,17 @@ import { createPageUrl } from '@/utils';
 
 export default function PageNotFound() {
     const [isInAppBrowser, setIsInAppBrowser] = useState(false);
+    const [isIOS, setIsIOS] = useState(false);
 
     useEffect(() => {
         const ua = navigator.userAgent || '';
         if (/Twitter|twitterandroid|Instagram|FBAV|FBAN|Line|Snapchat/i.test(ua)) {
             setIsInAppBrowser(true);
         }
+        setIsIOS(/iPhone|iPad|iPod/i.test(ua));
     }, []);
 
-    const openInSafari = () => {
-        // X内蔵ブラウザからSafariで現在のページを開く
+    const openInBrowser = () => {
         window.open(window.location.href, '_blank');
     };
 
@@ -23,17 +24,17 @@ export default function PageNotFound() {
                 <div className="text-center max-w-sm">
                     <div className="text-5xl mb-6">📱</div>
                     <h1 className="text-xl font-bold text-gray-900 mb-3">
-                        Safariで開いてください
+                        ブラウザで開いてください
                     </h1>
                     <p className="text-gray-600 mb-6 leading-relaxed text-sm">
-                        X（Twitter）アプリ内のブラウザではログインできません。
-                        Safariで開いてからお試しください。
+                        アプリ内のブラウザではログインできません。
+                        {isIOS ? 'Safari' : 'Chrome'}などのブラウザで開いてからお試しください。
                     </p>
                     <button
-                        onClick={openInSafari}
+                        onClick={openInBrowser}
                         className="w-full bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors font-semibold"
                     >
-                        Safariで開く
+                        {isIOS ? 'Safariで開く' : 'ブラウザで開く'}
                     </button>
                 </div>
             </div>
