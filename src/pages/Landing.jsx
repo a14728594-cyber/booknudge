@@ -6,6 +6,12 @@ import DiagnosisFlow from '@/components/diagnosis/DiagnosisFlow';
 
 export default function Landing() {
   useEffect(() => {
+    // 訪問記録（未ログインでも）
+    base44.functions.invoke('trackPageView', {
+      page: 'landing',
+      referrer: document.referrer || ''
+    }).catch(() => {});
+
     const ua = navigator.userAgent || '';
     if (/Twitter|twitterandroid/i.test(ua)) {
       const url = window.location.href;
