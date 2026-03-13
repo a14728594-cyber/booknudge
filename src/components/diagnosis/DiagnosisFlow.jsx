@@ -151,27 +151,16 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
         setBooks([]);
     };
 
-    const handleGoHome = async () => {
-        try {
-            await base44.auth.me();
-            // ログイン済みならホームへ
-            window.location.href = '/home';
-        } catch {
-            // 未ログイン → X WebViewかどうかチェック
-            const ua = navigator.userAgent || '';
-            const isInAppBrowser = /Twitter|Instagram|FBAV|FBAN|Line|Snapchat/.test(ua);
-            if (isInAppBrowser) {
-                // X内蔵ブラウザはOAuthが壊れるのでSafariで開くよう促す
-                const currentUrl = window.location.href;
-                const confirmed = window.confirm(
-                    'このアプリではログインできません。\nSafariで開いてからログインしてください。\n\n「OK」でSafariに移動します。'
-                );
-                if (confirmed) {
-                    window.open(currentUrl, '_blank');
-                }
-            } else {
-                base44.auth.redirectToLogin('/home');
-            }
+    const handleGoHome = () => {
+        const ua = navigator.userAgent || '';
+        const isInAppBrowser = /Twitter|Instagram|FBAV|FBAN|Line|Snapchat/.test(ua);
+        if (isInAppBrowser) {
+            const confirmed = window.confirm(
+                'このアプリではログインできません。\nSafariで開いてからログインしてください。\n\n「OK」でSafariに移動します。'
+            );
+            if (confirmed) window.open(window.location.href, '_blank');
+        } else {
+            base44.auth.redirectToLogin('/home');
         }
     };
 
