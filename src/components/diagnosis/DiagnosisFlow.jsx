@@ -152,16 +152,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     };
 
     const handleGoHome = () => {
-        const ua = navigator.userAgent || '';
-        const isInAppBrowser = /Twitter|Instagram|FBAV|FBAN|Line|Snapchat/.test(ua);
-        if (isInAppBrowser) {
-            const confirmed = window.confirm(
-                'このアプリではログインできません。\nSafariで開いてからログインしてください。\n\n「OK」でSafariに移動します。'
-            );
-            if (confirmed) window.open(window.location.href, '_blank');
-        } else {
-            base44.auth.redirectToLogin('/home');
-        }
+        base44.auth.redirectToLogin(createPageUrl('home'));
     };
 
     const totalQuestions = nodes.length;
