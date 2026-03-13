@@ -77,13 +77,23 @@ export default function AdminDashboard() {
             // MRR (仮: 1200円 × 有料ユーザー数)
             const mrr = paidUsers.length * 1200;
 
+            // Page views (landing / home visits including non-logged-in)
+            const pageViewsToday = todayEvents.filter(e =>
+                e.event_name === 'home_view' || e.event_name === 'recommend_view'
+            ).length;
+            const pageViews7d = weekEvents.filter(e =>
+                e.event_name === 'home_view' || e.event_name === 'recommend_view'
+            ).length;
+
             setKpis({
                 totalUsers,
                 newUsers7d: newUsers.length,
                 dau: dauUserIds.size,
                 wau: wauUserIds.size,
                 paidUsers: paidUsers.length,
-                mrr
+                mrr,
+                pageViews7d,
+                pageViewsToday
             });
 
             // Charts (7日分)
