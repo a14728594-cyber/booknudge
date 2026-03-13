@@ -4,14 +4,26 @@ import { createPageUrl } from '@/utils';
 
 export default function PageNotFound() {
     const [isInAppBrowser, setIsInAppBrowser] = useState(false);
-    const url = 'booknudge.base44.app';
+    const [isIOS, setIsIOS] = useState(false);
+    const fullUrl = 'https://booknudge.base44.app';
 
     useEffect(() => {
         const ua = navigator.userAgent || '';
-        if (/Twitter|twitterandroid|Instagram|FBAV|FBAN|Line|Snapchat/i.test(ua)) {
-            setIsInAppBrowser(true);
-        }
+        const inApp = /Twitter|twitterandroid|Instagram|FBAV|FBAN|Line|Snapchat/i.test(ua);
+        const ios = /iPhone|iPad|iPod/i.test(ua);
+        setIsInAppBrowser(inApp);
+        setIsIOS(ios);
     }, []);
+
+    const openInBrowser = () => {
+        // iOSのX内蔵ブラウザ: x-safari-https:// スキームでSafariを直接起動
+        // Android: intent スキームでChromeを起動
+        if (isIOS) {
+            window.location.href = fullUrl.replace('https://', 'x-safari-https://');
+        } else {
+            window.location.href = `intent://${fullUrl.replace('https://', '')}#Intent;scheme=https;package=com.android.chrome;end`;
+        }
+    };
 
     if (isInAppBrowser) {
         return (
@@ -21,14 +33,16 @@ export default function PageNotFound() {
                     <h1 className="text-xl font-bold text-gray-900 mb-3">
                         ブラウザで開いてください
                     </h1>
-                    <p className="text-gray-600 mb-5 leading-relaxed text-sm">
+                    <p className="text-gray-600 mb-6 leading-relaxed text-sm">
                         アプリ内のブラウザではログインできません。<br />
-                        下のURLを長押しでコピーして、SafariやChromeのアドレスバーに貼り付けてください。
+                        {isIOS ? 'Safari' : 'Chrome'}で開いてからお試しください。
                     </p>
-                    <div className="bg-white border-2 border-indigo-300 rounded-xl p-4 mb-3">
-                        <p className="text-indigo-700 font-bold text-base select-all">{url}</p>
-                    </div>
-                    <p className="text-xs text-gray-400">↑ 長押しして「コピー」を選んでください</p>
+                    <button
+                        onClick={openInBrowser}
+                        className="w-full bg-indigo-600 text-white px-6 py-4 rounded-xl text-base font-bold active:bg-indigo-700 transition-colors"
+                    >
+                        {isIOS ? 'Safariで開く' : 'ブラウザで開く'}
+                    </button>
                 </div>
             </div>
         );
