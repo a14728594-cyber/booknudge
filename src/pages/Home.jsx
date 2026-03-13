@@ -65,95 +65,16 @@ export default function Home() {
 
     const loadData = async () => {
         try {
-            const user = await base44.auth.me();
-            
-            // イベント記録（ノンブロッキング）
-            base44.functions.invoke('trackEvent', {
-                event_name: 'home_view',
-                event_value: {},
-                update_last_active: true
-            }).catch(() => {});
-
-            // 主ジャンル判定
-            const recentAnswers = await base44.entities.Answer.filter(
-                { user_id: user.id },
-                '-created_date',
-                30
-            );
-
-            // 主ジャンルは最初のカテゴリーに設定
-            const firstDomain = Object.keys(domainConfig)[0];
-            setMainDomain(firstDomain);
-
-            // 深掘り診断の最新セッションを取得
-            const latestSessions = await base44.entities.DiagnosisSession.filter(
-                { user_id: user.id, is_latest: true },
-                '-created_date',
-                1
-            );
-            const latestSession = latestSessions[0] || null;
-
-            // おすすめ本のスコアリング
-            if ((user?.onboarding_completed && user?.profile_json) || latestSession) {
-                const allBooksForRec = await base44.entities.Book.list('-created_date', 200);
-
-                const scoredBooks = allBooksForRec.map(book => {
-                    let score = 0;
-                    const bookTagsStr = (book.tags || []).join(' ').toLowerCase();
-                    const painStr = (book.pain_points || []).join(' ').toLowerCase();
-                    const outcomeStr = (book.outcomes || []).join(' ').toLowerCase();
-
-                    // 初回診断プロフィールからのスコア
-                    if (user?.profile_json) {
-                        const profile = user.profile_json;
-                        const profileKeywords = [
-                            profile.future_goal,
-                            profile.challenges,
-                            profile.position,
-                            ...(profile.current_actions || [])
-                        ].filter(Boolean);
-
-                        profileKeywords.forEach(keyword => {
-                            const kw = keyword.toLowerCase();
-                            if (bookTagsStr.includes(kw)) score += 3;
-                            if (painStr.includes(kw)) score += 2;
-                            if (outcomeStr.includes(kw)) score += 1;
-                        });
-                    }
-
-                    // 深掘り診断result_tagsからのスコア（優先度高）
-                    if (latestSession?.result_tags) {
-                        latestSession.result_tags.forEach(({ tag, score: tagScore }) => {
-                            const t = tag.toLowerCase();
-                            if (bookTagsStr.includes(t)) score += (tagScore || 1) * 4;
-                            if (painStr.includes(t)) score += (tagScore || 1) * 2;
-                            if (outcomeStr.includes(t)) score += (tagScore || 1);
-                        });
-                        // ジャンルと悩みも加味
-                        if (latestSession.genre && bookTagsStr.includes(latestSession.genre.toLowerCase())) score += 5;
-                        if (latestSession.problem && painStr.includes(latestSession.problem.toLowerCase())) score += 3;
-                    }
-
-                    return { book, score };
-                });
-
-                const topRec = scoredBooks
-                    .filter(s => s.score > 0)
-                    .sort((a, b) => b.score - a.score)
-                    .slice(0, 10)
-                    .map(s => s.book);
-
-                setRecommendedBooks(topRec);
-            }
-
-            // 各ジャンルの人気本を取得（タグベースで分類）
-            const booksByDomain = {};
+            // 本一覧は認証不要で取得（最重要）
             const allBooks = await base44.entities.Book.list('-created_date', 200);
-            
+            console.log('[Home] 全本取得件数:', allBooks.length);
+
+            // 各ジャンルの本を分類
+            const booksByDomain = {};
             for (const [domain, config] of Object.entries(domainConfig)) {
-                const domainBooks = allBooks.filter(book => 
-                    book.tags && book.tags.some(bookTag => 
-                        config.tags.some(domainTag => 
+                const domainBooks = allBooks.filter(book =>
+                    book.tags && book.tags.some(bookTag =>
+                        config.tags.some(domainTag =>
                             bookTag.toLowerCase().includes(domainTag.toLowerCase()) ||
                             domainTag.toLowerCase().includes(bookTag.toLowerCase())
                         )
@@ -163,9 +84,86 @@ export default function Home() {
                     booksByDomain[domain] = domainBooks;
                 }
             }
+            console.log('[Home] ジャンル別本数:', Object.fromEntries(Object.entries(booksByDomain).map(([k,v]) => [k, v.length])));
+
+            // タグ分類で一件もなければ全本をマーケティングに入れてフォールバック
+            if (Object.keys(booksByDomain).length === 0 && allBooks.length > 0) {
+                console.log('[Home] タグ分類0件のためフォールバック: 全本を表示');
+                booksByDomain['すべての本'] = allBooks.slice(0, 15);
+            }
             setTopBooks(booksByDomain);
+            setMainDomain(Object.keys(booksByDomain)[0] || Object.keys(domainConfig)[0]);
+
+            // ログインユーザーのみの処理
+            try {
+                const user = await base44.auth.me();
+                base44.functions.invoke('trackEvent', {
+                    event_name: 'home_view',
+                    event_value: {},
+                    update_last_active: true
+                }).catch(() => {});
+
+                // 深掘り診断の最新セッションを取得
+                const latestSessions = await base44.entities.DiagnosisSession.filter(
+                    { user_id: user.id, is_latest: true },
+                    '-created_date',
+                    1
+                );
+                const latestSession = latestSessions[0] || null;
+                console.log('[Home] 最新診断セッション:', latestSession ? latestSession.main_type : 'なし');
+
+                // おすすめ本のスコアリング
+                if ((user?.onboarding_completed && user?.profile_json) || latestSession) {
+                    const scoredBooks = allBooks.map(book => {
+                        let score = 0;
+                        const bookTagsStr = (book.tags || []).join(' ').toLowerCase();
+                        const painStr = (book.pain_points || []).join(' ').toLowerCase();
+                        const outcomeStr = (book.outcomes || []).join(' ').toLowerCase();
+
+                        if (user?.profile_json) {
+                            const profile = user.profile_json;
+                            const profileKeywords = [
+                                profile.future_goal,
+                                profile.challenges,
+                                profile.position,
+                                ...(profile.current_actions || [])
+                            ].filter(Boolean);
+                            profileKeywords.forEach(keyword => {
+                                const kw = keyword.toLowerCase();
+                                if (bookTagsStr.includes(kw)) score += 3;
+                                if (painStr.includes(kw)) score += 2;
+                                if (outcomeStr.includes(kw)) score += 1;
+                            });
+                        }
+
+                        if (latestSession?.result_tags) {
+                            latestSession.result_tags.forEach(({ tag, score: tagScore }) => {
+                                const t = tag.toLowerCase();
+                                if (bookTagsStr.includes(t)) score += (tagScore || 1) * 4;
+                                if (painStr.includes(t)) score += (tagScore || 1) * 2;
+                                if (outcomeStr.includes(t)) score += (tagScore || 1);
+                            });
+                            if (latestSession.genre && bookTagsStr.includes(latestSession.genre.toLowerCase())) score += 5;
+                            if (latestSession.problem && painStr.includes(latestSession.problem.toLowerCase())) score += 3;
+                        }
+
+                        return { book, score };
+                    });
+
+                    const topRec = scoredBooks
+                        .filter(s => s.score > 0)
+                        .sort((a, b) => b.score - a.score)
+                        .slice(0, 10)
+                        .map(s => s.book);
+                    console.log('[Home] おすすめ本件数:', topRec.length);
+                    setRecommendedBooks(topRec);
+                }
+            } catch (authError) {
+                // 未ログインは正常（本一覧はすでに表示済み）
+                console.log('[Home] 未ログインユーザー（本一覧は表示）');
+            }
         } catch (error) {
-            console.error('Error loading home data:', error);
+            console.error('[Home] 本取得エラー:', error);
         } finally {
             setLoading(false);
         }
