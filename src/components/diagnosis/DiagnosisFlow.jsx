@@ -151,13 +151,9 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
         setBooks([]);
     };
 
-    const handleGoHome = async () => {
-        try {
-            await base44.auth.me();
-            window.location.href = '/home';
-        } catch {
-            base44.auth.redirectToLogin('/home');
-        }
+    const handleGoHome = () => {
+        // 常にログインページへ（ログイン済みならそのままhomeへリダイレクトされる）
+        base44.auth.redirectToLogin('/home');
     };
 
     const totalQuestions = nodes.length;
