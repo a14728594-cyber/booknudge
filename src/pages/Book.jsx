@@ -104,7 +104,7 @@ export default function BookDetail() {
 
     const handleSubmitComment = async () => {
         if (!user) {
-            base44.auth.redirectToLogin();
+            openLoginInBrowser();
             return;
         }
 
