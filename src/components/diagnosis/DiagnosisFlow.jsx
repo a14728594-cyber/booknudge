@@ -313,7 +313,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                                                 <span className="text-amber-500 text-lg">⭐</span>
                                                 <span className="text-amber-700 font-bold text-sm">迷ったらまずこれ</span>
                                             </div>
-                                            <BookCard book={priorityBook} onNavigate={(id) => navigate(createPageUrl('BookDetail') + `/${id}`)} />
+                                            <BookCard book={priorityBook} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
                                         </div>
                                     )}
                                     {otherBooks.map(book => (
@@ -324,7 +324,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                                                     <span className="text-purple-700 text-xs font-medium">{subTypeInfo.label}にも対応</span>
                                                 </div>
                                             )}
-                                            <BookCard book={book} onNavigate={(id) => navigate(createPageUrl('BookDetail') + `/${id}`)} />
+                                            <BookCard book={book} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
                                         </div>
                                     ))}
                                 </div>

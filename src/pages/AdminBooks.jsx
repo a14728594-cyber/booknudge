@@ -15,10 +15,13 @@ export default function AdminBooks() {
     const [duplicates, setDuplicates] = useState([]);
     const [selectedGenre, setSelectedGenre] = useState('すべて');
 
-    const GENRES = ['すべて', 'マーケティング', '営業', 'アイデア', '人間関係', '習慣', 'マインドセット'];
+    const [genres, setGenres] = useState(['すべて']);
 
     useEffect(() => {
         checkAdminAndLoad();
+        base44.entities.Genre.filter({ is_active: true }, 'order', 100)
+            .then(gs => setGenres(['すべて', ...gs.map(g => g.name)]))
+            .catch(() => {});
     }, []);
 
     const checkAdminAndLoad = async () => {
@@ -139,7 +142,7 @@ export default function AdminBooks() {
                         />
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        {GENRES.map(genre => (
+                        {genres.map(genre => (
                             <button
                                 key={genre}
                                 onClick={() => setSelectedGenre(genre)}
