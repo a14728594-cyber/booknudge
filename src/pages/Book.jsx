@@ -158,9 +158,22 @@ export default function BookDetail() {
         navigate(createPageUrl('profile') + '?userId=' + userId);
     };
 
+    const openLoginInBrowser = () => {
+        const ua = navigator.userAgent || '';
+        const isInAppBrowser = /Twitter|Instagram|FBAV|FBAN|Line|Snapchat/.test(ua);
+        if (isInAppBrowser) {
+            const confirmed = window.confirm(
+                'このアプリではログインできません。\nSafariで開いてからログインしてください。\n\n「OK」でSafariに移動します。'
+            );
+            if (confirmed) window.open(window.location.href, '_blank');
+        } else {
+            base44.auth.redirectToLogin(window.location.pathname + window.location.search);
+        }
+    };
+
     const toggleFavorite = async () => {
         if (!user) {
-            base44.auth.redirectToLogin();
+            openLoginInBrowser();
             return;
         }
 
