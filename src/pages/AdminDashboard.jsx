@@ -15,7 +15,9 @@ export default function AdminDashboard() {
         dau: 0,
         wau: 0,
         paidUsers: 0,
-        mrr: 0
+        mrr: 0,
+        pageViews7d: 0,
+        pageViewsToday: 0
     });
     const [charts, setCharts] = useState({
         signups: [],
