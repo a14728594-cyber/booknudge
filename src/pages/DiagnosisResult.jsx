@@ -148,17 +148,37 @@ export default function DiagnosisResult() {
                         <h2 className="text-3xl font-bold mb-4">{mainTypeInfo.label}</h2>
                         <p className="text-indigo-100 text-base leading-relaxed mb-4">{mainTypeInfo.description}</p>
                         {mainTypeInfo.direction && (
-                            <div className="bg-white/20 rounded-2xl p-4">
+                            <div className="bg-white/20 rounded-2xl p-4 mb-4">
                                 <p className="text-white font-semibold text-sm">💡 今必要なこと</p>
                                 <p className="text-indigo-100 text-sm mt-1">{mainTypeInfo.direction}</p>
                             </div>
                         )}
+                        <div className="flex gap-3 mt-2">
+                            <Button onClick={() => navigate(createPageUrl('DeepDiagnosis'))} variant="outline" className="flex-1 gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20">
+                                <RotateCcw className="w-4 h-4" />
+                                もう一度
+                            </Button>
+                            <Button onClick={() => navigate(createPageUrl('home'))} className="flex-1 bg-white text-indigo-700 hover:bg-indigo-50 gap-2 font-bold">
+                                ホームへ
+                                <ArrowRight className="w-4 h-4" />
+                            </Button>
+                        </div>
                     </div>
                 ) : (
                     <div className="bg-gradient-to-r from-gray-500 to-gray-600 rounded-3xl p-8 text-white mb-6">
                         <div className="text-4xl mb-3">📊</div>
                         <h2 className="text-2xl font-bold mb-4">診断が完了しました</h2>
-                        <p className="text-gray-200 text-sm">管理者が診断タイプを設定すると、ここに詳細が表示されます。</p>
+                        <p className="text-gray-200 text-sm mb-4">管理者が診断タイプを設定すると、ここに詳細が表示されます。</p>
+                        <div className="flex gap-3">
+                            <Button onClick={() => navigate(createPageUrl('DeepDiagnosis'))} variant="outline" className="flex-1 gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20">
+                                <RotateCcw className="w-4 h-4" />
+                                もう一度
+                            </Button>
+                            <Button onClick={() => navigate(createPageUrl('home'))} className="flex-1 bg-white text-gray-700 hover:bg-gray-50 gap-2 font-bold">
+                                ホームへ
+                                <ArrowRight className="w-4 h-4" />
+                            </Button>
+                        </div>
                     </div>
                 )}
 
