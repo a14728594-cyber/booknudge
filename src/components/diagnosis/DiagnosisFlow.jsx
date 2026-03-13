@@ -152,7 +152,14 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     };
 
     const handleGoHome = () => {
-        base44.auth.redirectToLogin(createPageUrl('home'));
+        const ua = navigator.userAgent || '';
+        const isInAppBrowser = /Twitter|twitterandroid|Instagram|FBAV|FBAN|Line|Snapchat/i.test(ua);
+        if (isInAppBrowser) {
+            // X内蔵ブラウザではOAuthが壊れるのでSafariで開くよう案内
+            window.location.href = 'https://booknudge.base44.app/landing';
+        } else {
+            base44.auth.redirectToLogin(createPageUrl('home'));
+        }
     };
 
     const totalQuestions = nodes.length;
