@@ -58,6 +58,7 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route path="/Onboarding" element={<Navigate to="/home" replace />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
