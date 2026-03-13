@@ -34,15 +34,15 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     const handleGenreSelect = async (genreName) => {
         setSelectedGenre(genreName);
         setLoading(true);
-        const [genreNodes, allOptions] = await Promise.all([
-            base44.entities.DiagnosisNode.filter({ genre: genreName, is_active: true }, 'order', 200),
-            base44.entities.DiagnosisOption.list('order', 1000),
-        ]);
+        const genreNodes = await base44.entities.DiagnosisNode.filter({ genre: genreName, is_active: true }, 'order', 200);
+        const nodeIds = genreNodes.map(n => n.id);
         const map = {};
-        allOptions.forEach(opt => {
-            if (!map[opt.node_id]) map[opt.node_id] = [];
-            map[opt.node_id].push(opt);
-        });
+        if (nodeIds.length > 0) {
+            const allOptions = await Promise.all(
+                nodeIds.map(nid => base44.entities.DiagnosisOption.filter({ node_id: nid }, 'order', 50))
+            );
+            nodeIds.forEach((nid, i) => { map[nid] = allOptions[i]; });
+        }
         setNodes(genreNodes);
         setOptionMap(map);
         setCurrentIndex(0);
