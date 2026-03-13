@@ -303,6 +303,17 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                             </div>
                         )}
 
+                        <div className="flex gap-3 mb-8">
+                            <Button onClick={reset} variant="outline" className="flex-1 gap-2">
+                                <RotateCcw className="w-4 h-4" />
+                                もう一度診断
+                            </Button>
+                            <Button onClick={handleGoHome} className="flex-1 bg-indigo-600 hover:bg-indigo-700 gap-2">
+                                ホームへ
+                                <ArrowRight className="w-4 h-4" />
+                            </Button>
+                        </div>
+
                         <div className="mb-8">
                             <h3 className="text-xl font-bold text-gray-900 mb-5">あなたへのおすすめ本</h3>
                             {books.length > 0 ? (
@@ -337,16 +348,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                             )}
                         </div>
 
-                        <div className="flex gap-3">
-                            <Button onClick={reset} variant="outline" className="flex-1 gap-2">
-                                <RotateCcw className="w-4 h-4" />
-                                もう一度診断
-                            </Button>
-                            <Button onClick={handleGoHome} className="flex-1 bg-indigo-600 hover:bg-indigo-700 gap-2">
-                                ホームへ
-                                <ArrowRight className="w-4 h-4" />
-                            </Button>
-                        </div>
+                        
                     </div>
                 )}
             </div>

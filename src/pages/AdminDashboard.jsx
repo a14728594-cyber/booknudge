@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import KPICard from '@/components/admin/KPICard';
 import Card from '@/components/common/Card';
-import { Users, UserPlus, Activity, CreditCard, TrendingUp, BarChart3 } from 'lucide-react';
+import { Users, UserPlus, Activity, CreditCard, TrendingUp, BarChart3, Eye } from 'lucide-react';
 
 export default function AdminDashboard() {
     const navigate = useNavigate();
