@@ -231,24 +231,7 @@ export default function DiagnosisResult() {
                     )}
                 </div>
 
-                {/* アクション */}
-                <div className="flex gap-3 mt-8">
-                    <Button
-                        onClick={() => navigate(createPageUrl('DeepDiagnosis'))}
-                        variant="outline"
-                        className="flex-1 gap-2"
-                    >
-                        <RotateCcw className="w-4 h-4" />
-                        もう一度診断
-                    </Button>
-                    <Button
-                        onClick={() => navigate(createPageUrl('home'))}
-                        className="flex-1 bg-indigo-600 hover:bg-indigo-700 gap-2"
-                    >
-                        ホームへ
-                        <ArrowRight className="w-4 h-4" />
-                    </Button>
-                </div>
+
             </div>
         </div>
     );
