@@ -60,13 +60,7 @@ export default function Landing() {
           </div>
         </div>
 
-        <p className="text-xs text-gray-400 mb-3">または、URLをコピーしてSafariに貼り付け</p>
-        <button
-          onClick={handleCopy}
-          className="w-full max-w-xs border-2 border-indigo-300 text-indigo-600 font-bold py-3 rounded-2xl text-sm transition-colors"
-        >
-          {copied ? '✅ コピーしました！' : '🔗 URLをコピー'}
-        </button>
+
       </div>
     );
   }
