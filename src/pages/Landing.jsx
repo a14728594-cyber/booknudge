@@ -44,21 +44,8 @@ export default function Landing() {
         <h1 className="text-2xl font-bold text-gray-900 mb-3">BookNudge</h1>
         <p className="text-gray-600 text-sm mb-8 leading-relaxed">
           X（Twitter）アプリ内では正しく動作しません。<br />
-          <span className="font-semibold text-gray-800">Safariで開いてご利用ください。</span>
+          <span className="font-semibold text-gray-800">画面下部の「base44.app」をタップして<br />ブラウザで開いてください。</span>
         </p>
-
-        {/* 手順 */}
-        <div className="w-full max-w-xs bg-gray-50 rounded-2xl p-5 mb-6 text-left space-y-3">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Safariで開く手順</p>
-          <div className="flex items-start gap-3">
-            <span className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
-            <p className="text-sm text-gray-700">画面下部の <span className="font-semibold">「…」ボタン</span> をタップ</p>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
-            <p className="text-sm text-gray-700"><span className="font-semibold">「Safariで開く」</span> を選択</p>
-          </div>
-        </div>
 
 
       </div>
