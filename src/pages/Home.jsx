@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import BookCard from '@/components/common/BookCard';
 import DomainBadge from '@/components/common/DomainBadge';
-import { Search, ArrowRight, TrendingUp, ChevronRight } from 'lucide-react';
+import { Search, ArrowRight, TrendingUp, ChevronRight, Building2 } from 'lucide-react';
 
 const domainConfig = {
     'マーケティング': {
