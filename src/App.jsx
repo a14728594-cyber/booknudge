@@ -8,6 +8,11 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
+import CaseStudiesPage from './pages/CaseStudies';
+import CaseStudyDetailPage from './pages/CaseStudyDetail';
+import AdminCaseStudiesPage from './pages/AdminCaseStudies';
+import AdminCaseStudyEditPage from './pages/AdminCaseStudyEdit';
+
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
