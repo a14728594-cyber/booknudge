@@ -359,6 +359,49 @@ export default function Home() {
                     )
                 ))}
 
+                {/* 事例から学ぶ */}
+                {caseStudies.length > 0 && (
+                    <section className="mb-14">
+                        <div className="flex items-end justify-between mb-5">
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Building2 className="w-5 h-5 text-emerald-600" />
+                                    <h2 className="text-xl font-bold text-gray-900">事例から学ぶ</h2>
+                                </div>
+                                <p className="text-xs text-gray-400">有名企業や人気サービスの"うまくいってる理由"を分解</p>
+                            </div>
+                            <Link to={createPageUrl('CaseStudies')} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+                                もっと見る <ChevronRight className="w-4 h-4" />
+                            </Link>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {caseStudies.map(c => (
+                                <Link key={c.id} to={createPageUrl('CaseStudyDetail') + `?id=${c.id}`}
+                                    className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                                >
+                                    {c.thumbnail_url && (
+                                        <div className="h-32 overflow-hidden">
+                                            <img src={c.thumbnail_url} alt={c.company_name} className="w-full h-full object-cover" />
+                                        </div>
+                                    )}
+                                    <div className="p-4">
+                                        <p className="text-xs text-emerald-600 font-semibold mb-1">{c.company_name}</p>
+                                        <h3 className="font-bold text-gray-900 text-sm leading-snug mb-2 line-clamp-2">{c.title}</h3>
+                                        {c.short_description && (
+                                            <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-2">{c.short_description}</p>
+                                        )}
+                                        <div className="flex flex-wrap gap-1">
+                                            {[...(c.industry_tags || []), ...(c.learning_tags || [])].slice(0, 3).map(tag => (
+                                                <span key={tag} className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full">{tag}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
                 {/* 本が0件のとき */}
                 {Object.keys(topBooks).length === 0 && !loading && (
                     <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
