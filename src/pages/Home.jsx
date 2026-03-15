@@ -37,6 +37,7 @@ export default function Home() {
     const [mainDomain, setMainDomain] = useState('sales');
     const [topBooks, setTopBooks] = useState({});
     const [recommendedBooks, setRecommendedBooks] = useState([]);
+    const [caseStudies, setCaseStudies] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
