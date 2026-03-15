@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, BookOpen, Tag } from 'lucide-react';
+import { ArrowLeft, BookOpen, Play } from 'lucide-react';
 
 export default function CaseStudyDetail() {
   const navigate = useNavigate();
@@ -12,6 +12,7 @@ export default function CaseStudyDetail() {
   const [case_, setCase] = useState(null);
   const [relatedBooks, setRelatedBooks] = useState([]);
   const [relatedCases, setRelatedCases] = useState([]);
+  const [mediaBlocks, setMediaBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function CaseStudyDetail() {
     if (!caseData) { setLoading(false); return; }
     setCase(caseData);
 
-    const [books, relCases] = await Promise.all([
+    const [books, relCases, blocks] = await Promise.all([
       (caseData.related_book_ids || []).length > 0
         ? Promise.all(caseData.related_book_ids.map(bid =>
             base44.entities.Book.filter({ id: bid }).then(r => r[0]).catch(() => null)
@@ -35,10 +36,12 @@ export default function CaseStudyDetail() {
         ? base44.entities.CaseStudy.filter({ is_published: true }, 'order', 50)
             .then(all => all.filter(c2 => (caseData.related_case_ids || []).includes(c2.id)))
         : Promise.resolve([]),
+      base44.entities.CaseMediaBlock.filter({ case_id: id, is_published: true }, 'order', 100),
     ]);
 
     setRelatedBooks(books.filter(Boolean));
     setRelatedCases(relCases);
+    setMediaBlocks(blocks);
     setLoading(false);
   };
 
@@ -65,7 +68,7 @@ export default function CaseStudyDetail() {
     <div className="min-h-screen bg-gray-50 pb-16">
       {/* サムネイル */}
       {case_.thumbnail_url && (
-        <div className="w-full h-52 overflow-hidden">
+        <div className="w-full h-52 sm:h-64 overflow-hidden">
           <img src={case_.thumbnail_url} alt={case_.company_name} className="w-full h-full object-cover" />
         </div>
       )}
@@ -107,6 +110,16 @@ export default function CaseStudyDetail() {
           <Section title="ここから学べること" content={case_.learnings} emoji="💡" />
           <Section title="この事例が刺さる人" content={case_.target_reader} emoji="🎯" />
         </div>
+
+        {/* メディア説明ブロック */}
+        {mediaBlocks.length > 0 && (
+          <div className="mt-8 space-y-6">
+            <h2 className="text-lg font-bold text-gray-900">📖 詳しく見てみよう</h2>
+            {mediaBlocks.map(block => (
+              <MediaBlock key={block.id} block={block} />
+            ))}
+          </div>
+        )}
 
         {/* 関連本 */}
         {relatedBooks.length > 0 && (
@@ -174,4 +187,95 @@ function Section({ title, content, emoji }) {
       <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{content}</p>
     </div>
   );
+}
+
+function MediaBlock({ block }) {
+  const [videoPlaying, setVideoPlaying] = useState(false);
+
+  // YouTubeのURLをembed形式に変換
+  const getYouTubeEmbedUrl = (url) => {
+    if (!url) return null;
+    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+    if (match) return `https://www.youtube.com/embed/${match[1]}`;
+    if (url.includes('youtube.com/embed/')) return url;
+    return null;
+  };
+
+  if (block.block_type === 'text') {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 p-5">
+        {block.title && <h3 className="font-bold text-gray-900 mb-3 text-base">{block.title}</h3>}
+        {block.body && <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{block.body}</p>}
+      </div>
+    );
+  }
+
+  if (block.block_type === 'image') {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        {block.image_url && (
+          <img src={block.image_url} alt={block.title || ''} className="w-full object-cover" />
+        )}
+        {(block.title || block.body || block.caption) && (
+          <div className="p-4">
+            {block.title && <h3 className="font-bold text-gray-900 mb-2 text-sm">{block.title}</h3>}
+            {block.body && <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap mb-2">{block.body}</p>}
+            {block.caption && <p className="text-xs text-gray-400 italic">{block.caption}</p>}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (block.block_type === 'video') {
+    const embedUrl = getYouTubeEmbedUrl(block.video_url);
+    const fileUrl = block.video_file_url;
+
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        {/* YouTube埋め込み */}
+        {embedUrl && (
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              src={embedUrl}
+              title={block.title || 'video'}
+              className="absolute inset-0 w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        )}
+
+        {/* アップロード動画ファイル */}
+        {!embedUrl && fileUrl && (
+          <video
+            src={fileUrl}
+            controls
+            className="w-full max-h-80 bg-black"
+            preload="metadata"
+          />
+        )}
+
+        {/* 直リンク動画URL（YouTube以外） */}
+        {!embedUrl && !fileUrl && block.video_url && (
+          <video
+            src={block.video_url}
+            controls
+            className="w-full max-h-80 bg-black"
+            preload="metadata"
+          />
+        )}
+
+        {(block.title || block.body || block.caption) && (
+          <div className="p-4">
+            {block.title && <h3 className="font-bold text-gray-900 mb-2 text-sm">{block.title}</h3>}
+            {block.body && <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap mb-2">{block.body}</p>}
+            {block.caption && <p className="text-xs text-gray-400 italic">{block.caption}</p>}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return null;
 }
