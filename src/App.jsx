@@ -58,6 +58,10 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route path="/CaseStudies" element={<LayoutWrapper currentPageName="CaseStudies"><CaseStudiesPage /></LayoutWrapper>} />
+      <Route path="/CaseStudyDetail" element={<LayoutWrapper currentPageName="CaseStudyDetail"><CaseStudyDetailPage /></LayoutWrapper>} />
+      <Route path="/AdminCaseStudies" element={<LayoutWrapper currentPageName="AdminCaseStudies"><AdminCaseStudiesPage /></LayoutWrapper>} />
+      <Route path="/AdminCaseStudyEdit" element={<LayoutWrapper currentPageName="AdminCaseStudyEdit"><AdminCaseStudyEditPage /></LayoutWrapper>} />
       <Route path="/Onboarding" element={<Navigate to="/home" replace />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
