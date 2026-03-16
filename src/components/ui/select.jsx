@@ -11,10 +11,10 @@ import {
 
 // Detect mobile (< 768px)
 const useIsMobile = () => {
-  const [isMobile, setIsMobile] = React.useState(() =>
+  const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth < 768 : false
   );
-  React.useEffect(() => {
+  useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
@@ -22,7 +22,7 @@ const useIsMobile = () => {
   return isMobile;
 };
 
-const MobileSelectContext = React.createContext(null);
+const MobileSelectContext = createContext(null);
 
 // Override Select root to provide mobile context
 const Select = ({ children, onValueChange, value, defaultValue, open: controlledOpen, onOpenChange, ...props }) => {
