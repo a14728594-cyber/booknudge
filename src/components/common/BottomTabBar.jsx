@@ -23,12 +23,12 @@ export default function BottomTabBar({ currentPageName }) {
             key={tab.path}
             to={createPageUrl(tab.path)}
             onClick={(e) => { if (active) e.preventDefault(); }}
-            className={`flex-1 flex flex-col items-center py-2 gap-0.5 transition-colors select-none ${
+            className={`flex-1 flex flex-col items-center justify-center min-h-[44px] py-2 gap-1 transition-colors select-none ${
               active ? 'text-indigo-600' : 'text-gray-400'
             }`}
           >
-            <tab.icon className={`w-5 h-5 ${active ? 'stroke-[2.5]' : ''}`} />
-            <span className="text-[10px] font-medium">{tab.label}</span>
+            <tab.icon className={`w-5 h-5 shrink-0 ${active ? 'stroke-[2.5]' : ''}`} />
+            <span className="text-[12px] font-medium leading-none">{tab.label}</span>
           </Link>
         );
       })}
