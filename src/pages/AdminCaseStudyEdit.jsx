@@ -41,6 +41,7 @@ export default function AdminCaseStudyEdit() {
 
   useEffect(() => {
     base44.entities.CaseStudy.list('order', 200).then(setAllCases);
+    base44.entities.Book.list('-created_date', 500).then(setAllBooks);
     if (id) {
       base44.entities.CaseStudy.filter({ id }).then(async res => {
         const c = res[0];
