@@ -26,13 +26,13 @@ const MobileSelectContext = createContext(null);
 
 // Override Select root to provide mobile context
 const Select = ({ children, onValueChange, value, defaultValue, open: controlledOpen, onOpenChange, ...props }) => {
-  const [mobileOpen, setMobileOpen] = React.useState(false);
-  const [internalValue, setInternalValue] = React.useState(defaultValue ?? '');
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [internalValue, setInternalValue] = useState(defaultValue ?? '');
   const isMobile = useIsMobile();
 
   const currentValue = value !== undefined ? value : internalValue;
 
-  const handleValueChange = React.useCallback((val) => {
+  const handleValueChange = useCallback((val) => {
     setInternalValue(val);
     if (onValueChange) onValueChange(val);
     setMobileOpen(false);
