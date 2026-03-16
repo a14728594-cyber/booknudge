@@ -87,30 +87,32 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
-    <Routes>
-      <Route path="/" element={
-        <LayoutWrapper currentPageName={mainPageKey}>
-          <MainPage />
-        </LayoutWrapper>
-      } />
-      {Object.entries(Pages).map(([path, Page]) => (
-        <Route
-          key={path}
-          path={`/${path}`}
-          element={
-            <LayoutWrapper currentPageName={path}>
-              <Page />
-            </LayoutWrapper>
-          }
-        />
-      ))}
-      <Route path="/CaseStudies" element={<LayoutWrapper currentPageName="CaseStudies"><CaseStudiesPage /></LayoutWrapper>} />
-      <Route path="/CaseStudyDetail" element={<LayoutWrapper currentPageName="CaseStudyDetail"><CaseStudyDetailPage /></LayoutWrapper>} />
-      <Route path="/AdminCaseStudies" element={<LayoutWrapper currentPageName="AdminCaseStudies"><AdminCaseStudiesPage /></LayoutWrapper>} />
-      <Route path="/AdminCaseStudyEdit" element={<LayoutWrapper currentPageName="AdminCaseStudyEdit"><AdminCaseStudyEditPage /></LayoutWrapper>} />
-      <Route path="/Onboarding" element={<Navigate to="/home" replace />} />
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <AnimatedRoutes>
+      <Routes location={location}>
+        <Route path="/" element={
+          <LayoutWrapper currentPageName={mainPageKey}>
+            <MainPage />
+          </LayoutWrapper>
+        } />
+        {Object.entries(Pages).map(([path, Page]) => (
+          <Route
+            key={path}
+            path={`/${path}`}
+            element={
+              <LayoutWrapper currentPageName={path}>
+                <Page />
+              </LayoutWrapper>
+            }
+          />
+        ))}
+        <Route path="/CaseStudies" element={<LayoutWrapper currentPageName="CaseStudies"><CaseStudiesPage /></LayoutWrapper>} />
+        <Route path="/CaseStudyDetail" element={<LayoutWrapper currentPageName="CaseStudyDetail"><CaseStudyDetailPage /></LayoutWrapper>} />
+        <Route path="/AdminCaseStudies" element={<LayoutWrapper currentPageName="AdminCaseStudies"><AdminCaseStudiesPage /></LayoutWrapper>} />
+        <Route path="/AdminCaseStudyEdit" element={<LayoutWrapper currentPageName="AdminCaseStudyEdit"><AdminCaseStudyEditPage /></LayoutWrapper>} />
+        <Route path="/Onboarding" element={<Navigate to="/home" replace />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </AnimatedRoutes>
   );
 };
 
