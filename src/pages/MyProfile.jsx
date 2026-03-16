@@ -336,6 +336,58 @@ export default function MyProfile() {
                     </Card>
                 )}
 
+                {/* アカウント削除 */}
+                <Card>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-base font-bold text-gray-900 mb-1">アカウントを削除</h2>
+                            <p className="text-xs text-gray-500">削除すると元に戻せません</p>
+                        </div>
+                        <Button
+                            variant="outline"
+                            className="text-red-600 border-red-200 hover:bg-red-50 gap-2"
+                            onClick={() => setShowDeleteConfirm(true)}
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            削除
+                        </Button>
+                    </div>
+
+                    {showDeleteConfirm && (
+                        <div className="mt-4 p-4 bg-red-50 rounded-xl border border-red-200 space-y-3">
+                            <p className="text-sm text-red-700 font-medium">本当にアカウントを削除しますか？</p>
+                            <p className="text-xs text-red-600">確認のため「削除する」と入力してください</p>
+                            <input
+                                type="text"
+                                value={deleteInput}
+                                onChange={e => setDeleteInput(e.target.value)}
+                                placeholder="削除する"
+                                className="w-full border border-red-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                            />
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => { setShowDeleteConfirm(false); setDeleteInput(''); }}
+                                    className="flex-1"
+                                >
+                                    キャンセル
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    disabled={deleteInput !== '削除する'}
+                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white disabled:opacity-40"
+                                    onClick={async () => {
+                                        await base44.auth.logout(createPageUrl('landing'));
+                                    }}
+                                >
+                                    アカウントを削除
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </Card>
+
                 {/* お気に入りの本 */}
                 <Card>
                     <div className="flex items-center gap-2 mb-6">
