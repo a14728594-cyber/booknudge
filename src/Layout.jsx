@@ -101,7 +101,7 @@ export default function Layout({ children, currentPageName }) {
                 key={item.path}
                 to={createPageUrl(item.path)}
                 onClick={(e) => handleNavClick(e, item)}
-                className={`group relative p-3 rounded-xl transition-all duration-200 ${
+                className={`group relative p-3 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl transition-all duration-200 ${
                 currentPageName === item.path || currentPageName.startsWith(item.path) ?
                 'bg-indigo-50 text-indigo-600' :
                 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`
@@ -162,7 +162,7 @@ export default function Layout({ children, currentPageName }) {
                         {/* Mobile Menu Button */}
                         {user &&
             <button
-              className="md:hidden p-2"
+              className="md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
               onClick={() => setIsMenuOpen(!isMenuOpen)}>
 
                                 {isMenuOpen ?
@@ -181,7 +181,7 @@ export default function Layout({ children, currentPageName }) {
             <Link
               key={item.path}
               to={createPageUrl(item.path)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors relative ${
+              className={`flex items-center gap-3 px-4 min-h-[44px] py-3 rounded-xl transition-colors relative ${
               currentPageName === item.path || currentPageName.startsWith(item.path) ?
               'bg-indigo-50 text-indigo-600 font-medium' :
               'text-gray-600 hover:bg-gray-50'}`
