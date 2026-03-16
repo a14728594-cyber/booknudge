@@ -177,8 +177,11 @@ export default function BookDetail() {
             return;
         }
 
+        const newFavorite = !isFavorite;
+        setIsFavorite(newFavorite); // Optimistic update
+
         try {
-            if (isFavorite) {
+            if (!newFavorite) {
                 const favorites = await base44.entities.Favorite.filter({
                     user_id: user.id,
                     book_id: id
@@ -186,25 +189,18 @@ export default function BookDetail() {
                 if (favorites.length > 0) {
                     await base44.entities.Favorite.delete(favorites[0].id);
                 }
-                setIsFavorite(false);
-
-                await base44.functions.invoke('trackEvent', {
-                    event_name: 'favorite_toggle',
-                    event_value: { book_id: id, action: 'off' }
-                });
             } else {
                 await base44.entities.Favorite.create({
                     user_id: user.id,
                     book_id: id
                 });
-                setIsFavorite(true);
-
-                await base44.functions.invoke('trackEvent', {
-                    event_name: 'favorite_toggle',
-                    event_value: { book_id: id, action: 'on' }
-                });
             }
+            base44.functions.invoke('trackEvent', {
+                event_name: 'favorite_toggle',
+                event_value: { book_id: id, action: newFavorite ? 'on' : 'off' }
+            }).catch(() => {});
         } catch (error) {
+            setIsFavorite(!newFavorite); // Revert on error
             console.error('Failed to toggle favorite:', error);
         }
     };

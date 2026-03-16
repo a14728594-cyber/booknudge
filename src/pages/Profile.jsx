@@ -149,8 +149,13 @@ export default function Profile() {
     };
 
     const handleFollowToggle = async () => {
+        const newFollowing = !isFollowing;
+        // Optimistic update
+        setIsFollowing(newFollowing);
+        setFollowersCount(prev => newFollowing ? prev + 1 : prev - 1);
+
         try {
-            if (isFollowing) {
+            if (!newFollowing) {
                 const follows = await base44.entities.Follow.filter({
                     follower_user_id: currentUser.id,
                     following_user_id: profileUser.id
@@ -158,17 +163,16 @@ export default function Profile() {
                 if (follows.length > 0) {
                     await base44.entities.Follow.delete(follows[0].id);
                 }
-                setIsFollowing(false);
-                setFollowersCount(prev => prev - 1);
             } else {
                 await base44.entities.Follow.create({
                     follower_user_id: currentUser.id,
                     following_user_id: profileUser.id
                 });
-                setIsFollowing(true);
-                setFollowersCount(prev => prev + 1);
             }
         } catch (error) {
+            // Revert on error
+            setIsFollowing(!newFollowing);
+            setFollowersCount(prev => newFollowing ? prev - 1 : prev + 1);
             console.error('Error toggling follow:', error);
         }
     };

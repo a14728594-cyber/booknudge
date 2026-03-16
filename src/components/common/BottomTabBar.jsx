@@ -22,6 +22,7 @@ export default function BottomTabBar({ currentPageName }) {
           <Link
             key={tab.path}
             to={createPageUrl(tab.path)}
+            onClick={(e) => { if (active) e.preventDefault(); }}
             className={`flex-1 flex flex-col items-center py-2 gap-0.5 transition-colors select-none ${
               active ? 'text-indigo-600' : 'text-gray-400'
             }`}
