@@ -75,11 +75,16 @@ export default function AdminCaseStudyEdit() {
     setUploading(false);
   };
 
-  const searchBooks = async () => {
-    if (!bookQuery.trim()) return;
-    const res = await base44.functions.invoke('searchBooks', { query: bookQuery });
-    setBookResults(res.data?.results || []);
-  };
+  const bookResults = bookQuery.trim().length >= 1
+    ? allBooks.filter(b => {
+        const q = bookQuery.toLowerCase();
+        return (
+          b.title?.toLowerCase().includes(q) ||
+          (b.authors || []).some(a => a.toLowerCase().includes(q)) ||
+          (b.tags || []).some(t => t.toLowerCase().includes(q))
+        );
+      }).slice(0, 20)
+    : [];
 
   const addBook = (book) => {
     if (selectedBooks.find(b => b.id === book.id)) return;
