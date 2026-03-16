@@ -4,6 +4,9 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Menu, X, BookOpen, Home, Mail, BarChart3, UserCog, MessageSquare, LogOut, User, Sparkles } from 'lucide-react';
+import BottomTabBar from '@/components/common/BottomTabBar';
+
+const ROOT_PAGES = ['home', 'DeepDiagnosis', 'profile', 'support'];
 
 export default function Layout({ children, currentPageName }) {
   const navigate = useNavigate();
