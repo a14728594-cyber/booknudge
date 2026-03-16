@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import Card from '@/components/common/Card';
 import BookCard from '@/components/common/BookCard';
-import { Loader2, Edit, Save, X, Lock, Globe, Heart, Users as UsersIcon, RefreshCw, CreditCard } from 'lucide-react';
+import { Loader2, Edit, Save, X, Lock, Globe, Heart, Users as UsersIcon, RefreshCw, CreditCard, Trash2 } from 'lucide-react';
 
 export default function MyProfile() {
     const navigate = useNavigate();
@@ -18,6 +18,8 @@ export default function MyProfile() {
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [portalLoading, setPortalLoading] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleteInput, setDeleteInput] = useState('');
     
     const [favorites, setFavorites] = useState([]);
     const [followersCount, setFollowersCount] = useState(0);
