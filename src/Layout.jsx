@@ -239,9 +239,14 @@ export default function Layout({ children, currentPageName }) {
             </header>
 
             {/* Main Content */}
-            <main>
+            <main style={{ paddingBottom: user && ROOT_PAGES.includes(currentPageName) ? 'calc(56px + env(safe-area-inset-bottom))' : undefined }}>
                 {children}
             </main>
+
+            {/* Mobile Bottom Tab Bar */}
+            {user && !isAdminPage && !isLandingPage && (
+                <BottomTabBar currentPageName={currentPageName} />
+            )}
         </div>);
 
 }
