@@ -83,6 +83,7 @@ function DMContent() {
     }
 
     return (
+        <PullToRefresh onRefresh={loadData}>
         <div className="max-w-4xl mx-auto px-6 py-8">
             <div className="mb-6">
                 <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
@@ -133,5 +134,6 @@ function DMContent() {
                 )}
             </Card>
         </div>
+        </PullToRefresh>
     );
 }
