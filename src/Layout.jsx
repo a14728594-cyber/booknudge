@@ -149,7 +149,7 @@ export default function Layout({ children, currentPageName }) {
                                 <div className="w-px h-6 bg-gray-200 mx-2" />
                                 <button
                 onClick={handleLogout}
-                className="group relative p-3 rounded-xl text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all duration-200">
+                className="group relative p-3 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all duration-200">
 
                                     <LogOut className="w-5 h-5" />
                                     <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
