@@ -398,15 +398,23 @@ export default function AdminCaseStudyEdit() {
                 ))}
               </div>
             )}
-            <div className="flex gap-2">
-              <Input value={bookQuery} onChange={e => setBookQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && searchBooks()} placeholder="本のタイトルで検索" className="flex-1" />
-              <Button type="button" variant="outline" onClick={searchBooks}><Search className="w-4 h-4" /></Button>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                value={bookQuery}
+                onChange={e => { setBookQuery(e.target.value); setShowBookList(true); }}
+                onFocus={() => setShowBookList(true)}
+                placeholder="タイトル・著者名・キーワードで検索"
+                className="pl-9"
+              />
             </div>
-            {bookResults.length > 0 && (
-              <div className="border border-gray-200 rounded-xl overflow-hidden">
-                {bookResults.map(b => (
+            {showBookList && bookQuery.trim().length >= 1 && (
+              <div className="border border-gray-200 rounded-xl overflow-hidden max-h-64 overflow-y-auto">
+                {bookResults.length === 0 ? (
+                  <p className="text-xs text-gray-400 p-3 text-center">該当なし</p>
+                ) : bookResults.map(b => (
                   <button key={b.id} type="button"
-                    onClick={() => { addBook(b); setBookResults([]); setBookQuery(''); }}
+                    onClick={() => { addBook(b); setBookQuery(''); setShowBookList(false); }}
                     className="w-full flex items-center gap-3 p-3 hover:bg-indigo-50 text-left border-b border-gray-100 last:border-0"
                   >
                     {b.cover_url && <img src={b.cover_url} alt="" className="w-8 h-11 object-cover rounded" />}
