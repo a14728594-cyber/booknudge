@@ -1,0 +1,19 @@
+/* Mobile native enhancements */
+body {
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+button, a, nav, header, [role="button"], label {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Safe area padding utilities */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
