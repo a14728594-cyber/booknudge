@@ -27,8 +27,9 @@ export default function AdminCaseStudyEdit() {
 
   // 本検索
   const [bookQuery, setBookQuery] = useState('');
-  const [bookResults, setBookResults] = useState([]);
+  const [allBooks, setAllBooks] = useState([]);
   const [selectedBooks, setSelectedBooks] = useState([]);
+  const [showBookList, setShowBookList] = useState(false);
 
   // 関連事例
   const [allCases, setAllCases] = useState([]);
