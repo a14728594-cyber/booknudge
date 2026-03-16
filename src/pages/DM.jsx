@@ -6,6 +6,7 @@ import Card from '@/components/common/Card';
 import { Button } from '@/components/ui/button';
 import SubscriptionGuard from '@/components/common/SubscriptionGuard';
 import { MessageSquare, Loader2 } from 'lucide-react';
+import PullToRefresh from '@/components/common/PullToRefresh';
 
 export default function DM() {
     return (
