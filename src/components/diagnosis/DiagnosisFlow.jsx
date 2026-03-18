@@ -152,7 +152,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     };
 
     const handleGoHome = () => {
-        base44.auth.redirectToLogin(createPageUrl('home'));
+        navigate(createPageUrl('home'));
     };
 
     const totalQuestions = nodes.length;
