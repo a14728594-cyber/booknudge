@@ -400,6 +400,54 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     );
 }
 
+function NovelBookCard({ book, onNavigate }) {
+    const mapping = book._mapping;
+    const displayText = mapping?.recommendation_text || book.connection_text || book.one_liner;
+    const effectLabel = book.effect_label;
+
+    return (
+        <div>
+            {effectLabel && (
+                <div className="inline-flex items-center gap-1 bg-purple-50 text-purple-600 text-xs font-bold px-2.5 py-1 rounded-full mb-3 border border-purple-200">
+                    ✨ {effectLabel}
+                </div>
+            )}
+            <button
+                onClick={() => onNavigate(book.id)}
+                className="w-full text-left flex gap-4 hover:opacity-80 transition-opacity"
+            >
+                {book.cover_url ? (
+                    <img src={book.cover_url} alt={book.title} className="w-16 h-24 object-cover rounded-lg flex-shrink-0 shadow-sm" />
+                ) : (
+                    <div className="w-16 h-24 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <BookOpen className="w-6 h-6 text-purple-400" />
+                    </div>
+                )}
+                <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-gray-900 text-sm leading-tight mb-1">{book.title}</h4>
+                    <p className="text-xs text-gray-500 mb-2">{(book.authors || []).join(', ')}</p>
+                    {displayText && (
+                        <p className="text-xs text-purple-700 leading-relaxed italic">{displayText}</p>
+                    )}
+                    {book.what_it_gives?.length > 0 && !displayText && (
+                        <p className="text-xs text-gray-600 leading-relaxed">{book.what_it_gives[0]}</p>
+                    )}
+                </div>
+            </button>
+            {book.amazon_url && (
+                <a
+                    href={book.amazon_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 w-full flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-500 text-gray-900 font-bold text-sm py-2.5 px-4 rounded-xl transition-colors"
+                >
+                    Amazonで見る
+                </a>
+            )}
+        </div>
+    );
+}
+
 function BookCard({ book, onNavigate }) {
     const roleInfo = book._mapping?.role ? ROLE_CONFIG[book._mapping.role] : null;
     const recText = book._mapping?.recommendation_text;
