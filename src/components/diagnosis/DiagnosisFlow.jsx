@@ -371,11 +371,12 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                                     {/* 小説・エッセイ */}
                                     {books.filter(b => b.book_category === 'novel_essay').length > 0 && (
                                         <div>
-                                            <h3 className="text-xl font-bold text-gray-900 mb-4">📖 小説・エッセイのおすすめ</h3>
+                                            <h3 className="text-xl font-bold text-gray-900 mb-1">📖 小説・エッセイのおすすめ</h3>
+                                            <p className="text-xs text-gray-400 mb-4">視点・感情・行動のきっかけとして</p>
                                             <div className="space-y-4">
                                                 {books.filter(b => b.book_category === 'novel_essay').map(book => (
-                                                    <div key={book.id} className="bg-white border border-gray-100 rounded-2xl p-5">
-                                                        <BookCard book={book} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
+                                                    <div key={book.id} className="bg-white border border-purple-100 rounded-2xl p-5">
+                                                        <NovelBookCard book={book} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
                                                     </div>
                                                 ))}
                                             </div>
