@@ -107,24 +107,33 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
 
         if (mainType) {
             const [mainMappings, subMappings, allBooks] = await Promise.all([
-                base44.entities.BookDiagnosisMapping.filter({ diagnosis_type_key: mainType }, 'priority_order', 20),
-                subType ? base44.entities.BookDiagnosisMapping.filter({ diagnosis_type_key: subType }, 'priority_order', 10) : Promise.resolve([]),
-                base44.entities.Book.list('-created_date', 300),
+                base44.entities.BookDiagnosisMapping.filter({ diagnosis_type_key: mainType }, 'priority_order', 30),
+                subType ? base44.entities.BookDiagnosisMapping.filter({ diagnosis_type_key: subType }, 'priority_order', 15) : Promise.resolve([]),
+                base44.entities.Book.list('-created_date', 500),
             ]);
             const bookMap = {};
             allBooks.forEach(b => { bookMap[b.id] = b; });
-            const mainBooks = mainMappings
+
+            // ビジネス書（direct）と小説・エッセイ（affinity）を分けて収集
+            const allMappings = [...mainMappings, ...subMappings.map(m => ({ ...m, _isSubType: true }))];
+            const seenIds = new Set();
+            const businessBooks = [];
+            const novelBooks = [];
+
+            allMappings
                 .filter(m => bookMap[m.book_id])
-                .sort((a, b) => (a.priority_order || 0) - (b.priority_order || 0))
-                .slice(0, 2)
-                .map(m => ({ ...bookMap[m.book_id], _mapping: m }));
-            const mainBookIds = new Set(mainBooks.map(b => b.id));
-            const subBooks = subMappings
-                .filter(m => bookMap[m.book_id] && !mainBookIds.has(m.book_id))
-                .sort((a, b) => (a.priority_order || 0) - (b.priority_order || 0))
-                .slice(0, 1)
-                .map(m => ({ ...bookMap[m.book_id], _mapping: m, _isSubType: true }));
-            setBooks([...mainBooks, ...subBooks].slice(0, 3));
+                .sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0))
+                .forEach(m => {
+                    if (seenIds.has(m.book_id)) return;
+                    const book = bookMap[m.book_id];
+                    if (book.book_category === 'novel_essay') {
+                        if (novelBooks.length < 2) { novelBooks.push({ ...book, _mapping: m, _isSubType: m._isSubType }); seenIds.add(m.book_id); }
+                    } else {
+                        if (businessBooks.length < 3) { businessBooks.push({ ...book, _mapping: m, _isSubType: m._isSubType }); seenIds.add(m.book_id); }
+                    }
+                });
+
+            setBooks([...businessBooks, ...novelBooks]);
         }
 
         setSaving(false);
