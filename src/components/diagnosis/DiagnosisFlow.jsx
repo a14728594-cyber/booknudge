@@ -319,30 +319,60 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                         )}
 
                         <div className="mb-8">
-                            <h3 className="text-xl font-bold text-gray-900 mb-5">あなたへのおすすめ本</h3>
                             {books.length > 0 ? (
-                                <div className="space-y-4">
-                                    {priorityBook && (
-                                        <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5">
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <span className="text-amber-500 text-lg">⭐</span>
-                                                <span className="text-amber-700 font-bold text-sm">迷ったらまずこれ</span>
+                                <>
+                                    {/* ビジネス書 */}
+                                    {books.filter(b => b.book_category !== 'novel_essay').length > 0 && (
+                                        <div className="mb-6">
+                                            <h3 className="text-xl font-bold text-gray-900 mb-4">📚 ビジネス書のおすすめ</h3>
+                                            <div className="space-y-4">
+                                                {(() => {
+                                                    const businessBooks = books.filter(b => b.book_category !== 'novel_essay');
+                                                    const pBook = businessBooks.find(b => b._mapping?.role === 'priority') || businessBooks[0];
+                                                    const rest = businessBooks.filter(b => b.id !== pBook?.id);
+                                                    return (
+                                                        <>
+                                                            {pBook && (
+                                                                <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5">
+                                                                    <div className="flex items-center gap-2 mb-3">
+                                                                        <span className="text-amber-500 text-lg">⭐</span>
+                                                                        <span className="text-amber-700 font-bold text-sm">迷ったらまずこれ</span>
+                                                                    </div>
+                                                                    <BookCard book={pBook} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
+                                                                </div>
+                                                            )}
+                                                            {rest.map(book => (
+                                                                <div key={book.id} className={`bg-white border rounded-2xl p-5 ${book._isSubType ? 'border-purple-200' : 'border-gray-100'}`}>
+                                                                    {book._isSubType && subTypeInfo && (
+                                                                        <div className="flex items-center gap-1 mb-3">
+                                                                            <span className="text-purple-500 text-sm">📌</span>
+                                                                            <span className="text-purple-700 text-xs font-medium">{subTypeInfo.label}にも対応</span>
+                                                                        </div>
+                                                                    )}
+                                                                    <BookCard book={book} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
+                                                                </div>
+                                                            ))}
+                                                        </>
+                                                    );
+                                                })()}
                                             </div>
-                                            <BookCard book={priorityBook} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
                                         </div>
                                     )}
-                                    {otherBooks.map(book => (
-                                        <div key={book.id} className={`bg-white border rounded-2xl p-5 ${book._isSubType ? 'border-purple-200' : 'border-gray-100'}`}>
-                                            {book._isSubType && subTypeInfo && (
-                                                <div className="flex items-center gap-1 mb-3">
-                                                    <span className="text-purple-500 text-sm">📌</span>
-                                                    <span className="text-purple-700 text-xs font-medium">{subTypeInfo.label}にも対応</span>
-                                                </div>
-                                            )}
-                                            <BookCard book={book} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
+
+                                    {/* 小説・エッセイ */}
+                                    {books.filter(b => b.book_category === 'novel_essay').length > 0 && (
+                                        <div>
+                                            <h3 className="text-xl font-bold text-gray-900 mb-4">📖 小説・エッセイのおすすめ</h3>
+                                            <div className="space-y-4">
+                                                {books.filter(b => b.book_category === 'novel_essay').map(book => (
+                                                    <div key={book.id} className="bg-white border border-gray-100 rounded-2xl p-5">
+                                                        <BookCard book={book} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    ))}
-                                </div>
+                                    )}
+                                </>
                             ) : (
                                 <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
                                     <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />

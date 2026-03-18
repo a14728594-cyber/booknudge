@@ -268,8 +268,8 @@ export default function Home() {
                     </Link>
                 </div>
 
-                {/* 診断結果ベースのおすすめ */}
-                {recommendedBooks.length > 0 && (
+                {/* 診断結果ベースのおすすめ（ビジネス書） */}
+                {recommendedBooks.filter(b => b.book_category !== 'novel_essay').length > 0 && (
                     <section className="mb-14">
                         <div className="flex items-end justify-between mb-5">
                             <div>
@@ -277,7 +277,7 @@ export default function Home() {
                                     <span className="text-lg">✨</span>
                                     <h2 className="text-xl font-bold text-gray-900">あなたへのおすすめ</h2>
                                 </div>
-                                <p className="text-xs text-gray-400 ml-7">診断結果から厳選</p>
+                                <p className="text-xs text-gray-400 ml-7">診断結果から厳選｜ビジネス書</p>
                             </div>
                             <span className="text-xs text-gray-400 hidden sm:block">← スライド →</span>
                         </div>
@@ -286,7 +286,38 @@ export default function Home() {
                             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                             onMouseDown={dragScroll}
                         >
-                            {recommendedBooks.map(book => (
+                            {recommendedBooks.filter(b => b.book_category !== 'novel_essay').map(book => (
+                                <div
+                                    key={book.id}
+                                    className="flex-shrink-0 w-52 snap-start"
+                                    onClick={() => handleBookClick(book.id, 'recommend')}
+                                >
+                                    <BookCard book={book} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* 診断結果ベースのおすすめ（小説・エッセイ） */}
+                {recommendedBooks.filter(b => b.book_category === 'novel_essay').length > 0 && (
+                    <section className="mb-14">
+                        <div className="flex items-end justify-between mb-5">
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-lg">📖</span>
+                                    <h2 className="text-xl font-bold text-gray-900">小説・エッセイのおすすめ</h2>
+                                </div>
+                                <p className="text-xs text-gray-400 ml-7">診断結果から厳選｜読み物・インスピレーション</p>
+                            </div>
+                            <span className="text-xs text-gray-400 hidden sm:block">← スライド →</span>
+                        </div>
+                        <div
+                            className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing"
+                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                            onMouseDown={dragScroll}
+                        >
+                            {recommendedBooks.filter(b => b.book_category === 'novel_essay').map(book => (
                                 <div
                                     key={book.id}
                                     className="flex-shrink-0 w-52 snap-start"
