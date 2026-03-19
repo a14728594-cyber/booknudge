@@ -269,23 +269,51 @@ export default function AdminCaseStudyEdit() {
         {/* タグ */}
         <Section title="タグ">
           <Field label="業界タグ">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mb-2">
               {INDUSTRY_TAGS.map(tag => (
                 <button key={tag} type="button"
                   onClick={() => set('industry_tags', toggleTag(form.industry_tags || [], tag))}
                   className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${(form.industry_tags || []).includes(tag) ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'}`}
                 >{tag}</button>
               ))}
+              {(form.industry_tags || []).filter(t => !INDUSTRY_TAGS.includes(t)).map(tag => (
+                <span key={tag} className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-full border bg-indigo-600 text-white border-indigo-600">
+                  {tag}
+                  <button type="button" onClick={() => set('industry_tags', (form.industry_tags || []).filter(t => t !== tag))} className="ml-0.5 hover:text-indigo-200">×</button>
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Input value={industryInput} onChange={e => setIndustryInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && industryInput.trim()) { e.preventDefault(); set('industry_tags', toggleTag(form.industry_tags || [], industryInput.trim())); setIndustryInput(''); } }}
+                placeholder="自由入力して Enter" className="text-xs h-8" />
+              <button type="button"
+                onClick={() => { if (industryInput.trim()) { set('industry_tags', toggleTag(form.industry_tags || [], industryInput.trim())); setIndustryInput(''); } }}
+                className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:border-indigo-300 text-gray-600 whitespace-nowrap">追加</button>
             </div>
           </Field>
           <Field label="学びタグ">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mb-2">
               {LEARNING_TAGS.map(tag => (
                 <button key={tag} type="button"
                   onClick={() => set('learning_tags', toggleTag(form.learning_tags || [], tag))}
                   className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${(form.learning_tags || []).includes(tag) ? 'bg-violet-600 text-white border-violet-600' : 'bg-white text-gray-600 border-gray-200 hover:border-violet-300'}`}
                 >{tag}</button>
               ))}
+              {(form.learning_tags || []).filter(t => !LEARNING_TAGS.includes(t)).map(tag => (
+                <span key={tag} className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-full border bg-violet-600 text-white border-violet-600">
+                  {tag}
+                  <button type="button" onClick={() => set('learning_tags', (form.learning_tags || []).filter(t => t !== tag))} className="ml-0.5 hover:text-violet-200">×</button>
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Input value={learningInput} onChange={e => setLearningInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && learningInput.trim()) { e.preventDefault(); set('learning_tags', toggleTag(form.learning_tags || [], learningInput.trim())); setLearningInput(''); } }}
+                placeholder="自由入力して Enter" className="text-xs h-8" />
+              <button type="button"
+                onClick={() => { if (learningInput.trim()) { set('learning_tags', toggleTag(form.learning_tags || [], learningInput.trim())); setLearningInput(''); } }}
+                className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:border-violet-300 text-gray-600 whitespace-nowrap">追加</button>
             </div>
           </Field>
         </Section>
