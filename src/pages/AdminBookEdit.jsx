@@ -651,7 +651,7 @@ JSON:
                             {mappings.length === 0 && (
                                 <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 text-sm">
                                     <p>まだ診断タイプが紐付けられていません</p>
-                                    <p className="mt-1 text-xs">「紐付けを追加」ボタンから設定してください（最大5つ）</p>
+                                    <p className="mt-1 text-xs">「紐付けを追加」ボタンから設定してください（最大{isNovel ? 3 : 5}つ）</p>
                                 </div>
                             )}
                         </div>
