@@ -554,6 +554,22 @@ JSON:
                                 ? '🎭 小説・エッセイの上限は3つです。広く紐付けすぎるとレコメンド精度が落ちるため、特に刺さるタイプに絞って設定してください。'
                                 : '📊 ビジネス書のスコアは「直接解決の強さ」として扱います。その本の中心テーマがどれだけ診断タイプの悩みに効くかで判断してください。'}
                         </div>
+                        <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-4 text-xs text-gray-600 space-y-1">
+                            <p className="font-semibold text-gray-700 mb-1">スコア基準</p>
+                            {isNovel ? (
+                                <>
+                                    <p>🔴 3点 = このタイプの人にかなり刺さりやすい / 優先表示したい</p>
+                                    <p>🟡 2点 = 相性がある / 補助的に表示したい</p>
+                                    <p>⚪ 1点 = 少し関連する / サブ候補として表示したい</p>
+                                </>
+                            ) : (
+                                <>
+                                    <p>🔴 3点 = その本の中心テーマとしてかなり強く効く</p>
+                                    <p>🟡 2点 = 明確に関連する</p>
+                                    <p>⚪ 1点 = 補助的に関連する</p>
+                                </>
+                            )}
+                        </div>
 
                         {resultTypes.length === 0 && (
                             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700 mb-4">
