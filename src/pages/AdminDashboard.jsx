@@ -108,7 +108,7 @@ export default function AdminDashboard() {
                         $gte: dateStart.toISOString(),
                         $lt: dateEnd.toISOString()
                     }
-                });
+                }, '-created_date', 10000);
 
                 chartData.signups.push({
                     date: dateStart.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' }),
