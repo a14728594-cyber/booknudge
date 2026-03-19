@@ -244,6 +244,23 @@ export default function AdminCaseStudyEdit() {
           </div>
         </Section>
 
+        {/* 診断タイプ */}
+        {diagnosisTypes.length > 0 && (
+          <Section title="診断タイプとの紐づけ">
+            <p className="text-xs text-gray-400 -mt-1">この事例を表示する診断結果タイプを選択してください（複数可）</p>
+            <div className="flex flex-wrap gap-2">
+              {diagnosisTypes.map(dt => (
+                <button key={dt.key} type="button"
+                  onClick={() => set('diagnosis_types', toggleTag(form.diagnosis_types || [], dt.key))}
+                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${(form.diagnosis_types || []).includes(dt.key) ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'}`}
+                >
+                  {dt.emoji && <span className="mr-1">{dt.emoji}</span>}{dt.label}
+                </button>
+              ))}
+            </div>
+          </Section>
+        )}
+
         {/* タグ */}
         <Section title="タグ">
           <Field label="業界タグ">
