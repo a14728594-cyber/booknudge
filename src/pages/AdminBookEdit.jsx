@@ -544,20 +544,7 @@ JSON:
                                             </div>
                                         </div>
                                     ))}
-                                    <div className="flex flex-wrap gap-2 mb-3" style={{display:'none'}}>
-                                        {EFFECT_LABEL_OPTIONS.map(ex => {
-                                            const selected = (formData.effect_labels || []).includes(ex);
-                                            return (
-                                                <button key={ex} type="button"
-                                                    onClick={() => {
-                                                        const labels = formData.effect_labels || [];
-                                                        setFormData({ ...formData, effect_labels: selected ? labels.filter(l => l !== ex) : [...labels, ex] });
-                                                    }}
-                                                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${selected ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-300 hover:border-purple-400'}`}
-                                                >{ex}</button>
-                                            );
-                                        })}
-                                    </div>
+
                                     {/* カスタムラベル表示 */}
                                     {(formData.effect_labels || []).filter(l => !EFFECT_LABEL_OPTIONS.includes(l)).length > 0 && (
                                         <div className="flex flex-wrap gap-2 mb-2">
