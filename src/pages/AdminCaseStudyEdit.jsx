@@ -12,7 +12,7 @@ const LEARNING_TAGS = ['マーケティング', 'ブランディング', '営業
 const defaultForm = {
   title: '', company_name: '', thumbnail_url: '', short_description: '',
   summary: '', what_is_good: '', why_it_works: '', learnings: '', target_reader: '',
-  industry_tags: [], learning_tags: [], related_book_ids: [], related_case_ids: [],
+  industry_tags: [], learning_tags: [], diagnosis_types: [], related_book_ids: [], related_case_ids: [],
   is_published: false, order: 0,
 };
 
@@ -24,6 +24,7 @@ export default function AdminCaseStudyEdit() {
   const [form, setForm] = useState(defaultForm);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [diagnosisTypes, setDiagnosisTypes] = useState([]);
 
   // 本検索
   const [bookQuery, setBookQuery] = useState('');
@@ -40,6 +41,7 @@ export default function AdminCaseStudyEdit() {
   const [blockSaving, setBlockSaving] = useState({});
 
   useEffect(() => {
+    base44.entities.DiagnosisResultType.list('order', 100).then(setDiagnosisTypes);
     base44.entities.CaseStudy.list('order', 200).then(setAllCases);
     base44.entities.Book.list('-created_date', 500).then(setAllBooks);
     if (id) {
