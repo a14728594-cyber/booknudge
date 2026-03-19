@@ -392,7 +392,9 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                             )}
                         </div>
 
-                        
+                        {/* 続きの価値エリア */}
+                        <NextValueBlock mainTypeInfo={mainTypeInfo} onReset={reset} />
+
                     </div>
                 )}
             </div>
