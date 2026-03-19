@@ -12,7 +12,7 @@ const LEARNING_TAGS = ['マーケティング', 'ブランディング', '営業
 const defaultForm = {
   title: '', company_name: '', thumbnail_url: '', short_description: '',
   summary: '', what_is_good: '', why_it_works: '', learnings: '', target_reader: '',
-  industry_tags: [], learning_tags: [], diagnosis_types: [], related_book_ids: [], related_case_ids: [],
+  company_description: '', industry_tags: [], learning_tags: [], diagnosis_types: [], related_book_ids: [], related_case_ids: [],
   is_published: false, order: 0,
 };
 
@@ -206,6 +206,9 @@ export default function AdminCaseStudyEdit() {
         <Section title="基本情報">
           <Field label="企業名 / サービス名 *">
             <Input value={form.company_name} onChange={e => set('company_name', e.target.value)} placeholder="例：スターバックス" />
+          </Field>
+          <Field label="企業・サービスの説明">
+            <Textarea value={form.company_description || ''} onChange={e => set('company_description', e.target.value)} rows={2} placeholder="例：世界最大のコーヒーチェーン。体験価値を中心に据えたブランド戦略で知られる。" />
           </Field>
           <Field label="一言タイトル *">
             <Input value={form.title} onChange={e => set('title', e.target.value)} placeholder="例：なぜスタバは値引きせずに行列をつくれるのか" />
