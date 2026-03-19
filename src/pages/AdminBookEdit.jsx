@@ -59,6 +59,7 @@ export default function AdminBookEdit() {
         authors: [''],
         isbn: '',
         book_category: 'business',
+        subcategory: '',
         tags: [''],
         description: '',
         one_liner: '',
@@ -75,7 +76,7 @@ export default function AdminBookEdit() {
         for_whom: [''],
         what_it_gives: [''],
         novel_outcomes: [''],
-        effect_label: '',
+        effect_labels: [],
         connection_text: '',
     });
 
