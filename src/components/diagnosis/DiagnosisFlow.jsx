@@ -327,7 +327,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                             </div>
                         )}
 
-                        <div className="mb-8">
+                        <div className="mb-6">
                             {books.length > 0 ? (
                                 <>
                                     {/* ビジネス書 */}
