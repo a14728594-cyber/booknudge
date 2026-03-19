@@ -29,6 +29,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     const [subTypeInfo, setSubTypeInfo] = useState(null);
     const [books, setBooks] = useState([]);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [matchedCases, setMatchedCases] = useState([]);
 
     useEffect(() => {
         base44.entities.Genre.filter({ is_active: true }, 'order', 100).then(setGenres).catch(() => {});
@@ -136,6 +137,14 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                 });
 
             setBooks([...businessBooks, ...novelBooks]);
+
+        // 診断タイプにマッチした事例を取得
+        const allCases = await base44.entities.CaseStudy.filter({ is_published: true }, 'order', 100);
+        const matched = allCases.filter(c =>
+            (c.diagnosis_types || []).includes(mainType) ||
+            (subType && (c.diagnosis_types || []).includes(subType))
+        ).slice(0, 3);
+        setMatchedCases(matched);
         }
 
         setSaving(false);
@@ -160,6 +169,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
         setMainTypeInfo(null);
         setSubTypeInfo(null);
         setBooks([]);
+        setMatchedCases([]);
     };
 
     const totalQuestions = nodes.length;
