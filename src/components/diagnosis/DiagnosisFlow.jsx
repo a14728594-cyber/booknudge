@@ -300,14 +300,10 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                                 <div className="text-4xl mb-3">📊</div>
                                 <h2 className="text-2xl font-bold mb-4">診断が完了しました</h2>
                                 <p className="text-gray-200 text-sm mb-4">管理者が診断タイプを設定すると、ここに詳細が表示されます。</p>
-                                <div className="flex gap-3">
-                                    <Button onClick={reset} variant="outline" className="flex-1 gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20">
+                                <div className="flex justify-center">
+                                    <Button onClick={reset} variant="outline" className="gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20 text-sm">
                                         <RotateCcw className="w-4 h-4" />
-                                        もう一度
-                                    </Button>
-                                    <Button onClick={handleGoHome} className="flex-1 bg-white text-gray-700 hover:bg-gray-50 gap-2 font-bold">
-                                        ホームへ
-                                        <ArrowRight className="w-4 h-4" />
+                                        診断をやり直す
                                     </Button>
                                 </div>
                             </div>
