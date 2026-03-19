@@ -18,11 +18,11 @@ Deno.serve(async (req) => {
             event_value: event_value || {}
         });
 
-        // last_active_at更新
+        // last_active_at更新（非同期・失敗しても無視）
         if (update_last_active) {
-            await base44.auth.updateMe({
+            base44.auth.updateMe({
                 last_active_at: new Date().toISOString()
-            });
+            }).catch(() => {});
         }
 
         return Response.json({ success: true });
