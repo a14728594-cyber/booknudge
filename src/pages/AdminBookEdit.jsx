@@ -16,9 +16,9 @@ const BUSINESS_SCORE_OPTIONS = [
 ];
 
 const NOVEL_SCORE_OPTIONS = [
-    { value: 3, label: '3点', desc: 'そのタイプの人にかなり刺さりやすい' },
-    { value: 2, label: '2点', desc: '間接的に合う・効く' },
-    { value: 1, label: '1点', desc: '補助的に合う' },
+    { value: 3, label: '3点', desc: 'かなり刺さりやすい / 優先表示したい' },
+    { value: 2, label: '2点', desc: '相性がある / 補助的に表示したい' },
+    { value: 1, label: '1点', desc: '少し関連する / サブ候補として表示したい' },
 ];
 
 const EFFECT_LABEL_EXAMPLES = ['発想が広がる', '気持ちが整う', '行動のきっかけになる', '仕事観を見直せる', '視野が広がる', '孤独感がやわらぐ'];
