@@ -315,7 +315,10 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                             </div>
                         )}
 
-                        <div className="mb-6">
+                        {/* 続きの価値エリア */}
+                        <NextValueBlock mainTypeInfo={mainTypeInfo} onReset={reset} />
+
+                        <div className="mt-6 mb-6">
                             {books.length > 0 ? (
                                 <>
                                     {/* ビジネス書 */}
