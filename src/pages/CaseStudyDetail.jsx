@@ -86,6 +86,9 @@ export default function CaseStudyDetail() {
         {/* ヘッダー */}
         <div className="mb-6">
           <p className="text-sm text-indigo-600 font-semibold mb-1">{case_.company_name}</p>
+          {case_.company_description && (
+            <p className="text-xs text-gray-400 mb-2 leading-relaxed">{case_.company_description}</p>
+          )}
           <h1 className="text-2xl font-bold text-gray-900 mb-3 leading-snug">{case_.title}</h1>
           {allTags.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
