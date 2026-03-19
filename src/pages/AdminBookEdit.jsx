@@ -544,13 +544,14 @@ JSON:
                     <div className="border-t pt-8">
                         <div className="flex items-center justify-between mb-2">
                             <h2 className="text-xl font-bold text-gray-900">🎯 診断タイプ紐付け</h2>
-                            <Button onClick={addMapping} variant="outline" className="gap-2 text-sm" disabled={mappings.length >= 5}>
-                                <Plus className="w-4 h-4" /> 紐付けを追加
+                            <Button onClick={addMapping} variant="outline" className="gap-2 text-sm" disabled={mappings.length >= (isNovel ? 3 : 5)}>
+                                <Plus className="w-4 h-4" /> 紐付けを追加{isNovel ? `（最大3つ）` : `（最大5つ）`}
                             </Button>
                         </div>
-                        <div className={`text-sm mb-4 p-3 rounded-xl ${isNovel ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'}`}>
+                        <p className="text-xs text-gray-400 mb-3">システム上のレコメンド分類です。自然文ではなくタイプで設定してください。</p>
+                        <div className={`text-sm mb-3 p-3 rounded-xl ${isNovel ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'}`}>
                             {isNovel
-                                ? '🎭 小説・エッセイのスコアは「診断タイプとの適合度」として扱います。直接的な解決力ではなく、そのタイプの人に刺さりやすいかで判断してください。'
+                                ? '🎭 小説・エッセイの上限は3つです。広く紐付けすぎるとレコメンド精度が落ちるため、特に刺さるタイプに絞って設定してください。'
                                 : '📊 ビジネス書のスコアは「直接解決の強さ」として扱います。その本の中心テーマがどれだけ診断タイプの悩みに効くかで判断してください。'}
                         </div>
 
