@@ -8,8 +8,11 @@ Deno.serve(async (req) => {
         // user_idはオプション（未ログインでも記録）
         let userId = 'anonymous';
         try {
-            const user = await base44.auth.me();
-            if (user) userId = user.id;
+            const isAuth = await base44.auth.isAuthenticated();
+            if (isAuth) {
+                const user = await base44.auth.me();
+                if (user) userId = user.id;
+            }
         } catch (e) { /* 未ログイン */ }
 
         await base44.asServiceRole.entities.Event.create({
