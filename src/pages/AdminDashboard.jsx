@@ -139,7 +139,7 @@ export default function AdminDashboard() {
             // Funnel (7d)
             const weekEventsAll = await base44.entities.Event.filter({
                 created_date: { $gte: sevenDaysAgo.toISOString() }
-            });
+            }, '-created_date', 10000);
             
             const signupUsers = new Set(weekEventsAll.filter(e => e.event_name === 'signup').map(e => e.user_id));
             const onboardingUsers = new Set(weekEventsAll.filter(e => e.event_name === 'onboarding_complete').map(e => e.user_id));
