@@ -480,40 +480,61 @@ JSON:
                                     <Label>1行で刺さる説明</Label>
                                     <Input value={formData.one_liner} onChange={(e) => setFormData({ ...formData, one_liner: e.target.value })} placeholder="例：停滞感の中に「前に進む力」をくれる一冊" />
                                 </div>
-                                <ArrayField label="こんな人に合う" field="for_whom" values={formData.for_whom}
-                                    onChange={handleArrayChange} onAdd={addArrayItem} onRemove={removeArrayItem}
-                                    placeholder="例：やる気が落ちている人" />
-                                <ArrayField label="この本がくれるもの" field="what_it_gives" values={formData.what_it_gives}
-                                    onChange={handleArrayChange} onAdd={addArrayItem} onRemove={removeArrayItem}
-                                    placeholder="例：視野を広げてくれる" />
+                                <div>
+                                    <Label>小説 / エッセイ（サブカテゴリ）</Label>
+                                    <div className="flex gap-2 mt-1">
+                                        {[{ value: '', label: '未分類' }, { value: 'novel', label: '📚 小説' }, { value: 'essay', label: '✍️ エッセイ' }].map(opt => (
+                                            <button key={opt.value} type="button"
+                                                onClick={() => setFormData({ ...formData, subcategory: opt.value })}
+                                                className={`px-4 py-1.5 rounded-lg border text-sm transition-colors ${formData.subcategory === opt.value ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300'}`}
+                                            >{opt.label}</button>
+                                        ))}
+                                    </div>
+                                    <p className="text-xs text-gray-400 mt-1">表示上は「小説・エッセイ」のまま。内部分類として使用します。</p>
+                                </div>
+                                <div>
+                                    <Label>こんな人に合う</Label>
+                                    <p className="text-xs text-gray-400 mb-1">診断タイプ名ではなく、自然なユーザー表現で入力してください</p>
+                                    <ArrayField label="" field="for_whom" values={formData.for_whom}
+                                        onChange={handleArrayChange} onAdd={addArrayItem} onRemove={removeArrayItem}
+                                        placeholder="例：やる気が落ちている人" />
+                                </div>
+                                <div>
+                                    <Label>この本がくれるもの</Label>
+                                    <ArrayField label="" field="what_it_gives" values={formData.what_it_gives}
+                                        onChange={handleArrayChange} onAdd={addArrayItem} onRemove={removeArrayItem}
+                                        placeholder="例：視野を広げてくれる" />
+                                </div>
                                 <ArrayField label="読後に起きる変化" field="novel_outcomes" values={formData.novel_outcomes}
                                     onChange={handleArrayChange} onAdd={addArrayItem} onRemove={removeArrayItem}
                                     placeholder="例：仕事の見え方が少し変わる" />
                                 <div>
-                                    <Label>効き方ラベル</Label>
-                                    <Input value={formData.effect_label} onChange={(e) => setFormData({ ...formData, effect_label: e.target.value })} placeholder="例：発想が広がる" />
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                        {EFFECT_LABEL_EXAMPLES.map(ex => (
-                                            <button
-                                                key={ex}
-                                                type="button"
-                                                onClick={() => setFormData({ ...formData, effect_label: ex })}
-                                                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${formData.effect_label === ex ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-300 hover:border-indigo-400'}`}
-                                            >
-                                                {ex}
-                                            </button>
-                                        ))}
+                                    <Label>効き方ラベル（複数選択可）</Label>
+                                    <p className="text-xs text-gray-400 mb-2">候補から選んでください。後から集計・絞り込みに使います。</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {EFFECT_LABEL_OPTIONS.map(ex => {
+                                            const selected = (formData.effect_labels || []).includes(ex);
+                                            return (
+                                                <button key={ex} type="button"
+                                                    onClick={() => {
+                                                        const labels = formData.effect_labels || [];
+                                                        setFormData({ ...formData, effect_labels: selected ? labels.filter(l => l !== ex) : [...labels, ex] });
+                                                    }}
+                                                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${selected ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-300 hover:border-purple-400'}`}
+                                                >{ex}</button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                                 <div>
                                     <Label>接続文</Label>
+                                    <p className="text-xs text-gray-400 mb-1">診断結果の悩みとこの本をつなぐ短い推薦文を入力してください。できれば「〜一冊」で終わる形を推奨。</p>
                                     <Textarea
                                         value={formData.connection_text}
                                         onChange={(e) => setFormData({ ...formData, connection_text: e.target.value })}
-                                        placeholder="例：発想が固くなっている時に、頭をほぐしてくれる一冊"
+                                        placeholder="例：立ち止まっている時に、前に進むきっかけをくれる一冊"
                                         rows={2}
                                     />
-                                    <p className="text-xs text-gray-400 mt-1">診断結果の悩みとこの本をつなぐ短い推薦文（〜一冊 で終わる形式）</p>
                                 </div>
                             </div>
                         </div>
