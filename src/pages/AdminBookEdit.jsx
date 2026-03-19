@@ -106,6 +106,7 @@ export default function AdminBookEdit() {
                     authors: book.authors?.length > 0 ? book.authors : [''],
                     isbn: book.isbn || '',
                     book_category: book.book_category || 'business',
+                    subcategory: book.subcategory || '',
                     tags: book.tags?.length > 0 ? book.tags : [''],
                     description: book.description || '',
                     one_liner: book.one_liner || '',
@@ -120,7 +121,7 @@ export default function AdminBookEdit() {
                     for_whom: book.for_whom?.length > 0 ? book.for_whom : [''],
                     what_it_gives: book.what_it_gives?.length > 0 ? book.what_it_gives : [''],
                     novel_outcomes: book.novel_outcomes?.length > 0 ? book.novel_outcomes : [''],
-                    effect_label: book.effect_label || '',
+                    effect_labels: Array.isArray(book.effect_labels) ? book.effect_labels : (book.effect_label ? [book.effect_label] : []),
                     connection_text: book.connection_text || '',
                 });
                 setMappings(existingMappings);
