@@ -331,7 +331,35 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                         {!isLoggedIn && <NextValueBlock mainTypeInfo={mainTypeInfo} onReset={reset} />}
 
                         <div className="mt-6 mb-6">
-                            {books.length > 0 ? (
+                            {/* マッチした事例 */}
+                        {matchedCases.length > 0 && (
+                            <div className="mb-8">
+                                <h3 className="text-xl font-bold text-gray-900 mb-1">🏢 あなたに刺さる実例</h3>
+                                <p className="text-xs text-gray-400 mb-4">同じ悩みを持つビジネスの事例です</p>
+                                <div className="space-y-3">
+                                    {matchedCases.map(c => (
+                                        <button
+                                            key={c.id}
+                                            onClick={() => navigate(createPageUrl('CaseStudyDetail') + `?id=${c.id}`)}
+                                            className="w-full text-left bg-white border border-gray-100 rounded-2xl p-4 hover:border-indigo-300 hover:shadow-md transition-all flex gap-4"
+                                        >
+                                            {c.thumbnail_url ? (
+                                                <img src={c.thumbnail_url} alt={c.company_name} className="w-16 h-16 object-cover rounded-xl flex-shrink-0" />
+                                            ) : (
+                                                <div className="w-16 h-16 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl">🏢</div>
+                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs text-indigo-600 font-semibold mb-0.5">{c.company_name}</p>
+                                                <p className="text-sm font-bold text-gray-900 leading-tight mb-1">{c.title}</p>
+                                                {c.short_description && <p className="text-xs text-gray-500 line-clamp-2">{c.short_description}</p>}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {books.length > 0 ? (
                                 <>
                                     {/* ビジネス書 */}
                                     {books.filter(b => b.book_category !== 'novel_essay').length > 0 && (
