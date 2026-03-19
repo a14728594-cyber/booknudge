@@ -570,7 +570,6 @@ JSON:
                                 </>
                             )}
                         </div>
-                        </div>
 
                         {resultTypes.length === 0 && (
                             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700 mb-4">
