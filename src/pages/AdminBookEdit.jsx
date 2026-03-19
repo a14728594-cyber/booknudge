@@ -518,9 +518,33 @@ JSON:
                                     onChange={handleArrayChange} onAdd={addArrayItem} onRemove={removeArrayItem}
                                     placeholder="例：仕事の見え方が少し変わる" />
                                 <div>
-                                    <Label>効き方ラベル（複数選択・自由追加可）</Label>
-                                    <p className="text-xs text-gray-400 mb-2">候補から選ぶか、自由に追加できます。後から集計・絞り込みに使います。</p>
-                                    <div className="flex flex-wrap gap-2 mb-3">
+                                    <Label>効き方ラベル（2〜3個を選択）</Label>
+                                    <p className="text-xs text-gray-400 mb-3">正式ラベルから2〜3個選択してください。足りない場合のみ自由追加できます。</p>
+                                    {[
+                                        { group: '感情を整える系', labels: ['気持ちが整う', '焦りがやわらぐ', '孤独感がやわらぐ', '自分を責めすぎなくなる', '心の余白が戻る'] },
+                                        { group: '視点が変わる系', labels: ['視野が広がる', '発想が広がる', '本質を見直せる', '当たり前を疑える', '自分を客観視できる'] },
+                                        { group: '行動を動かす系', labels: ['行動のきっかけになる', '一歩踏み出したくなる', '挑戦したくなる', '続ける力を思い出せる', '立ち止まりをほどける'] },
+                                        { group: '仕事観・価値観に効く系', labels: ['仕事観を見直せる', '働く意味を考え直せる', '自分の軸を取り戻せる', '誇りを取り戻せる', '人との向き合い方を見直せる'] },
+                                    ].map(({ group, labels }) => (
+                                        <div key={group} className="mb-3">
+                                            <p className="text-xs font-medium text-gray-500 mb-1.5">【{group}】</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {labels.map(ex => {
+                                                    const selected = (formData.effect_labels || []).includes(ex);
+                                                    return (
+                                                        <button key={ex} type="button"
+                                                            onClick={() => {
+                                                                const current = formData.effect_labels || [];
+                                                                setFormData({ ...formData, effect_labels: selected ? current.filter(l => l !== ex) : [...current, ex] });
+                                                            }}
+                                                            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${selected ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-300 hover:border-purple-400'}`}
+                                                        >{ex}</button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="flex flex-wrap gap-2 mb-3" style={{display:'none'}}>
                                         {EFFECT_LABEL_OPTIONS.map(ex => {
                                             const selected = (formData.effect_labels || []).includes(ex);
                                             return (
