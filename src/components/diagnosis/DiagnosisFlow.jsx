@@ -28,6 +28,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     const [mainTypeInfo, setMainTypeInfo] = useState(null);
     const [subTypeInfo, setSubTypeInfo] = useState(null);
     const [books, setBooks] = useState([]);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
         base44.entities.Genre.filter({ is_active: true }, 'order', 100).then(setGenres).catch(() => {});
