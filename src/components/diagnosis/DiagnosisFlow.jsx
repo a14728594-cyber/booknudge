@@ -394,6 +394,68 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     );
 }
 
+// 文言ブロック：タイプ別にカスタマイズしやすいよう切り出し
+function getNextValueCopy(mainTypeInfo) {
+    // 将来的にタイプ別の文言を追加しやすい構造
+    return {
+        heading: 'あなたの悩みに近い実例があります',
+        body: `同じように「${mainTypeInfo?.direction || '同じような悩み'}」で立ち止まっていた人が、\n何を変えて改善したのか見てみましょう。`,
+        cta: '結果を保存して実例を見る',
+        sub: '診断をやり直す',
+    };
+}
+
+function NextValueBlock({ mainTypeInfo, onReset }) {
+    const copy = getNextValueCopy(mainTypeInfo);
+
+    const handleCTA = () => {
+        base44.auth.redirectToLogin();
+    };
+
+    return (
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-3xl p-6 mt-2">
+            {/* 価値の予告 */}
+            <div className="flex gap-3 mb-5">
+                {[
+                    { icon: '🏢', label: 'あなた向けの実例' },
+                    { icon: '📚', label: 'おすすめ本' },
+                    { icon: '✏️', label: 'ミニアウトプット' },
+                ].map(item => (
+                    <div key={item.label} className="flex-1 bg-white/70 rounded-2xl p-3 text-center border border-white">
+                        <div className="text-xl mb-1">{item.icon}</div>
+                        <div className="text-xs text-gray-600 font-medium leading-tight">{item.label}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* 見出し・説明 */}
+            <h3 className="text-lg font-bold text-gray-900 mb-2">{copy.heading}</h3>
+            <p className="text-sm text-gray-600 leading-relaxed mb-5 whitespace-pre-line">{copy.body}</p>
+
+            {/* メインCTA */}
+            <button
+                onClick={handleCTA}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-0.5"
+            >
+                <span>{copy.cta}</span>
+                <ArrowRight className="w-5 h-5" />
+            </button>
+            <p className="text-center text-xs text-gray-400 mt-2">1分で完了・ログインして続きから見れます</p>
+
+            {/* サブCTA */}
+            <div className="flex justify-center mt-4">
+                <button
+                    onClick={onReset}
+                    className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1.5 transition-colors"
+                >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    {copy.sub}
+                </button>
+            </div>
+        </div>
+    );
+}
+
 function NovelBookCard({ book, onNavigate }) {
     const mapping = book._mapping;
     const displayText = mapping?.recommendation_text || book.connection_text || book.one_liner;
