@@ -317,8 +317,8 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                             </div>
                         )}
 
-                        {/* 続きの価値エリア */}
-                        <NextValueBlock mainTypeInfo={mainTypeInfo} onReset={reset} />
+                        {/* 続きの価値エリア（未ログインのみ） */}
+                        {!isLoggedIn && <NextValueBlock mainTypeInfo={mainTypeInfo} onReset={reset} />}
 
                         <div className="mt-6 mb-6">
                             {books.length > 0 ? (
