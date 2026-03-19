@@ -32,7 +32,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
 
     useEffect(() => {
         base44.entities.Genre.filter({ is_active: true }, 'order', 100).then(setGenres).catch(() => {});
-        base44.auth.me().then(() => setIsLoggedIn(true)).catch(() => setIsLoggedIn(false));
+        base44.auth.me().then((user) => setIsLoggedIn(!!user)).catch(() => setIsLoggedIn(false));
     }, []);
 
     const handleGenreSelect = async (genreName) => {
