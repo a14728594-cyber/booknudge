@@ -21,7 +21,7 @@ const NOVEL_SCORE_OPTIONS = [
     { value: 1, label: '1点', desc: '少し関連する / サブ候補として表示したい' },
 ];
 
-const EFFECT_LABEL_EXAMPLES = ['発想が広がる', '気持ちが整う', '行動のきっかけになる', '仕事観を見直せる', '視野が広がる', '孤独感がやわらぐ'];
+const EFFECT_LABEL_OPTIONS = ['発想が広がる', '気持ちが整う', '行動のきっかけになる', '仕事観を見直せる', '視野が広がる', '孤独感がやわらぐ'];
 
 function ArrayField({ label, field, values, onChange, onAdd, onRemove, placeholder, required }) {
     return (
