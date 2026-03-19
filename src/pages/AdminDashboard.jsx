@@ -62,13 +62,13 @@ export default function AdminDashboard() {
             // DAU (today's active users)
             const todayEvents = await base44.entities.Event.filter({
                 created_date: { $gte: todayStart.toISOString() }
-            });
+            }, '-created_date', 10000);
             const dauUserIds = new Set(todayEvents.map(e => e.user_id));
 
             // WAU (7d active users)
             const weekEvents = await base44.entities.Event.filter({
                 created_date: { $gte: sevenDaysAgo.toISOString() }
-            });
+            }, '-created_date', 10000);
             const wauUserIds = new Set(weekEvents.map(e => e.user_id));
 
             // Paid Users
