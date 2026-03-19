@@ -270,10 +270,12 @@ JSON:
             };
 
             const categoryData = isNovel ? {
+                subcategory: formData.subcategory || undefined,
                 for_whom: formData.for_whom.filter(v => v.trim()),
                 what_it_gives: formData.what_it_gives.filter(v => v.trim()),
                 novel_outcomes: formData.novel_outcomes.filter(v => v.trim()),
-                effect_label: formData.effect_label || undefined,
+                effect_labels: formData.effect_labels,
+                effect_label: formData.effect_labels[0] || undefined, // 後方互換
                 connection_text: formData.connection_text || undefined,
                 // business fields cleared
                 pain_points: [],
@@ -287,6 +289,7 @@ JSON:
                 for_whom: [],
                 what_it_gives: [],
                 novel_outcomes: [],
+                effect_labels: [],
                 effect_label: undefined,
                 connection_text: undefined,
             };
