@@ -160,10 +160,6 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
         setBooks([]);
     };
 
-    const handleGoHome = () => {
-        navigate(createPageUrl('home'));
-    };
-
     const totalQuestions = nodes.length;
     const progress = totalQuestions > 0 ? Math.round((currentIndex / totalQuestions) * 100) : 0;
     const priorityBook = books.find(b => b._mapping?.role === 'priority') || books[0];
