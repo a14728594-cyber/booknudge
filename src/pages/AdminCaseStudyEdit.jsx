@@ -25,6 +25,8 @@ export default function AdminCaseStudyEdit() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [diagnosisTypes, setDiagnosisTypes] = useState([]);
+  const [industryInput, setIndustryInput] = useState('');
+  const [learningInput, setLearningInput] = useState('');
 
   // 本検索
   const [bookQuery, setBookQuery] = useState('');
