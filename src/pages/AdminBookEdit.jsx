@@ -509,9 +509,9 @@ JSON:
                                     onChange={handleArrayChange} onAdd={addArrayItem} onRemove={removeArrayItem}
                                     placeholder="例：仕事の見え方が少し変わる" />
                                 <div>
-                                    <Label>効き方ラベル（複数選択可）</Label>
-                                    <p className="text-xs text-gray-400 mb-2">候補から選んでください。後から集計・絞り込みに使います。</p>
-                                    <div className="flex flex-wrap gap-2">
+                                    <Label>効き方ラベル（複数選択・自由追加可）</Label>
+                                    <p className="text-xs text-gray-400 mb-2">候補から選ぶか、自由に追加できます。後から集計・絞り込みに使います。</p>
+                                    <div className="flex flex-wrap gap-2 mb-3">
                                         {EFFECT_LABEL_OPTIONS.map(ex => {
                                             const selected = (formData.effect_labels || []).includes(ex);
                                             return (
@@ -524,6 +524,47 @@ JSON:
                                                 >{ex}</button>
                                             );
                                         })}
+                                    </div>
+                                    {/* カスタムラベル表示 */}
+                                    {(formData.effect_labels || []).filter(l => !EFFECT_LABEL_OPTIONS.includes(l)).length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mb-2">
+                                            {(formData.effect_labels || []).filter(l => !EFFECT_LABEL_OPTIONS.includes(l)).map(label => (
+                                                <span key={label} className="text-xs px-3 py-1.5 rounded-full border bg-purple-600 text-white border-purple-600 flex items-center gap-1">
+                                                    {label}
+                                                    <button type="button" onClick={() => setFormData({ ...formData, effect_labels: (formData.effect_labels || []).filter(l => l !== label) })}>
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {/* 自由入力 */}
+                                    <div className="flex gap-2 mt-1">
+                                        <Input
+                                            id="custom-effect-label-input"
+                                            placeholder="独自ラベルを追加（例：涙が出る）"
+                                            className="text-sm"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    const val = e.target.value.trim();
+                                                    if (val && !(formData.effect_labels || []).includes(val)) {
+                                                        setFormData({ ...formData, effect_labels: [...(formData.effect_labels || []), val] });
+                                                    }
+                                                    e.target.value = '';
+                                                }
+                                            }}
+                                        />
+                                        <Button type="button" variant="outline" size="sm" className="shrink-0"
+                                            onClick={() => {
+                                                const input = document.getElementById('custom-effect-label-input');
+                                                const val = input.value.trim();
+                                                if (val && !(formData.effect_labels || []).includes(val)) {
+                                                    setFormData({ ...formData, effect_labels: [...(formData.effect_labels || []), val] });
+                                                }
+                                                input.value = '';
+                                            }}
+                                        ><Plus className="w-4 h-4" /></Button>
                                     </div>
                                 </div>
                                 <div>
