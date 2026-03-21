@@ -306,9 +306,13 @@ export default function Home() {
                                 <p className="text-xs text-gray-400 ml-7">診断結果から厳選｜読み物・インスピレーション</p>
                             </div>
                             </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        <div
+                            className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing"
+                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                            onMouseDown={dragScroll}
+                        >
                             {recommendedBooks.filter(b => b.book_category === 'novel_essay').map(book => (
-                                <div key={book.id} onClick={() => handleBookClick(book.id, 'recommend')}>
+                                <div key={book.id} className="flex-shrink-0 w-52 snap-start" onClick={() => handleBookClick(book.id, 'recommend')}>
                                     <BookCard book={book} />
                                 </div>
                             ))}
