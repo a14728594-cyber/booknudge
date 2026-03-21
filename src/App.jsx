@@ -12,6 +12,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect } from 'react';
 
 import CaseStudiesPage from './pages/CaseStudies';
+import GenreBooksPage from './pages/GenreBooks';
 import CaseStudyDetailPage from './pages/CaseStudyDetail';
 import AdminCaseStudiesPage from './pages/AdminCaseStudies';
 import AdminCaseStudyEditPage from './pages/AdminCaseStudyEdit';
