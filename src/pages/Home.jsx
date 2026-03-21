@@ -322,19 +322,10 @@ export default function Home() {
                                     {domainConfig[mainDomain]?.label || mainDomain}
                                 </h2>
                             </div>
-                            <span className="text-xs text-gray-400 hidden sm:block">← スライド →</span>
-                        </div>
-                        <div
-                            className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing"
-                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                            onMouseDown={dragScroll}
-                        >
+                            </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                             {topBooks[mainDomain].map(book => (
-                                <div
-                                    key={book.id}
-                                    className="flex-shrink-0 w-52 snap-start"
-                                    onClick={() => handleBookClick(book.id, mainDomain)}
-                                >
+                                <div key={book.id} onClick={() => handleBookClick(book.id, mainDomain)}>
                                     <BookCard book={book} />
                                 </div>
                             ))}
