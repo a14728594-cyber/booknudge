@@ -329,7 +329,8 @@ export default function Home() {
                                 <h2 className="text-xl font-bold text-gray-900">
                                     {domainConfig[mainDomain]?.label || mainDomain}
                                 </h2>
-                                <Link to={`/GenreBooks?domain=${encodeURIComponent(mainDomain)}`} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+                            </div>
+                            <Link to={`/GenreBooks?domain=${encodeURIComponent(mainDomain)}`} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
                                 もっと見る <ChevronRight className="w-4 h-4" />
                             </Link>
                         </div>
