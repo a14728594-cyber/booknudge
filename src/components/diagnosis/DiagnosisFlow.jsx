@@ -163,6 +163,17 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
 
         setSaving(false);
         setStep(STEPS.RESULT);
+
+        // 診断結果をsessionStorageに保存
+        try {
+            sessionStorage.setItem('diagnosisResult', JSON.stringify({
+                mainTypeInfo: await Promise.resolve(mainInfo),
+                subTypeInfo: await Promise.resolve(subInfo),
+                books: [],
+                matchedCases: [],
+                selectedGenre,
+            }));
+        } catch {}
     };
 
     const fetchTypeInfo = async (typeKey) => {
