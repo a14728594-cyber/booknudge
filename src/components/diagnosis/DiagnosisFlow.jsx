@@ -470,7 +470,7 @@ function getNextValueCopy(mainTypeInfo) {
     return {
         heading: 'あなたの悩みに近い実例があります',
         body: `同じように「${mainTypeInfo?.direction || '同じような悩み'}」で立ち止まっていた人が、\n何を変えて改善したのか見てみましょう。`,
-        cta: '結果を保存して実例を見る',
+        cta: '無料登録して結果を保存する',
         sub: '診断をやり直す',
     };
 }
