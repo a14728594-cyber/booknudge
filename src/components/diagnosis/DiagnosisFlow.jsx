@@ -397,7 +397,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                                                                             <span className="text-purple-700 text-xs font-medium">{subTypeInfo.label}にも対応</span>
                                                                         </div>
                                                                     )}
-                                                                    <BookCard book={book} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
+                                                                    <BookCard book={book} onNavigate={(id) => window.open(createPageUrl('Book') + `?id=${id}`, '_blank')} />
                                                                 </div>
                                                             ))}
                                                         </>
