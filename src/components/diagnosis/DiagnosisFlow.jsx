@@ -374,7 +374,13 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                                     {matchedCases.map(c => (
                                         <button
                                             key={c.id}
-                                            onClick={() => navigate(createPageUrl('CaseStudyDetail') + `?id=${c.id}`)}
+                                            onClick={() => {
+                                                if (!isLoggedIn) {
+                                                    base44.auth.redirectToLogin('/home');
+                                                } else {
+                                                    navigate(createPageUrl('CaseStudyDetail') + `?id=${c.id}`);
+                                                }
+                                            }}
                                             className="w-full text-left bg-white border border-gray-100 rounded-2xl p-4 hover:border-indigo-300 hover:shadow-md transition-all flex gap-4"
                                         >
                                             {c.thumbnail_url ? (
