@@ -186,6 +186,17 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
         setMatchedCases([]);
     };
 
+    // 結果が出たらsessionStorageに保存
+    useEffect(() => {
+        if (step === STEPS.RESULT && mainTypeInfo) {
+            try {
+                sessionStorage.setItem('diagnosisResult', JSON.stringify({
+                    mainTypeInfo, subTypeInfo, books, matchedCases, selectedGenre
+                }));
+            } catch {}
+        }
+    }, [step, mainTypeInfo, subTypeInfo, books, matchedCases, selectedGenre]);
+
     const totalQuestions = nodes.length;
     const progress = totalQuestions > 0 ? Math.round((currentIndex / totalQuestions) * 100) : 0;
     const priorityBook = books.find(b => b._mapping?.role === 'priority') || books[0];
