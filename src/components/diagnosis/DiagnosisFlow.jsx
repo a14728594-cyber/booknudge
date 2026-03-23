@@ -34,6 +34,20 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     useEffect(() => {
         base44.entities.Genre.filter({ is_active: true }, 'order', 100).then(setGenres).catch(() => {});
         base44.auth.me().then((user) => setIsLoggedIn(!!user)).catch(() => setIsLoggedIn(false));
+
+        // 診断結果をsessionStorageから復元
+        try {
+            const saved = sessionStorage.getItem('diagnosisResult');
+            if (saved) {
+                const { mainTypeInfo, subTypeInfo, books, matchedCases, selectedGenre } = JSON.parse(saved);
+                setMainTypeInfo(mainTypeInfo);
+                setSubTypeInfo(subTypeInfo);
+                setBooks(books);
+                setMatchedCases(matchedCases);
+                setSelectedGenre(selectedGenre);
+                setStep(STEPS.RESULT);
+            }
+        } catch {}
     }, []);
 
     const handleGenreSelect = async (genreName) => {
