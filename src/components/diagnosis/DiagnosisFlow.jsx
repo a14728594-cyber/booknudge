@@ -173,6 +173,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     };
 
     const reset = () => {
+        try { sessionStorage.removeItem('diagnosisResult'); } catch {}
         setStep(STEPS.GENRE);
         setSelectedGenre(null);
         setNodes([]);
