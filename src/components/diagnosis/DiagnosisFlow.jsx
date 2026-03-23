@@ -386,7 +386,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                                                                         <span className="text-amber-500 text-lg">⭐</span>
                                                                         <span className="text-amber-700 font-bold text-sm">迷ったらまずこれ</span>
                                                                     </div>
-                                                                    <BookCard book={pBook} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
+                                                                    <BookCard book={pBook} onNavigate={(id) => window.open(createPageUrl('Book') + `?id=${id}`, '_blank')} />
                                                                 </div>
                                                             )}
                                                             {rest.map(book => (
