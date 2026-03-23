@@ -445,7 +445,7 @@ function NextValueBlock({ mainTypeInfo, onReset }) {
     const copy = getNextValueCopy(mainTypeInfo);
 
     const handleCTA = () => {
-        base44.auth.redirectToLogin();
+        base44.auth.redirectToLogin('/home');
     };
 
     return (
