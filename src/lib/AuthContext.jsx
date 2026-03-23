@@ -94,16 +94,17 @@ export const AuthProvider = ({ children }) => {
 
   const checkUserAuth = async () => {
     try {
-      // Now check if the user is authenticated
       setIsLoadingAuth(true);
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
+      return true;
     } catch (error) {
-      // User is simply not logged in - this is not an error for public pages
+      // User is simply not logged in
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
+      return false;
     }
   };
 
