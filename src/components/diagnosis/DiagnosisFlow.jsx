@@ -192,10 +192,18 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </button>
-                    <div>
+                    <div className="flex-1">
                         <h1 className="text-lg font-bold text-gray-900 leading-none">深掘り診断</h1>
                         <p className="text-xs text-gray-400 mt-0.5">あなたにぴったりの本を見つけます</p>
                     </div>
+                    {!isLoggedIn && (
+                        <button
+                            onClick={() => base44.auth.redirectToLogin('/home')}
+                            className="text-xs text-indigo-600 font-semibold hover:text-indigo-800 transition-colors px-3 py-1.5 rounded-lg hover:bg-indigo-50 border border-indigo-200"
+                        >
+                            ログイン
+                        </button>
+                    )}
                 </div>
 
                 {/* ジャンル選択 */}
