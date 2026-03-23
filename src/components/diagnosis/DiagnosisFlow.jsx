@@ -414,8 +414,8 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                                             <p className="text-xs text-gray-400 mb-4">視点・感情・行動のきっかけとして</p>
                                             <div className="space-y-4">
                                                 {books.filter(b => b.book_category === 'novel_essay').map(book => (
-                                                    <div key={book.id} className="bg-white border border-purple-100 rounded-2xl p-5">
-                                                        <NovelBookCard book={book} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
+                                                   <div key={book.id} className="bg-white border border-purple-100 rounded-2xl p-5">
+                                                       <NovelBookCard book={book} onNavigate={(id) => window.open(createPageUrl('Book') + `?id=${id}`, '_blank')} />
                                                     </div>
                                                 ))}
                                             </div>
