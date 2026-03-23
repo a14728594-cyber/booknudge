@@ -46,35 +46,40 @@ export const AuthProvider = ({ children }) => {
         }
         setIsLoadingPublicSettings(false);
       } catch (appError) {
-        console.error('App state check failed:', appError);
-        
         // Handle app-level errors
         if (appError.status === 403 && appError.data?.extra_data?.reason) {
           const reason = appError.data.extra_data.reason;
-          if (reason === 'auth_required') {
-            setAuthError({
-              type: 'auth_required',
-              message: 'Authentication required'
-            });
-          } else if (reason === 'user_not_registered') {
-            setAuthError({
-              type: 'user_not_registered',
-              message: 'User not registered for this app'
-            });
+          
+          if (reason === 'user_not_registered') {
+            setAuthError({ type: 'user_not_registered', message: 'User not registered for this app' });
+            setIsLoadingPublicSettings(false);
+            setIsLoadingAuth(false);
+          } else if (reason === 'auth_required') {
+            // App requires auth - if we have a token, try to authenticate the user first
+            if (appParams.token) {
+              setIsLoadingPublicSettings(false);
+              const authed = await checkUserAuth();
+              // If auth succeeded, clear the error (user is logged in, just app settings restricted)
+              if (authed) {
+                setAuthError(null);
+              } else {
+                setAuthError({ type: 'auth_required', message: 'Authentication required' });
+              }
+            } else {
+              setAuthError({ type: 'auth_required', message: 'Authentication required' });
+              setIsLoadingPublicSettings(false);
+              setIsLoadingAuth(false);
+            }
           } else {
-            setAuthError({
-              type: reason,
-              message: appError.message
-            });
+            setAuthError({ type: reason, message: appError.message });
+            setIsLoadingPublicSettings(false);
+            setIsLoadingAuth(false);
           }
         } else {
-          setAuthError({
-            type: 'unknown',
-            message: appError.message || 'Failed to load app'
-          });
+          setAuthError({ type: 'unknown', message: appError.message || 'Failed to load app' });
+          setIsLoadingPublicSettings(false);
+          setIsLoadingAuth(false);
         }
-        setIsLoadingPublicSettings(false);
-        setIsLoadingAuth(false);
       }
     } catch (error) {
       console.error('Unexpected error:', error);
