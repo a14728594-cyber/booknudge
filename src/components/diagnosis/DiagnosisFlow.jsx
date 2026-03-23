@@ -227,7 +227,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                             onClick={() => base44.auth.redirectToLogin('/home')}
                             className="text-sm text-indigo-600 font-semibold hover:text-indigo-800 transition-colors px-4 py-2 rounded-lg hover:bg-indigo-50 border border-indigo-200"
                         >
-                            ログイン
+                            無料登録
                         </button>
                     )}
                 </div>
