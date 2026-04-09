@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const AI_CUSTOMERS = [
+const PERSONAS = [
   { id: 'yuki', emoji: '👩', name: 'ゆき', age: 32, style: '子育て中' },
   { id: 'taro', emoji: '👨', name: 'たろう', age: 45, style: 'サラリーマン' },
   { id: 'hana', emoji: '🧑', name: 'はな', age: 22, style: '大学生' },
@@ -9,14 +9,14 @@ const AI_CUSTOMERS = [
   { id: 'kei',  emoji: '🧔', name: 'けい', age: 35, style: 'フリーランス' },
 ];
 
-// スコアに基づいて客の反応を決定
+// スコアに基づいて想定顧客の反応を決定
 function getCustomerAction(idx, customerReaction) {
   const { enter = 3, stop = 3, pass = 4 } = customerReaction || {};
   const total = enter + stop + pass;
   const enterRatio = enter / total;
   const stopRatio = stop / total;
 
-  const r = (idx + 1) / AI_CUSTOMERS.length;
+  const r = (idx + 1) / PERSONAS.length;
   if (r <= enterRatio) return 'enter';
   if (r <= enterRatio + stopRatio) return 'stop';
   return 'pass';
@@ -36,7 +36,7 @@ export default function CustomerStreet({ customerReaction, isTeaser = false }) {
     return () => clearTimeout(t);
   }, []);
 
-  const customers = AI_CUSTOMERS.map((c, i) => ({
+  const customers = PERSONAS.map((c, i) => ({
     ...c,
     action: getCustomerAction(i, customerReaction),
     delay: i * 0.6,
@@ -88,7 +88,7 @@ export default function CustomerStreet({ customerReaction, isTeaser = false }) {
       {/* ティーザー時のぼかし */}
       {isTeaser && (
         <div className="absolute inset-0 bg-gradient-to-t from-white/60 to-transparent flex items-end justify-center pb-3">
-          <p className="text-xs text-gray-400 font-medium">ログインすると全員の反応がわかります</p>
+          <p className="text-xs text-gray-400 font-medium">ログインすると想定顧客全員の反応がわかります</p>
         </div>
       )}
     </div>

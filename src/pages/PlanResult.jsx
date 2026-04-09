@@ -93,7 +93,7 @@ export default function PlanResult() {
         {/* ヘッダー */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <p className="text-xs text-gray-400 mb-1">🏪 カフェ編 › マーケティング</p>
-          <h1 className="text-2xl font-bold text-gray-900">AI客の反応が出ました</h1>
+          <h1 className="text-2xl font-bold text-gray-900">想定顧客の反応が出ました</h1>
         </motion.div>
 
         {/* 客アニメーション */}
