@@ -12,6 +12,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect } from 'react';
 
 import CaseStudiesPage from './pages/CaseStudies';
+import GameEntryPage from './pages/GameEntry';
+import PlanInputPage from './pages/PlanInput';
+import PlanResultPage from './pages/PlanResult';
 import GenreBooksPage from './pages/GenreBooks';
 import CaseStudyDetailPage from './pages/CaseStudyDetail';
 import AdminCaseStudiesPage from './pages/AdminCaseStudies';
@@ -114,6 +117,9 @@ const AuthenticatedApp = () => {
         <Route path="/AdminCaseStudies" element={<LayoutWrapper currentPageName="AdminCaseStudies"><AdminCaseStudiesPage /></LayoutWrapper>} />
         <Route path="/AdminCaseStudyEdit" element={<LayoutWrapper currentPageName="AdminCaseStudyEdit"><AdminCaseStudyEditPage /></LayoutWrapper>} />
         <Route path="/GenreBooks" element={<LayoutWrapper currentPageName="GenreBooks"><GenreBooksPage /></LayoutWrapper>} />
+        <Route path="/game" element={<GameEntryPage />} />
+        <Route path="/plan-input" element={<PlanInputPage />} />
+        <Route path="/plan-result" element={<PlanResultPage />} />
         <Route path="/Onboarding" element={<Navigate to="/home" replace />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
