@@ -211,13 +211,17 @@ export default function Home() {
         const allTypes = [...new Set(books.flatMap(b => b.tags || []))].slice(0, 10);
         const activeType = activeTagByDomain[domain];
         const filtered = activeType ? books.filter(b => b.tags?.includes(activeType)) : books;
-        const accentColor = isMain ? 'indigo' : 'purple';
+        const activeCls = isMain
+            ? 'bg-indigo-600 text-white border-indigo-600'
+            : 'bg-purple-500 text-white border-purple-500';
+        const inactiveCls = 'bg-white text-gray-500 border-gray-200';
+        const accentBar = isMain ? 'bg-indigo-600' : 'bg-purple-400';
 
         return (
             <section key={domain} className="mb-14">
                 <div className="flex items-end justify-between mb-3">
                     <div className="flex items-center gap-2.5">
-                        <div className={`w-1 h-6 bg-${accentColor}-${isMain ? '600' : '400'} rounded-full`} />
+                        <div className={`w-1 h-6 ${accentBar} rounded-full`} />
                         <h2 className="text-xl font-bold text-gray-900">
                             {domainConfig[domain]?.label || domain}
                         </h2>
@@ -231,14 +235,14 @@ export default function Home() {
                         <button
                             onClick={() => setActiveTagByDomain(p => ({...p, [domain]: null}))}
                             className={`flex-shrink-0 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
-                                !activeType ? `bg-${accentColor}-${isMain ? '600' : '500'} text-white border-${accentColor}-${isMain ? '600' : '500'}` : 'bg-white text-gray-500 border-gray-200'
+                                !activeType ? activeCls : inactiveCls
                             }`}
                         >すべて</button>
                         {allTypes.map(type => (
                             <button key={type}
                                 onClick={() => setActiveTagByDomain(p => ({...p, [domain]: p[domain] === type ? null : type}))}
                                 className={`flex-shrink-0 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
-                                    activeType === type ? `bg-${accentColor}-${isMain ? '600' : '500'} text-white border-${accentColor}-${isMain ? '600' : '500'}` : 'bg-white text-gray-500 border-gray-200'
+                                    activeType === type ? activeCls : inactiveCls
                                 }`}
                             >{type}</button>
                         ))}
