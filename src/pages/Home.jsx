@@ -110,14 +110,22 @@ export default function Home() {
         ? diagnosisTypes.filter(t => t.genre === selectedGenre)
         : [];
 
-    // Filtered books
+    // Filtered books — match against both key and label
     const filteredBooks = (() => {
         if (selectedType) {
-            return allBooks.filter(b => b.diagnosis_types?.includes(selectedType));
+            const typeRecord = diagnosisTypes.find(t => t.key === selectedType);
+            return allBooks.filter(b =>
+                b.diagnosis_types?.includes(selectedType) ||
+                (typeRecord && b.diagnosis_types?.includes(typeRecord.label))
+            );
         }
         if (selectedGenre) {
-            const typeKeys = typesForGenre.map(t => t.key);
-            return allBooks.filter(b => b.diagnosis_types?.some(dt => typeKeys.includes(dt)));
+            const typeRecords = typesForGenre;
+            return allBooks.filter(b =>
+                b.diagnosis_types?.some(dt =>
+                    typeRecords.some(t => t.key === dt || t.label === dt)
+                )
+            );
         }
         return allBooks;
     })();
