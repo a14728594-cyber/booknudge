@@ -49,14 +49,6 @@ export default function Home() {
             setAllBooks(books);
             setDiagnosisTypes(typeList);
             setCaseStudies(cases);
-            // Debug
-            const booksWithTypes = books.filter(b => b.diagnosis_types?.length > 0);
-            console.log('[Home] diagnosis_types持ちの本:', booksWithTypes.length);
-            if (booksWithTypes.length > 0) {
-                console.log('[Home] サンプル本のdiagnosis_types:', booksWithTypes[0].diagnosis_types);
-            }
-            console.log('[Home] DiagnosisResultTypeのkey一覧:', typeList.map(t => t.key));
-            console.log('[Home] DiagnosisResultTypeのgenre一覧:', [...new Set(typeList.map(t => t.genre))]);
 
             // Recommended books for logged-in users
             try {
