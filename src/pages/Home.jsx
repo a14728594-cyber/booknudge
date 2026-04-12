@@ -14,18 +14,8 @@ export default function Home() {
 
     // Data
     const [allBooks, setAllBooks] = useState([]);
-    const [diagnosisTypes, setDiagnosisTypes] = useState([]);
     const [caseStudies, setCaseStudies] = useState([]);
     const [recommendedBooks, setRecommendedBooks] = useState([]);
-
-    // Filter state
-    const [selectedGenre, setSelectedGenre] = useState(null); // genre name
-    const [selectedType, setSelectedType] = useState(null);   // diagnosis type key
-
-    useEffect(() => {
-        loadData();
-        checkCheckoutSuccess();
-    }, []);
 
     const checkCheckoutSuccess = async () => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -41,13 +31,11 @@ export default function Home() {
 
     const loadData = async () => {
         try {
-            const [books, typeList, cases] = await Promise.all([
+            const [books, cases] = await Promise.all([
                 base44.entities.Book.list('-created_date', 200),
-                base44.entities.DiagnosisResultType.list('order', 100),
                 base44.entities.CaseStudy.filter({ is_published: true }, 'order', 6),
             ]);
             setAllBooks(books);
-            setDiagnosisTypes(typeList);
             setCaseStudies(cases);
 
             // Recommended books for logged-in users
@@ -102,52 +90,7 @@ export default function Home() {
         document.addEventListener('mouseup', onUp);
     };
 
-    // Unique genres extracted directly from DiagnosisResultType records
-    const genres = [...new Set(diagnosisTypes.map(t => t.genre).filter(Boolean))];
 
-    // Filtered types based on selected genre
-    const typesForGenre = selectedGenre
-        ? diagnosisTypes.filter(t => t.genre === selectedGenre)
-        : [];
-
-    // Filtered books — match against both key and label
-    const filteredBooks = (() => {
-        if (selectedType) {
-            const typeRecord = diagnosisTypes.find(t => t.key === selectedType);
-            return allBooks.filter(b =>
-                b.diagnosis_types?.includes(selectedType) ||
-                (typeRecord && b.diagnosis_types?.includes(typeRecord.label))
-            );
-        }
-        if (selectedGenre) {
-            const typeRecords = typesForGenre;
-            return allBooks.filter(b =>
-                b.diagnosis_types?.some(dt =>
-                    typeRecords.some(t => t.key === dt || t.label === dt)
-                )
-            );
-        }
-        return allBooks;
-    })();
-
-    const handleGenreSelect = (genreName) => {
-        if (selectedGenre === genreName) {
-            setSelectedGenre(null);
-            setSelectedType(null);
-        } else {
-            setSelectedGenre(genreName);
-            setSelectedType(null);
-        }
-    };
-
-    const handleTypeSelect = (typeKey) => {
-        setSelectedType(selectedType === typeKey ? null : typeKey);
-    };
-
-    const handleReset = () => {
-        setSelectedGenre(null);
-        setSelectedType(null);
-    };
 
     if (loading) {
         return (
@@ -222,113 +165,27 @@ export default function Home() {
                 </div>
 
                 {/* おすすめ（ログイン時） */}
-                {recommendedBooks.length > 0 && !selectedGenre && (
-                    <section className="mb-10">
-                        <div className="flex items-center gap-2 mb-4">
-                            <span className="text-lg">✨</span>
-                            <h2 className="text-xl font-bold text-gray-900">あなたへのおすすめ</h2>
-                        </div>
-                        <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing" style={{ scrollbarWidth: 'none' }} onMouseDown={dragScroll}>
-                            {recommendedBooks.map(book => (
-                                <div key={book.id} className="flex-shrink-0 w-52 snap-start" onClick={() => handleBookClick(book.id)}>
-                                    <BookCard book={book} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
+                {recommendedBooks.length > 0 && (
 
-                {/* ===== 2段階フィルター ===== */}
-                <div className="mb-6">
-                    {/* Level 1: ジャンル */}
-                    <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
-                        <button
-                            onClick={handleReset}
-                            className={`flex-shrink-0 text-sm px-4 py-2 rounded-full border font-medium transition-colors ${
-                                !selectedGenre ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
-                            }`}
-                        >すべて</button>
-                        {genres.map(g => (
-                            <button
-                                key={g}
-                                onClick={() => handleGenreSelect(g)}
-                                className={`flex-shrink-0 text-sm px-4 py-2 rounded-full border font-medium transition-colors ${
-                                    selectedGenre === g ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
-                                }`}
-                            >{g}</button>
-                        ))}
-                    </div>
 
-                    {/* Level 2: 診断タイプ（ジャンル選択時のみ） */}
-                    {selectedGenre && typesForGenre.length > 0 && (
-                        <div className="flex gap-2 overflow-x-auto pb-2 mt-3 pl-1" style={{ scrollbarWidth: 'none' }}>
-                            <button
-                                onClick={() => setSelectedType(null)}
-                                className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
-                                    !selectedType ? 'bg-violet-600 text-white border-violet-600' : 'bg-white text-gray-500 border-gray-200 hover:border-violet-300'
-                                }`}
-                            >すべて</button>
-                            {typesForGenre.map(t => (
-                                <button
-                                    key={t.key}
-                                    onClick={() => handleTypeSelect(t.key)}
-                                    className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full border font-medium transition-colors whitespace-nowrap ${
-                                        selectedType === t.key ? 'bg-violet-600 text-white border-violet-600' : 'bg-white text-gray-500 border-gray-200 hover:border-violet-300'
-                                    }`}
-                                >{t.emoji ? `${t.emoji} ${t.label}` : t.label}</button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* 絞り込み状態の見出し */}
-                {selectedGenre && (
-                    <div className="mb-4 flex items-center gap-2">
-                        <div className="w-1 h-6 bg-indigo-600 rounded-full" />
-                        <h2 className="text-lg font-bold text-gray-900">
-                            {selectedType ? diagnosisTypes.find(t => t.key === selectedType)?.label || selectedType : selectedGenre}
-                        </h2>
-                        <span className="text-sm text-gray-400">{filteredBooks.length}冊</span>
-                    </div>
-                )}
 
                 {/* 本一覧 */}
-                {filteredBooks.length > 0 ? (
-                    selectedGenre ? (
-                        // フィルター中はグリッド表示
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-14">
-                            {filteredBooks.map(book => (
-                                <div key={book.id} onClick={() => handleBookClick(book.id)}>
-                                    <BookCard book={book} />
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        // デフォルトはカルーセル（全件）
-                        <section className="mb-14">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">すべての本</h2>
-                                <span className="text-sm text-gray-400">{allBooks.length}冊</span>
-                            </div>
-                            <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing" style={{ scrollbarWidth: 'none' }} onMouseDown={dragScroll}>
-                                {allBooks.map(book => (
-                                    <div key={book.id} className="flex-shrink-0 w-52 snap-start" onClick={() => handleBookClick(book.id)}>
-                                        <BookCard book={book} />
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                    )
-                ) : (
-                    <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-                        <div className="text-4xl mb-4">📚</div>
-                        <p className="text-gray-600 font-medium mb-2">該当する本が見つかりませんでした</p>
-                        <button onClick={handleReset} className="text-indigo-600 text-sm font-medium hover:underline">フィルターをリセット</button>
+                <section className="mb-14">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-bold text-gray-900">すべての本</h2>
+                        <span className="text-sm text-gray-400">{allBooks.length}冊</span>
                     </div>
-                )}
+                    <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing" style={{ scrollbarWidth: 'none' }} onMouseDown={dragScroll}>
+                        {allBooks.map(book => (
+                            <div key={book.id} className="flex-shrink-0 w-52 snap-start" onClick={() => handleBookClick(book.id)}>
+                                <BookCard book={book} />
+                            </div>
+                        ))}
+                    </div>
+                </section>
 
                 {/* 事例から学ぶ */}
-                {caseStudies.length > 0 && !selectedGenre && (
+                {caseStudies.length > 0 && (
                     <section className="mb-14">
                         <div className="flex items-end justify-between mb-5">
                             <div>
