@@ -44,16 +44,20 @@ export default function BookCard({ book, reason }) {
                         </p>
                     )}
 
-                    {book.tags && book.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-auto pt-2">
-                            {book.tags.slice(0, 3).map((tag, idx) => (
-                                <span
-                                    key={idx}
-                                    className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full font-medium"
-                                >
-                                    {tag}
-                                </span>
-                            ))}
+                    {/* ジャンルパス表示 */}
+                    {(book.tags?.length > 0 || book.pain_points?.length > 0) && (
+                        <div className="mt-auto pt-2 space-y-1.5">
+                            {book.tags?.[0] && (
+                                <div className="flex items-center gap-1 flex-wrap">
+                                    <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">{book.tags[0]}</span>
+                                    {book.pain_points?.[0] && (
+                                        <>
+                                            <span className="text-[9px] text-gray-300">›</span>
+                                            <span className="text-[10px] font-medium text-orange-700 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100 leading-tight">{book.pain_points[0]}</span>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
