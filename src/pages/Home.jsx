@@ -45,7 +45,9 @@ export default function Home() {
     useEffect(() => {
         loadData();
         checkCheckoutSuccess();
-        base44.entities.CaseStudy.filter({ is_published: true }, 'order', 6).then(setCaseStudies).catch(() => {});
+        base44.entities.CaseStudy.filter({ is_published: true }, 'order', 6)
+            .then(data => setCaseStudies(data))
+            .catch(() => {});
     }, []);
 
     const checkCheckoutSuccess = async () => {
