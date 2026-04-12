@@ -325,12 +325,20 @@ export default function PlanResult() {
                       <p className="text-xs font-bold text-gray-500 tracking-widest uppercase mb-3">📚 今のあなたに必要な本</p>
                       <div className="space-y-3">
                         {aiResult.recommended_books.map((book, i) => (
-                          <div key={i} className="flex items-start gap-3 pb-3 border-b border-gray-50 last:border-0 last:pb-0">
-                            <div className="w-8 h-10 rounded bg-amber-100 flex items-center justify-center flex-shrink-0 text-base">📖</div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-gray-800 leading-snug">{book.title}</p>
-                              <p className="text-[11px] text-gray-400 mt-0.5">{book.author}</p>
-                              <p className="text-xs text-amber-700 bg-amber-50 rounded-lg px-2 py-1 mt-1.5 leading-snug">{book.why}</p>
+                          <div key={i} className="rounded-xl border border-amber-100 bg-amber-50/40 p-3">
+                            {/* ジャンルパス */}
+                            <div className="flex items-center gap-1 mb-2 flex-wrap">
+                              <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">{book.genre_main}</span>
+                              <span className="text-[10px] text-gray-400">›</span>
+                              <span className="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">{book.genre_sub}</span>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <div className="w-8 h-10 rounded bg-amber-200 flex items-center justify-center flex-shrink-0 text-base">📖</div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-gray-800 leading-snug">{book.title}</p>
+                                <p className="text-[11px] text-gray-400 mt-0.5">{book.author}</p>
+                                <p className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-lg px-2 py-1 mt-1.5 leading-snug">⚡ {book.why}</p>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -338,7 +346,7 @@ export default function PlanResult() {
                     </div>
                   )}
 
-                  {/* DB本（フォールバック） */}
+                  {/* DB本（フォールバック）
                   {!aiResult.recommended_books?.length && books.length > 0 && (
                     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4">
                       <p className="text-xs font-bold text-gray-500 tracking-widest uppercase mb-3">弱点を補う本</p>

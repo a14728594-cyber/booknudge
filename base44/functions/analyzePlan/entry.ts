@@ -82,7 +82,13 @@ total_customers は常に100にしてください。
 - スコアが低い（〜49点）ほど基礎的な本（マーケティング入門、顧客理解の基礎など）
 - 中程度（50〜69点）は実践的な本（ポジショニング戦略、ターゲット設定の実践など）
 - 高得点（70点以上）は応用・専門的な本（差別化戦略の深化、ブランド構築の高度理論など）
-各冊について：title（書名）、author（著者名）、why（なぜ今のあなたにこの本が必要か・20字以内）を返してください。
+- 最も得点が低かった軸（target_clarity / value_clarity / differentiation など）の弱点テーマを優先して本を選ぶこと
+各冊について以下を返してください：
+- title（書名）
+- author（著者名）
+- genre_main：大ジャンル（例：マーケティング、ブランディング、価格戦略、顧客心理、差別化戦略）
+- genre_sub：この本がズバリ刺さるターゲット像（例：「ターゲット設定が曖昧な人へ」「差別化できていない人へ」「価格の根拠を作れていない人へ」）。必ず「〜な人へ」の形で書く。
+- why：今のあなたのこの弱点に効く理由を20字以内で
 実在する本のみ。架空の本は絶対に出さないこと。著者名も正確に。
 
 【recommended_cases】
@@ -132,9 +138,11 @@ total_customers は常に100にしてください。
             items: {
               type: "object",
               properties: {
-                title:  { type: "string" },
-                author: { type: "string" },
-                why:    { type: "string" }
+                title:       { type: "string" },
+                author:      { type: "string" },
+                genre_main:  { type: "string" },
+                genre_sub:   { type: "string" },
+                why:         { type: "string" }
               }
             }
           },
