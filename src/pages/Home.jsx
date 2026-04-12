@@ -32,12 +32,6 @@ const domainConfig = {
     }
 };
 
-const BOOK_ROLE_LABELS = {
-    priority: '⭐ まずこれを読む',
-    perspective: '🔭 視点を広げる',
-    action: '🚀 行動に落とす',
-};
-
 export default function Home() {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
@@ -67,7 +61,6 @@ export default function Home() {
                 event_value: { from: 'paywall' }
             });
 
-            // nextUrlがあれば遷移
             if (nextUrl) {
                 window.history.replaceState({}, '', window.location.pathname);
                 navigate(nextUrl);
@@ -77,11 +70,8 @@ export default function Home() {
 
     const loadData = async () => {
         try {
-            // 本一覧は認証不要で取得（最重要）
             const allBooks = await base44.entities.Book.list('-created_date', 200);
-            console.log('[Home] 全本取得件数:', allBooks.length);
 
-            // 各ジャンルの本を分類
             const booksByDomain = {};
             for (const [domain, config] of Object.entries(domainConfig)) {
                 const domainBooks = allBooks.filter(book =>
@@ -96,17 +86,13 @@ export default function Home() {
                     booksByDomain[domain] = domainBooks;
                 }
             }
-            console.log('[Home] ジャンル別本数:', Object.fromEntries(Object.entries(booksByDomain).map(([k,v]) => [k, v.length])));
 
-            // タグ分類で一件もなければ全本をマーケティングに入れてフォールバック
             if (Object.keys(booksByDomain).length === 0 && allBooks.length > 0) {
-                console.log('[Home] タグ分類0件のためフォールバック: 全本を表示');
                 booksByDomain['すべての本'] = allBooks.slice(0, 15);
             }
             setTopBooks(booksByDomain);
             setMainDomain(Object.keys(booksByDomain)[0] || Object.keys(domainConfig)[0]);
 
-            // ログインユーザーのみの処理
             try {
                 const user = await base44.auth.me();
                 base44.functions.invoke('trackEvent', {
@@ -115,16 +101,13 @@ export default function Home() {
                     update_last_active: true
                 }).catch(() => {});
 
-                // 深掘り診断の最新セッションを取得
                 const latestSessions = await base44.entities.DiagnosisSession.filter(
                     { user_id: user.id, is_latest: true },
                     '-created_date',
                     1
                 );
                 const latestSession = latestSessions[0] || null;
-                console.log('[Home] 最新診断セッション:', latestSession ? latestSession.main_type : 'なし');
 
-                // おすすめ本のスコアリング
                 if ((user?.onboarding_completed && user?.profile_json) || latestSession) {
                     const scoredBooks = allBooks.map(book => {
                         let score = 0;
@@ -167,12 +150,10 @@ export default function Home() {
                         .sort((a, b) => b.score - a.score)
                         .slice(0, 10)
                         .map(s => s.book);
-                    console.log('[Home] おすすめ本件数:', topRec.length);
                     setRecommendedBooks(topRec);
                 }
             } catch (authError) {
-                // 未ログインは正常（本一覧はすでに表示済み）
-                console.log('[Home] 未ログインユーザー（本一覧は表示）');
+                // 未ログインは正常
             }
         } catch (error) {
             console.error('[Home] 本取得エラー:', error);
@@ -189,11 +170,10 @@ export default function Home() {
     };
 
     const handleBookClick = async (bookId, domain) => {
-        // Track event without blocking navigation
         base44.functions.invoke('trackEvent', {
             event_name: 'book_view',
             event_value: { book_id: bookId, domain }
-        }).catch(() => {}); // Silently fail
+        }).catch(() => {});
     };
 
     if (loading) {
@@ -223,6 +203,56 @@ export default function Home() {
         };
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
+    };
+
+    const renderDomainSection = (domain, isMain) => {
+        const books = topBooks[domain];
+        if (!books || books.length === 0) return null;
+        const allTypes = [...new Set(books.flatMap(b => b.diagnosis_types || []))];
+        const activeType = activeTagByDomain[domain];
+        const filtered = activeType ? books.filter(b => b.diagnosis_types?.includes(activeType)) : books;
+        const accentColor = isMain ? 'indigo' : 'purple';
+
+        return (
+            <section key={domain} className="mb-14">
+                <div className="flex items-end justify-between mb-3">
+                    <div className="flex items-center gap-2.5">
+                        <div className={`w-1 h-6 bg-${accentColor}-${isMain ? '600' : '400'} rounded-full`} />
+                        <h2 className="text-xl font-bold text-gray-900">
+                            {domainConfig[domain]?.label || domain}
+                        </h2>
+                    </div>
+                    <Link to={`/GenreBooks?domain=${encodeURIComponent(domain)}`} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+                        もっと見る <ChevronRight className="w-4 h-4" />
+                    </Link>
+                </div>
+                {allTypes.length > 0 && (
+                    <div className="flex gap-2 overflow-x-auto pb-2 mb-3" style={{scrollbarWidth:'none'}}>
+                        <button
+                            onClick={() => setActiveTagByDomain(p => ({...p, [domain]: null}))}
+                            className={`flex-shrink-0 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
+                                !activeType ? `bg-${accentColor}-${isMain ? '600' : '500'} text-white border-${accentColor}-${isMain ? '600' : '500'}` : 'bg-white text-gray-500 border-gray-200'
+                            }`}
+                        >すべて</button>
+                        {allTypes.map(type => (
+                            <button key={type}
+                                onClick={() => setActiveTagByDomain(p => ({...p, [domain]: p[domain] === type ? null : type}))}
+                                className={`flex-shrink-0 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
+                                    activeType === type ? `bg-${accentColor}-${isMain ? '600' : '500'} text-white border-${accentColor}-${isMain ? '600' : '500'}` : 'bg-white text-gray-500 border-gray-200'
+                                }`}
+                            >{type}</button>
+                        ))}
+                    </div>
+                )}
+                <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} onMouseDown={dragScroll}>
+                    {filtered.map(book => (
+                        <div key={book.id} className="flex-shrink-0 w-52 snap-start" onClick={() => handleBookClick(book.id, domain)}>
+                            <BookCard book={book} />
+                        </div>
+                    ))}
+                </div>
+            </section>
+        );
     };
 
     return (
@@ -256,7 +286,6 @@ export default function Home() {
                     {/* Diagnosis CTA */}
                     <Link to={createPageUrl('DeepDiagnosis')}>
                         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-700 p-5 text-white hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
-                            {/* subtle pattern */}
                             <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '40px 40px'}} />
                             <div className="relative flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-4">
@@ -310,12 +339,8 @@ export default function Home() {
                                 </div>
                                 <p className="text-xs text-gray-400 ml-7">診断結果から厳選｜ビジネス書</p>
                             </div>
-                            </div>
-                        <div
-                            className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing"
-                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                            onMouseDown={dragScroll}
-                        >
+                        </div>
+                        <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} onMouseDown={dragScroll}>
                             {recommendedBooks.filter(b => b.book_category !== 'novel_essay').map(book => (
                                 <div key={book.id} className="flex-shrink-0 w-52 snap-start" onClick={() => handleBookClick(book.id, 'recommend')}>
                                     <BookCard book={book} />
@@ -336,12 +361,8 @@ export default function Home() {
                                 </div>
                                 <p className="text-xs text-gray-400 ml-7">診断結果から厳選｜読み物・インスピレーション</p>
                             </div>
-                            </div>
-                        <div
-                            className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing"
-                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                            onMouseDown={dragScroll}
-                        >
+                        </div>
+                        <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} onMouseDown={dragScroll}>
                             {recommendedBooks.filter(b => b.book_category === 'novel_essay').map(book => (
                                 <div key={book.id} className="flex-shrink-0 w-52 snap-start" onClick={() => handleBookClick(book.id, 'recommend')}>
                                     <BookCard book={book} />
@@ -351,103 +372,9 @@ export default function Home() {
                     </section>
                 )}
 
-                {/* Main Domain Carousel */}
-                {topBooks[mainDomain]?.length > 0 && (() => {
-                    const books = topBooks[mainDomain];
-                    const availableRoles = Object.keys(BOOK_ROLE_LABELS).filter(r => books.some(b => b.book_role === r));
-                    const activeRole = activeTagByDomain[mainDomain];
-                    const filtered = activeRole ? books.filter(b => b.book_role === activeRole) : books;
-                    return (
-                    <section className="mb-14">
-                        <div className="flex items-end justify-between mb-3">
-                            <div className="flex items-center gap-2.5">
-                                <div className="w-1 h-6 bg-indigo-600 rounded-full" />
-                                <h2 className="text-xl font-bold text-gray-900">
-                                    {domainConfig[mainDomain]?.label || mainDomain}
-                                </h2>
-                            </div>
-                            <Link to={`/GenreBooks?domain=${encodeURIComponent(mainDomain)}`} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                                もっと見る <ChevronRight className="w-4 h-4" />
-                            </Link>
-                        </div>
-                        {availableRoles.length > 0 && (
-                            <div className="flex gap-2 overflow-x-auto pb-2 mb-3" style={{scrollbarWidth:'none'}}>
-                                <button
-                                    onClick={() => setActiveTagByDomain(p => ({...p, [mainDomain]: null}))}
-                                    className={`flex-shrink-0 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
-                                        !activeRole ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300'
-                                    }`}
-                                >すべて</button>
-                                {availableRoles.map(role => (
-                                    <button key={role}
-                                        onClick={() => setActiveTagByDomain(p => ({...p, [mainDomain]: p[mainDomain] === role ? null : role}))}
-                                        className={`flex-shrink-0 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
-                                            activeRole === role ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300'
-                                        }`}
-                                    >{BOOK_ROLE_LABELS[role]}</button>
-                                ))}
-                            </div>
-                        )}
-                        <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} onMouseDown={dragScroll}>
-                            {filtered.map(book => (
-                                <div key={book.id} className="flex-shrink-0 w-52 snap-start" onClick={() => handleBookClick(book.id, mainDomain)}>
-                                    <BookCard book={book} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                    );
-                })()}
-
-                {/* All Domains Carousels */}
-                {Object.keys(topBooks).map(domain => (
-                    domain !== mainDomain && topBooks[domain]?.length > 0 && (() => {
-                        const books = topBooks[domain];
-                        const availableRoles = Object.keys(BOOK_ROLE_LABELS).filter(r => books.some(b => b.book_role === r));
-                        const activeRole = activeTagByDomain[domain];
-                        const filtered = activeRole ? books.filter(b => b.book_role === activeRole) : books;
-                        return (
-                        <section key={domain} className="mb-14">
-                            <div className="flex items-end justify-between mb-3">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-1 h-6 bg-purple-400 rounded-full" />
-                                    <h2 className="text-xl font-bold text-gray-900">
-                                        {domainConfig[domain]?.label || domain}
-                                    </h2>
-                                </div>
-                                <Link to={`/GenreBooks?domain=${encodeURIComponent(domain)}`} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                                    もっと見る <ChevronRight className="w-4 h-4" />
-                                </Link>
-                            </div>
-                            {availableRoles.length > 0 && (
-                                <div className="flex gap-2 overflow-x-auto pb-2 mb-3" style={{scrollbarWidth:'none'}}>
-                                    <button
-                                        onClick={() => setActiveTagByDomain(p => ({...p, [domain]: null}))}
-                                        className={`flex-shrink-0 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
-                                            !activeRole ? 'bg-purple-500 text-white border-purple-500' : 'bg-white text-gray-500 border-gray-200 hover:border-purple-300'
-                                        }`}
-                                    >すべて</button>
-                                    {availableRoles.map(role => (
-                                        <button key={role}
-                                            onClick={() => setActiveTagByDomain(p => ({...p, [domain]: p[domain] === role ? null : role}))}
-                                            className={`flex-shrink-0 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
-                                                activeRole === role ? 'bg-purple-500 text-white border-purple-500' : 'bg-white text-gray-500 border-gray-200 hover:border-purple-300'
-                                            }`}
-                                        >{BOOK_ROLE_LABELS[role]}</button>
-                                    ))}
-                                </div>
-                            )}
-                            <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} onMouseDown={dragScroll}>
-                                {filtered.map(book => (
-                                    <div key={book.id} className="flex-shrink-0 w-52 snap-start" onClick={() => handleBookClick(book.id, domain)}>
-                                        <BookCard book={book} />
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                        );
-                    })()
-                ))}
+                {/* Domain Carousels */}
+                {renderDomainSection(mainDomain, true)}
+                {Object.keys(topBooks).filter(d => d !== mainDomain).map(domain => renderDomainSection(domain, false))}
 
                 {/* 事例から学ぶ */}
                 {caseStudies.length > 0 && (
