@@ -208,9 +208,9 @@ export default function Home() {
     const renderDomainSection = (domain, isMain) => {
         const books = topBooks[domain];
         if (!books || books.length === 0) return null;
-        const allTypes = [...new Set(books.flatMap(b => b.diagnosis_types || []))];
+        const allTypes = [...new Set(books.flatMap(b => b.tags || []))].slice(0, 10);
         const activeType = activeTagByDomain[domain];
-        const filtered = activeType ? books.filter(b => b.diagnosis_types?.includes(activeType)) : books;
+        const filtered = activeType ? books.filter(b => b.tags?.includes(activeType)) : books;
         const accentColor = isMain ? 'indigo' : 'purple';
 
         return (
