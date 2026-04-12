@@ -319,8 +319,27 @@ export default function PlanResult() {
                     </div>
                   )}
 
-                  {/* おすすめ本 */}
-                  {books.length > 0 && (
+                  {/* AIおすすめ本 */}
+                  {aiResult.recommended_books?.length > 0 && (
+                    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4">
+                      <p className="text-xs font-bold text-gray-500 tracking-widest uppercase mb-3">📚 今のあなたに必要な本</p>
+                      <div className="space-y-3">
+                        {aiResult.recommended_books.map((book, i) => (
+                          <div key={i} className="flex items-start gap-3 pb-3 border-b border-gray-50 last:border-0 last:pb-0">
+                            <div className="w-8 h-10 rounded bg-amber-100 flex items-center justify-center flex-shrink-0 text-base">📖</div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-gray-800 leading-snug">{book.title}</p>
+                              <p className="text-[11px] text-gray-400 mt-0.5">{book.author}</p>
+                              <p className="text-xs text-amber-700 bg-amber-50 rounded-lg px-2 py-1 mt-1.5 leading-snug">{book.why}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DB本（フォールバック） */}
+                  {!aiResult.recommended_books?.length && books.length > 0 && (
                     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4">
                       <p className="text-xs font-bold text-gray-500 tracking-widest uppercase mb-3">弱点を補う本</p>
                       <div className="space-y-3">
@@ -333,6 +352,35 @@ export default function PlanResult() {
                               <p className="text-sm font-semibold text-gray-800">{book.title}</p>
                               <p className="text-xs text-gray-400 mt-0.5">{book.authors?.[0]}</p>
                             </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* おすすめ事例 */}
+                  {aiResult.recommended_cases?.length > 0 && (
+                    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4">
+                      <p className="text-xs font-bold text-gray-500 tracking-widest uppercase mb-3">🏪 参考になる事例</p>
+                      <div className="space-y-3">
+                        {aiResult.recommended_cases.map((c, i) => (
+                          <div key={i} className={`rounded-xl p-3 border ${
+                            c.is_failure
+                              ? 'bg-red-50 border-red-200'
+                              : 'bg-green-50 border-green-200'
+                          }`}>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm">{c.is_failure ? '💀' : '✅'}</span>
+                              <p className="text-xs font-bold text-gray-800">{c.company}</p>
+                              {c.is_failure && (
+                                <span className="ml-auto text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded-full">失敗事例</span>
+                              )}
+                            </div>
+                            <p className="text-sm font-semibold text-gray-700 mb-1.5">{c.title}</p>
+                            <p className="text-xs text-gray-500 mb-1"><span className="font-semibold">類似点：</span>{c.similarity}</p>
+                            <p className={`text-xs font-semibold ${c.is_failure ? 'text-red-700' : 'text-green-700'}`}>
+                              {c.is_failure ? '⚠️ 教訓：' : '💡 参考：'}{c.lesson}
+                            </p>
                           </div>
                         ))}
                       </div>
