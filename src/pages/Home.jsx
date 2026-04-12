@@ -36,6 +36,7 @@ export default function Home() {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [mainDomain, setMainDomain] = useState('sales');
+    const [activeTagByDomain, setActiveTagByDomain] = useState({});
     const [topBooks, setTopBooks] = useState({});
     const [recommendedBooks, setRecommendedBooks] = useState([]);
     const [caseStudies, setCaseStudies] = useState([]);
@@ -343,9 +344,14 @@ export default function Home() {
                 )}
 
                 {/* Main Domain Carousel */}
-                {topBooks[mainDomain]?.length > 0 && (
+                {topBooks[mainDomain]?.length > 0 && (() => {
+                    const books = topBooks[mainDomain];
+                    const allTags = [...new Set(books.flatMap(b => b.tags || []))].slice(0, 10);
+                    const activeTag = activeTagByDomain[mainDomain];
+                    const filtered = activeTag ? books.filter(b => b.tags?.includes(activeTag)) : books;
+                    return (
                     <section className="mb-14">
-                        <div className="flex items-end justify-between mb-5">
+                        <div className="flex items-end justify-between mb-3">
                             <div className="flex items-center gap-2.5">
                                 <div className="w-1 h-6 bg-indigo-600 rounded-full" />
                                 <h2 className="text-xl font-bold text-gray-900">
@@ -356,25 +362,46 @@ export default function Home() {
                                 もっと見る <ChevronRight className="w-4 h-4" />
                             </Link>
                         </div>
-                        <div
-                            className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing"
-                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                            onMouseDown={dragScroll}
-                        >
-                            {topBooks[mainDomain].map(book => (
+                        {/* タグフィルター */}
+                        {allTags.length > 0 && (
+                            <div className="flex gap-2 overflow-x-auto pb-2 mb-3" style={{scrollbarWidth:'none'}}>
+                                <button
+                                    onClick={() => setActiveTagByDomain(p => ({...p, [mainDomain]: null}))}
+                                    className={`flex-shrink-0 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
+                                        !activeTag ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300'
+                                    }`}
+                                >すべて</button>
+                                {allTags.map(tag => (
+                                    <button key={tag}
+                                        onClick={() => setActiveTagByDomain(p => ({...p, [mainDomain]: p[mainDomain] === tag ? null : tag}))}
+                                        className={`flex-shrink-0 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
+                                            activeTag === tag ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300'
+                                        }`}
+                                    >{tag}</button>
+                                ))}
+                            </div>
+                        )}
+                        <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} onMouseDown={dragScroll}>
+                            {filtered.map(book => (
                                 <div key={book.id} className="flex-shrink-0 w-52 snap-start" onClick={() => handleBookClick(book.id, mainDomain)}>
                                     <BookCard book={book} />
                                 </div>
                             ))}
                         </div>
                     </section>
-                )}
+                    );
+                })()}
 
                 {/* All Domains Carousels */}
                 {Object.keys(topBooks).map(domain => (
-                    domain !== mainDomain && topBooks[domain]?.length > 0 && (
+                    domain !== mainDomain && topBooks[domain]?.length > 0 && (() => {
+                        const books = topBooks[domain];
+                        const allTags = [...new Set(books.flatMap(b => b.tags || []))].slice(0, 10);
+                        const activeTag = activeTagByDomain[domain];
+                        const filtered = activeTag ? books.filter(b => b.tags?.includes(activeTag)) : books;
+                        return (
                         <section key={domain} className="mb-14">
-                            <div className="flex items-end justify-between mb-5">
+                            <div className="flex items-end justify-between mb-3">
                                 <div className="flex items-center gap-2.5">
                                     <div className="w-1 h-6 bg-purple-400 rounded-full" />
                                     <h2 className="text-xl font-bold text-gray-900">
@@ -385,19 +412,35 @@ export default function Home() {
                                     もっと見る <ChevronRight className="w-4 h-4" />
                                 </Link>
                             </div>
-                            <div
-                                className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing"
-                                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                                onMouseDown={dragScroll}
-                            >
-                                {topBooks[domain].map(book => (
+                            {/* タグフィルター */}
+                            {allTags.length > 0 && (
+                                <div className="flex gap-2 overflow-x-auto pb-2 mb-3" style={{scrollbarWidth:'none'}}>
+                                    <button
+                                        onClick={() => setActiveTagByDomain(p => ({...p, [domain]: null}))}
+                                        className={`flex-shrink-0 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
+                                            !activeTag ? 'bg-purple-500 text-white border-purple-500' : 'bg-white text-gray-500 border-gray-200 hover:border-purple-300'
+                                        }`}
+                                    >すべて</button>
+                                    {allTags.map(tag => (
+                                        <button key={tag}
+                                            onClick={() => setActiveTagByDomain(p => ({...p, [domain]: p[domain] === tag ? null : tag}))}
+                                            className={`flex-shrink-0 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
+                                                activeTag === tag ? 'bg-purple-500 text-white border-purple-500' : 'bg-white text-gray-500 border-gray-200 hover:border-purple-300'
+                                            }`}
+                                        >{tag}</button>
+                                    ))}
+                                </div>
+                            )}
+                            <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} onMouseDown={dragScroll}>
+                                {filtered.map(book => (
                                     <div key={book.id} className="flex-shrink-0 w-52 snap-start" onClick={() => handleBookClick(book.id, domain)}>
                                         <BookCard book={book} />
                                     </div>
                                 ))}
                             </div>
                         </section>
-                    )
+                        );
+                    })()
                 ))}
 
                 {/* 事例から学ぶ */}
