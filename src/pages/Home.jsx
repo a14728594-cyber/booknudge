@@ -14,7 +14,6 @@ export default function Home() {
 
     // Data
     const [allBooks, setAllBooks] = useState([]);
-    const [genres, setGenres] = useState([]);
     const [diagnosisTypes, setDiagnosisTypes] = useState([]);
     const [caseStudies, setCaseStudies] = useState([]);
     const [recommendedBooks, setRecommendedBooks] = useState([]);
@@ -42,14 +41,12 @@ export default function Home() {
 
     const loadData = async () => {
         try {
-            const [books, genreList, typeList, cases] = await Promise.all([
+            const [books, typeList, cases] = await Promise.all([
                 base44.entities.Book.list('-created_date', 200),
-                base44.entities.Genre.filter({ is_active: true }, 'order', 50),
                 base44.entities.DiagnosisResultType.list('order', 100),
                 base44.entities.CaseStudy.filter({ is_published: true }, 'order', 6),
             ]);
             setAllBooks(books);
-            setGenres(genreList);
             setDiagnosisTypes(typeList);
             setCaseStudies(cases);
 
@@ -104,6 +101,9 @@ export default function Home() {
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onUp);
     };
+
+    // Unique genres extracted directly from DiagnosisResultType records
+    const genres = [...new Set(diagnosisTypes.map(t => t.genre).filter(Boolean))];
 
     // Filtered types based on selected genre
     const typesForGenre = selectedGenre
@@ -242,12 +242,12 @@ export default function Home() {
                         >すべて</button>
                         {genres.map(g => (
                             <button
-                                key={g.id}
-                                onClick={() => handleGenreSelect(g.name)}
+                                key={g}
+                                onClick={() => handleGenreSelect(g)}
                                 className={`flex-shrink-0 text-sm px-4 py-2 rounded-full border font-medium transition-colors ${
-                                    selectedGenre === g.name ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
+                                    selectedGenre === g ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
                                 }`}
-                            >{g.name}</button>
+                            >{g}</button>
                         ))}
                     </div>
 
