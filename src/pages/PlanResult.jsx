@@ -336,18 +336,20 @@ export default function PlanResult() {
                   {/* DB本 */}
                   {dbBooks.length > 0 && (
                     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4">
-                      <p className="text-xs font-bold text-gray-500 tracking-widest uppercase mb-3">弱点を補う本</p>
+                      <p className="text-xs font-bold text-gray-500 tracking-widest uppercase mb-3">📚 今のあなたに必要な本</p>
                       <div className="space-y-3">
-                        {books.map(book => (
-                          <div key={book.id} className="flex items-center gap-3">
-                            {book.cover_url && (
-                              <img src={book.cover_url} className="w-10 h-14 object-cover rounded-lg flex-shrink-0 shadow" />
-                            )}
-                            <div>
-                              <p className="text-sm font-semibold text-gray-800">{book.title}</p>
-                              <p className="text-xs text-gray-400 mt-0.5">{book.authors?.[0]}</p>
+                        {dbBooks.map(book => (
+                          <Link key={book.id} to={`/BookDetail?id=${book.id}`} className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50/40 p-3 hover:shadow-md transition-all">
+                            {book.cover_url
+                              ? <img src={book.cover_url} className="w-10 h-14 object-cover rounded-lg flex-shrink-0 shadow" />
+                              : <div className="w-10 h-14 rounded-lg bg-amber-200 flex items-center justify-center flex-shrink-0 text-lg">📖</div>
+                            }
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-gray-800 leading-snug">{book.title}</p>
+                              <p className="text-[11px] text-gray-400 mt-0.5">{book.authors?.[0]}</p>
+                              {book.one_liner && <p className="text-xs text-amber-700 mt-1 line-clamp-2">{book.one_liner}</p>}
                             </div>
-                          </div>
+                          </Link>
                         ))}
                       </div>
                     </div>
