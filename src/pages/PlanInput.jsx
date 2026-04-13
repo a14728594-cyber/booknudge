@@ -134,6 +134,11 @@ export default function PlanInput() {
 
       {/* メインコンテンツ */}
       <div className="relative z-10 max-w-lg mx-auto px-4 pb-12" style={{ marginTop: -24 }}>
+        <div className="flex justify-end mb-2">
+          <a href="/home" className="text-xs text-amber-700 hover:text-amber-900 bg-white/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-amber-200 transition">
+            ← ホームへ戻る
+          </a>
+        </div>
 
         {/* 企画シートカード（メインパネル） */}
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-amber-100 overflow-hidden">

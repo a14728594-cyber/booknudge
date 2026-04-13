@@ -424,6 +424,10 @@ export default function PlanResult() {
                 >
                   企画を変えてもう一度試す
                 </button>
+                <br />
+                <Link to="/home" className="text-xs text-gray-400 hover:text-indigo-600 underline transition mt-1 inline-block">
+                  ホームへ戻る
+                </Link>
               </div>
             </div>
           </motion.div>

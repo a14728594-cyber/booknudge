@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPageUrl } from '@/utils';
 
 // 雲コンポーネント
 function Cloud({ x, y, scale, duration, delay }) {
@@ -229,6 +230,12 @@ export default function GameEntry() {
       />
 
       <div className="max-w-md w-full relative z-10">
+        {/* ホームへ戻るリンク */}
+        <div className="flex justify-end mb-2">
+          <Link to={createPageUrl('home')} className="text-xs text-white/70 hover:text-white bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/30 transition">
+            ← ホームへ戻る
+          </Link>
+        </div>
 
         {/* タイトル */}
         <motion.div
