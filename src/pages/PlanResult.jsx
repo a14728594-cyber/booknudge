@@ -132,6 +132,7 @@ export default function PlanResult() {
     setDbCases((matched.length > 0 ? matched : allCases).slice(0, 3));
   };
 
+  const [menuOpen, setMenuOpen] = useState(false);
   const handleLogin = () => base44.auth.redirectToLogin(window.location.href);
 
   if (!aiResult) return null;
@@ -172,6 +173,37 @@ export default function PlanResult() {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center mb-6"
               >
+                <div className="flex justify-end mb-2">
+                  <div className="relative">
+                    <button
+                      onClick={() => setMenuOpen(o => !o)}
+                      className="p-2.5 bg-amber-100 hover:bg-amber-200 rounded-xl border border-amber-200 transition"
+                    >
+                      <div className="space-y-1">
+                        <div className="w-5 h-0.5 bg-amber-800 rounded-full" />
+                        <div className="w-5 h-0.5 bg-amber-800 rounded-full" />
+                        <div className="w-5 h-0.5 bg-amber-800 rounded-full" />
+                      </div>
+                    </button>
+                    {menuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        className="absolute right-0 top-12 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 min-w-[160px] z-50"
+                      >
+                        <Link to={createPageUrl('home')} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 transition">
+                          🏠 ホームへ戻る
+                        </Link>
+                        <button onClick={() => { navigate('/plan-input'); setMenuOpen(false); }} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 transition">
+                          🔄 もう一度試す
+                        </button>
+                        <button onClick={() => { navigate('/game'); setMenuOpen(false); }} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 transition">
+                          🎮 ゲームTOPへ
+                        </button>
+                      </motion.div>
+                    )}
+                  </div>
+                </div>
                 <div className="inline-block bg-amber-100 rounded-full px-4 py-1 mb-3">
                   <p className="text-xs font-bold text-amber-800 tracking-widest uppercase">Result</p>
                 </div>

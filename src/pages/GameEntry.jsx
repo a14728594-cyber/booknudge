@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPageUrl } from '@/utils';
 
@@ -198,6 +199,7 @@ const GENRES = [
 
 export default function GameEntry() {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState('cafe');
   const [selectedGenre, setSelectedGenre] = useState('marketing');
   const [step, setStep] = useState(1);
@@ -230,11 +232,34 @@ export default function GameEntry() {
       />
 
       <div className="max-w-md w-full relative z-10">
-        {/* ホームへ戻るリンク */}
+        {/* ハンバーガーメニュー */}
         <div className="flex justify-end mb-2">
-          <Link to={createPageUrl('home')} className="text-xs text-white/70 hover:text-white bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/30 transition">
-            ← ホームへ戻る
-          </Link>
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              className="p-2.5 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30 text-white hover:bg-white/30 transition"
+            >
+              <div className="space-y-1">
+                <div className="w-5 h-0.5 bg-white rounded-full" />
+                <div className="w-5 h-0.5 bg-white rounded-full" />
+                <div className="w-5 h-0.5 bg-white rounded-full" />
+              </div>
+            </button>
+            {menuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                className="absolute right-0 top-12 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 min-w-[160px] z-50"
+              >
+                <Link to={createPageUrl('home')} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 transition">
+                  🏠 ホームへ戻る
+                </Link>
+                <Link to={createPageUrl('CaseStudies')} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 transition">
+                  🏗️ 事例一覧
+                </Link>
+              </motion.div>
+            )}
+          </div>
         </div>
 
         {/* タイトル */}
