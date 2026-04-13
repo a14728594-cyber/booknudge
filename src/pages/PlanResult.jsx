@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import StreetSimulation from '@/components/game/StreetSimulation';
@@ -72,7 +73,8 @@ export default function PlanResult() {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [aiResult, setAiResult] = useState(null);
-  const [books, setBooks] = useState([]);
+  const [dbBooks, setDbBooks] = useState([]);
+  const [dbCases, setDbCases] = useState([]);
   const [showSimulation, setShowSimulation] = useState(true);
 
   useEffect(() => {
@@ -86,7 +88,9 @@ export default function PlanResult() {
         setUser(me);
         setIsLoggedIn(true);
         await saveSession(me);
-        await loadBooks(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        await loadBooks(parsed);
+        await loadCases(parsed);
       }
     });
   }, []);
@@ -112,10 +116,20 @@ export default function PlanResult() {
 
   const loadBooks = async (result) => {
     const tags = result?.weakness_tags || [];
-    if (tags.length === 0) return;
-    const allBooks = await base44.entities.Book.list();
-    const matched = allBooks.filter(b => b.diagnosis_types?.some(t => tags.includes(t)));
-    setBooks(matched.slice(0, 3));
+    const allBooks = await base44.entities.Book.filter({ book_category: 'business' });
+    const matched = tags.length > 0
+      ? allBooks.filter(b => b.tags?.some(t => tags.includes(t)) || b.diagnosis_types?.some(t => tags.includes(t)))
+      : [];
+    setDbBooks((matched.length > 0 ? matched : allBooks).slice(0, 4));
+  };
+
+  const loadCases = async (result) => {
+    const tags = result?.weakness_tags || [];
+    const allCases = await base44.entities.CaseStudy.filter({ status: 'published' });
+    const matched = tags.length > 0
+      ? allCases.filter(c => c.learning_tags?.some(t => tags.includes(t)) || c.industry_tags?.some(t => tags.includes(t)))
+      : [];
+    setDbCases((matched.length > 0 ? matched : allCases).slice(0, 3));
   };
 
   const handleLogin = () => base44.auth.redirectToLogin(window.location.href);
@@ -319,35 +333,8 @@ export default function PlanResult() {
                     </div>
                   )}
 
-                  {/* AIおすすめ本 */}
-                  {aiResult.recommended_books?.length > 0 && (
-                    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4">
-                      <p className="text-xs font-bold text-gray-500 tracking-widest uppercase mb-3">📚 今のあなたに必要な本</p>
-                      <div className="space-y-3">
-                        {aiResult.recommended_books.map((book, i) => (
-                          <div key={i} className="rounded-xl border border-amber-100 bg-amber-50/40 p-3">
-                            {/* ジャンルパス */}
-                            <div className="flex items-center gap-1 mb-2 flex-wrap">
-                              <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">{book.genre_main}</span>
-                              <span className="text-[10px] text-gray-400">›</span>
-                              <span className="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">{book.genre_sub}</span>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <div className="w-8 h-10 rounded bg-amber-200 flex items-center justify-center flex-shrink-0 text-base">📖</div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-gray-800 leading-snug">{book.title}</p>
-                                <p className="text-[11px] text-gray-400 mt-0.5">{book.author}</p>
-                                <p className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-lg px-2 py-1 mt-1.5 leading-snug">⚡ {book.why}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* DB本（フォールバック）
-                  {!aiResult.recommended_books?.length && books.length > 0 && (
+                  {/* DB本 */}
+                  {dbBooks.length > 0 && (
                     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4">
                       <p className="text-xs font-bold text-gray-500 tracking-widest uppercase mb-3">弱点を補う本</p>
                       <div className="space-y-3">
@@ -366,30 +353,20 @@ export default function PlanResult() {
                     </div>
                   )}
 
-                  {/* おすすめ事例 */}
-                  {aiResult.recommended_cases?.length > 0 && (
+                  {/* DB事例 */}
+                  {dbCases.length > 0 && (
                     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4">
                       <p className="text-xs font-bold text-gray-500 tracking-widest uppercase mb-3">🏪 参考になる事例</p>
                       <div className="space-y-3">
-                        {aiResult.recommended_cases.map((c, i) => (
-                          <div key={i} className={`rounded-xl p-3 border ${
-                            c.is_failure
-                              ? 'bg-red-50 border-red-200'
-                              : 'bg-green-50 border-green-200'
-                          }`}>
+                        {dbCases.map((c) => (
+                          <Link key={c.id} to={`/CaseStudyDetail?id=${c.id}`} className="block rounded-xl p-3 border bg-green-50 border-green-200 hover:shadow-md transition-all">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="text-sm">{c.is_failure ? '💀' : '✅'}</span>
-                              <p className="text-xs font-bold text-gray-800">{c.company}</p>
-                              {c.is_failure && (
-                                <span className="ml-auto text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded-full">失敗事例</span>
-                              )}
+                              <span className="text-sm">✅</span>
+                              <p className="text-xs font-bold text-gray-800">{c.company_name}</p>
                             </div>
-                            <p className="text-sm font-semibold text-gray-700 mb-1.5">{c.title}</p>
-                            <p className="text-xs text-gray-500 mb-1"><span className="font-semibold">類似点：</span>{c.similarity}</p>
-                            <p className={`text-xs font-semibold ${c.is_failure ? 'text-red-700' : 'text-green-700'}`}>
-                              {c.is_failure ? '⚠️ 教訓：' : '💡 参考：'}{c.lesson}
-                            </p>
-                          </div>
+                            <p className="text-sm font-semibold text-gray-700 mb-1">{c.title}</p>
+                            {c.short_description && <p className="text-xs text-gray-500 line-clamp-2">{c.short_description}</p>}
+                          </Link>
                         ))}
                       </div>
                     </div>
