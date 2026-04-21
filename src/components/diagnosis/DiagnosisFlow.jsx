@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, Loader2, BookOpen, RotateCcw } from 'lucide-react';
+import MagicLinkModal from '@/components/auth/MagicLinkModal';
 
 const STEPS = { GENRE: 'genre', QUESTION: 'question', RESULT: 'result' };
 
@@ -30,6 +31,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     const [books, setBooks] = useState([]);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [matchedCases, setMatchedCases] = useState([]);
+    const [showMagicLinkModal, setShowMagicLinkModal] = useState(false);
 
     useEffect(() => {
         base44.entities.Genre.filter({ is_active: true }, 'order', 100).then(setGenres).catch(() => {});
@@ -204,6 +206,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     const otherBooks = books.filter(b => b.id !== priorityBook?.id);
 
     return (
+        <>
         <div className="min-h-screen bg-gray-50 overflow-y-auto">
             <div className="max-w-xl mx-auto px-4 py-10 pb-20">
                 {/* Header */}
@@ -224,10 +227,10 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                     </div>
                     {!isLoggedIn && (
                         <button
-                            onClick={() => base44.auth.redirectToLogin('/home')}
+                            onClick={() => setShowMagicLinkModal(true)}
                             className="text-sm text-indigo-600 font-semibold hover:text-indigo-800 transition-colors px-4 py-2 rounded-lg hover:bg-indigo-50 border border-indigo-200"
                         >
-                            無料登録
+                            ログイン
                         </button>
                     )}
                 </div>
@@ -362,7 +365,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                         )}
 
                         {/* 続きの価値エリア（未ログインのみ） */}
-                        {!isLoggedIn && <NextValueBlock mainTypeInfo={mainTypeInfo} onReset={reset} />}
+                        {!isLoggedIn && <NextValueBlock mainTypeInfo={mainTypeInfo} onReset={reset} onOpenModal={() => setShowMagicLinkModal(true)} />}
 
                         <div className="mt-6 mb-6">
                             {/* マッチした事例 */}
@@ -376,7 +379,7 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                                             key={c.id}
                                             onClick={() => {
                                                 if (!isLoggedIn) {
-                                                    base44.auth.redirectToLogin('/home');
+                                                    setShowMagicLinkModal(true);
                                                 } else {
                                                     navigate(createPageUrl('CaseStudyDetail') + `?id=${c.id}`);
                                                 }
@@ -467,26 +470,21 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
                 )}
             </div>
         </div>
+        {showMagicLinkModal && (
+            <MagicLinkModal
+                onClose={() => setShowMagicLinkModal(false)}
+                onSuccess={() => {
+                    setShowMagicLinkModal(false);
+                    window.location.href = '/home';
+                }}
+            />
+        )}
+        </>
     );
 }
 
-// 文言ブロック：タイプ別にカスタマイズしやすいよう切り出し
-function getNextValueCopy(mainTypeInfo) {
-    // 将来的にタイプ別の文言を追加しやすい構造
-    return {
-        heading: 'あなたの悩みに近い実例があります',
-        body: `同じように「${mainTypeInfo?.direction || '同じような悩み'}」で立ち止まっていた人が、\n何を変えて改善したのか見てみましょう。`,
-        cta: '無料登録して結果を保存する',
-        sub: '診断をやり直す',
-    };
-}
-
-function NextValueBlock({ mainTypeInfo, onReset }) {
-    const copy = getNextValueCopy(mainTypeInfo);
-
-    const handleCTA = () => {
-        base44.auth.redirectToLogin('/home');
-    };
+function NextValueBlock({ mainTypeInfo, onReset, onOpenModal }) {
+    const direction = mainTypeInfo?.direction || '同じような悩み';
 
     return (
         <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-3xl p-6 mt-2">
@@ -505,18 +503,20 @@ function NextValueBlock({ mainTypeInfo, onReset }) {
             </div>
 
             {/* 見出し・説明 */}
-            <h3 className="text-lg font-bold text-gray-900 mb-2">{copy.heading}</h3>
-            <p className="text-sm text-gray-600 leading-relaxed mb-5 whitespace-pre-line">{copy.body}</p>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">あなたの悩みに近い実例があります</h3>
+            <p className="text-sm text-gray-600 leading-relaxed mb-5 whitespace-pre-line">
+                {`同じように「${direction}」で立ち止まっていた人が、\n何を変えて改善したのか見てみましょう。`}
+            </p>
 
             {/* メインCTA */}
             <button
-                onClick={handleCTA}
+                onClick={onOpenModal}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-0.5"
             >
-                <span>{copy.cta}</span>
+                <span>結果をすべて見る</span>
                 <ArrowRight className="w-5 h-5" />
             </button>
-            <p className="text-center text-xs text-gray-400 mt-2">1分で完了・ログインして続きから見れます</p>
+            <p className="text-center text-xs text-gray-400 mt-2">メールアドレスだけ・10秒で完了</p>
 
             {/* サブCTA */}
             <div className="flex justify-center mt-4">
@@ -525,7 +525,7 @@ function NextValueBlock({ mainTypeInfo, onReset }) {
                     className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1.5 transition-colors"
                 >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    {copy.sub}
+                    診断をやり直す
                 </button>
             </div>
         </div>

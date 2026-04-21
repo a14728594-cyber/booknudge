@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Menu, X, BookOpen, Home, Mail, BarChart3, UserCog, MessageSquare, LogOut, User, Sparkles } from 'lucide-react';
 import BottomTabBar from '@/components/common/BottomTabBar';
+import MagicLinkModal from '@/components/auth/MagicLinkModal';
 
 const ROOT_PAGES = ['home', 'DeepDiagnosis', 'profile', 'support'];
 
@@ -12,6 +13,7 @@ export default function Layout({ children, currentPageName }) {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     loadUser();
@@ -159,6 +161,16 @@ export default function Layout({ children, currentPageName }) {
                             </nav>
             }
 
+                        {/* 未ログイン時のログインボタン */}
+                        {!user && (
+                            <button
+                                onClick={() => setShowLoginModal(true)}
+                                className="text-sm text-indigo-600 font-semibold hover:text-indigo-800 transition-colors px-4 py-2 rounded-lg hover:bg-indigo-50 border border-indigo-200"
+                            >
+                                ログイン
+                            </button>
+                        )}
+
                         {/* Mobile Menu Button */}
                         {user &&
             <button
@@ -246,6 +258,16 @@ export default function Layout({ children, currentPageName }) {
             {/* Mobile Bottom Tab Bar */}
             {user && !isAdminPage && !isLandingPage && (
                 <BottomTabBar currentPageName={currentPageName} />
+            )}
+
+            {showLoginModal && (
+                <MagicLinkModal
+                    onClose={() => setShowLoginModal(false)}
+                    onSuccess={() => {
+                        setShowLoginModal(false);
+                        window.location.href = '/home';
+                    }}
+                />
             )}
         </div>);
 
