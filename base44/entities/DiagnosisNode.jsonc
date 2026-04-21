@@ -1,0 +1,62 @@
+{
+  "name": "DiagnosisNode",
+  "type": "object",
+  "properties": {
+    "genre": {
+      "type": "string",
+      "description": "\u30b8\u30e3\u30f3\u30eb\uff08\u4f8b\uff1a\u30de\u30fc\u30b1\u30c6\u30a3\u30f3\u30b0, \u30d6\u30e9\u30f3\u30c7\u30a3\u30f3\u30b0\uff09"
+    },
+    "problem": {
+      "type": "string",
+      "description": "\u60a9\u307f\u30ab\u30c6\u30b4\u30ea"
+    },
+    "node_type": {
+      "type": "string",
+      "enum": [
+        "start",
+        "question",
+        "end"
+      ],
+      "description": "\u30ce\u30fc\u30c9\u7a2e\u5225"
+    },
+    "question_style": {
+      "type": "string",
+      "enum": [
+        "direct",
+        "scenario",
+        "projection",
+        "behavior",
+        "future"
+      ],
+      "default": "direct",
+      "description": "\u8cea\u554f\u30b9\u30bf\u30a4\u30eb: direct=\u76f4\u63a5\u8cea\u554f, scenario=\u30b7\u30ca\u30ea\u30aa\u8cea\u554f, projection=\u6295\u5f71\u8cea\u554f, behavior=\u884c\u52d5\u9078\u629e\u8cea\u554f, future=\u672a\u6765\u50cf\u8cea\u554f"
+    },
+    "title": {
+      "type": "string",
+      "description": "\u8cea\u554f\u30bf\u30a4\u30c8\u30eb\uff08\u77ed\u3044\u898b\u51fa\u3057\uff09"
+    },
+    "prompt": {
+      "type": "string",
+      "description": "\u8cea\u554f\u6587\uff08\u30e6\u30fc\u30b6\u30fc\u306b\u8868\u793a\u3059\u308b\u6587\u7ae0\uff09"
+    },
+    "order": {
+      "type": "number",
+      "description": "\u8868\u793a\u9806\uff081\u301c6\uff09"
+    },
+    "weight": {
+      "type": "number",
+      "default": 1,
+      "description": "\u3053\u306e\u8cea\u554f\u306e\u91cd\u307f\u4fc2\u6570"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "\u6709\u52b9/\u7121\u52b9"
+    }
+  },
+  "required": [
+    "genre",
+    "node_type",
+    "prompt"
+  ]
+}
