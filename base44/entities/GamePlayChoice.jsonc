@@ -1,0 +1,36 @@
+{
+  "name": "GamePlayChoice",
+  "type": "object",
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "description": "\u6240\u5c5e\u3059\u308bGamePlaySession\u306eID"
+    },
+    "scene_id": {
+      "type": "string",
+      "description": "\u9078\u629e\u3057\u305f\u30b7\u30fc\u30f3ID"
+    },
+    "choice_id": {
+      "type": "string",
+      "description": "\u9078\u629e\u3057\u305f\u9078\u629e\u80a2ID"
+    },
+    "stats_before": {
+      "type": "object",
+      "description": "\u9078\u629e\u524d\u306e\u30b9\u30c6\u30fc\u30bf\u30b9"
+    },
+    "stats_after": {
+      "type": "object",
+      "description": "\u9078\u629e\u5f8c\u306e\u30b9\u30c6\u30fc\u30bf\u30b9"
+    },
+    "chosen_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u9078\u629e\u3057\u305f\u65e5\u6642"
+    }
+  },
+  "required": [
+    "session_id",
+    "scene_id",
+    "choice_id"
+  ]
+}
