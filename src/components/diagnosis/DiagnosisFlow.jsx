@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Loader2, BookOpen, RotateCcw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, BookOpen, RotateCcw, Share2, Copy, Check } from 'lucide-react';
 import MagicLinkModal from '@/components/auth/MagicLinkModal';
+import InlineRegistrationWall from '@/components/diagnosis/InlineRegistrationWall';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const STEPS = { GENRE: 'genre', QUESTION: 'question', RESULT: 'result' };
 
@@ -32,6 +34,8 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [matchedCases, setMatchedCases] = useState([]);
     const [showMagicLinkModal, setShowMagicLinkModal] = useState(false);
+    const [sameTypeCount, setSameTypeCount] = useState(0);
+    const [registeredJustNow, setRegisteredJustNow] = useState(false);
 
     useEffect(() => {
         base44.entities.Genre.filter({ is_active: true }, 'order', 100).then(setGenres).catch(() => {});
@@ -165,6 +169,27 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
 
         setSaving(false);
         setStep(STEPS.RESULT);
+
+        // 同タイプの件数を取得（ソーシャルプルーフ用）
+        if (mainType) {
+            try {
+                const sessions = await base44.entities.DiagnosisSession.filter({ main_type: mainType }, '-created_date', 500);
+                setSameTypeCount(sessions.length);
+            } catch {}
+        }
+
+        // localStorageに診断結果を保存（再訪時用）
+        try {
+            localStorage.setItem('lastDiagnosisResult', JSON.stringify({
+                mainType, subType, savedAt: Date.now()
+            }));
+        } catch {}
+
+        // イベント記録
+        try {
+            base44.functions.invoke('trackEvent', { event_name: 'diagnosis_complete', event_value: { main_type: mainType, genre: selectedGenre }, update_last_active: false }).catch(() => {});
+            base44.functions.invoke('trackEvent', { event_name: 'registration_wall_view', event_value: { main_type: mainType }, update_last_active: false }).catch(() => {});
+        } catch {}
     };
 
     const fetchTypeInfo = async (typeKey) => {
@@ -202,8 +227,6 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
 
     const totalQuestions = nodes.length;
     const progress = totalQuestions > 0 ? Math.round((currentIndex / totalQuestions) * 100) : 0;
-    const priorityBook = books.find(b => b._mapping?.role === 'priority') || books[0];
-    const otherBooks = books.filter(b => b.id !== priorityBook?.id);
 
     return (
         <>
@@ -320,153 +343,22 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
 
                 {/* 結果 */}
                 {step === STEPS.RESULT && (
-                    <div>
-                        {mainTypeInfo ? (
-                            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-8 text-white mb-6">
-                                <div className="text-4xl mb-3">{mainTypeInfo.emoji || '🎯'}</div>
-                                <p className="text-indigo-200 text-sm mb-2">あなたは今...</p>
-                                <h2 className="text-3xl font-bold mb-4">{mainTypeInfo.label}</h2>
-                                <p className="text-indigo-100 text-base leading-relaxed mb-4">{mainTypeInfo.description}</p>
-                                {mainTypeInfo.direction && (
-                                    <div className="bg-white/20 rounded-2xl p-4 mb-4">
-                                        <p className="text-white font-semibold text-sm">💡 今必要なこと</p>
-                                        <p className="text-indigo-100 text-sm mt-1">{mainTypeInfo.direction}</p>
-                                    </div>
-                                )}
-                                <div className="flex justify-center mt-2">
-                                    <Button onClick={reset} variant="outline" className="gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20 text-sm">
-                                        <RotateCcw className="w-4 h-4" />
-                                        診断をやり直す
-                                    </Button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="bg-gradient-to-r from-gray-500 to-gray-600 rounded-3xl p-8 text-white mb-6">
-                                <div className="text-4xl mb-3">📊</div>
-                                <h2 className="text-2xl font-bold mb-4">診断が完了しました</h2>
-                                <p className="text-gray-200 text-sm mb-4">管理者が診断タイプを設定すると、ここに詳細が表示されます。</p>
-                                <div className="flex justify-center">
-                                    <Button onClick={reset} variant="outline" className="gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20 text-sm">
-                                        <RotateCcw className="w-4 h-4" />
-                                        診断をやり直す
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-
-                        {subTypeInfo && (
-                            <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
-                                <span className="text-2xl">{subTypeInfo.emoji || '📌'}</span>
-                                <div>
-                                    <p className="text-xs text-gray-500">サブタイプ</p>
-                                    <p className="font-semibold text-gray-800">{subTypeInfo.label}</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 続きの価値エリア（未ログインのみ） */}
-                        {!isLoggedIn && <NextValueBlock mainTypeInfo={mainTypeInfo} onReset={reset} onOpenModal={() => setShowMagicLinkModal(true)} />}
-
-                        <div className="mt-6 mb-6">
-                            {/* マッチした事例 */}
-                        {matchedCases.length > 0 && (
-                            <div className="mb-8">
-                                <h3 className="text-xl font-bold text-gray-900 mb-1">🏢 あなたに刺さる実例</h3>
-                                <p className="text-xs text-gray-400 mb-4">同じ悩みを持つビジネスの事例です</p>
-                                <div className="space-y-3">
-                                    {matchedCases.map(c => (
-                                        <button
-                                            key={c.id}
-                                            onClick={() => {
-                                                if (!isLoggedIn) {
-                                                    setShowMagicLinkModal(true);
-                                                } else {
-                                                    navigate(createPageUrl('CaseStudyDetail') + `?id=${c.id}`);
-                                                }
-                                            }}
-                                            className="w-full text-left bg-white border border-gray-100 rounded-2xl p-4 hover:border-indigo-300 hover:shadow-md transition-all flex gap-4"
-                                        >
-                                            {c.thumbnail_url ? (
-                                                <img src={c.thumbnail_url} alt={c.company_name} className="w-16 h-16 object-cover rounded-xl flex-shrink-0" />
-                                            ) : (
-                                                <div className="w-16 h-16 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl">🏢</div>
-                                            )}
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs text-indigo-600 font-semibold mb-0.5">{c.company_name}</p>
-                                                <p className="text-sm font-bold text-gray-900 leading-tight mb-1">{c.title}</p>
-                                                {c.short_description && <p className="text-xs text-gray-500 line-clamp-2">{c.short_description}</p>}
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {books.length > 0 ? (
-                                <>
-                                    {/* ビジネス書 */}
-                                    {books.filter(b => b.book_category !== 'novel_essay').length > 0 && (
-                                        <div className="mb-6">
-                                            <h3 className="text-xl font-bold text-gray-900 mb-4">📚 ビジネス書のおすすめ</h3>
-                                            <div className="space-y-4">
-                                                {(() => {
-                                                    const businessBooks = books.filter(b => b.book_category !== 'novel_essay');
-                                                    const pBook = businessBooks.find(b => b._mapping?.role === 'priority') || businessBooks[0];
-                                                    const rest = businessBooks.filter(b => b.id !== pBook?.id);
-                                                    return (
-                                                        <>
-                                                            {pBook && (
-                                                                <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5">
-                                                                    <div className="flex items-center gap-2 mb-3">
-                                                                        <span className="text-amber-500 text-lg">⭐</span>
-                                                                        <span className="text-amber-700 font-bold text-sm">迷ったらまずこれ</span>
-                                                                    </div>
-                                                                    <BookCard book={pBook} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
-                                                                </div>
-                                                            )}
-                                                            {rest.map(book => (
-                                                                <div key={book.id} className={`bg-white border rounded-2xl p-5 ${book._isSubType ? 'border-purple-200' : 'border-gray-100'}`}>
-                                                                    {book._isSubType && subTypeInfo && (
-                                                                        <div className="flex items-center gap-1 mb-3">
-                                                                            <span className="text-purple-500 text-sm">📌</span>
-                                                                            <span className="text-purple-700 text-xs font-medium">{subTypeInfo.label}にも対応</span>
-                                                                        </div>
-                                                                    )}
-                                                                    <BookCard book={book} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
-                                                                </div>
-                                                            ))}
-                                                        </>
-                                                    );
-                                                })()}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* 小説・エッセイ */}
-                                    {books.filter(b => b.book_category === 'novel_essay').length > 0 && (
-                                        <div>
-                                            <h3 className="text-xl font-bold text-gray-900 mb-1">📖 小説・エッセイのおすすめ</h3>
-                                            <p className="text-xs text-gray-400 mb-4">視点・感情・行動のきっかけとして</p>
-                                            <div className="space-y-4">
-                                                {books.filter(b => b.book_category === 'novel_essay').map(book => (
-                                                   <div key={book.id} className="bg-white border border-purple-100 rounded-2xl p-5">
-                                                       <NovelBookCard book={book} onNavigate={(id) => navigate(createPageUrl('Book') + `?id=${id}`)} />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
-                                    <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                    <p className="text-gray-500 font-medium mb-1">このタイプの本はまだ登録されていません</p>
-                                    <p className="text-gray-400 text-sm">管理者が本を追加するまでお待ちください</p>
-                                </div>
-                            )}
-                        </div>
-
-                    </div>
+                    <ResultSection
+                        isLoggedIn={isLoggedIn}
+                        registeredJustNow={registeredJustNow}
+                        mainTypeInfo={mainTypeInfo}
+                        subTypeInfo={subTypeInfo}
+                        books={books}
+                        matchedCases={matchedCases}
+                        sameTypeCount={sameTypeCount}
+                        selectedGenre={selectedGenre}
+                        onReset={reset}
+                        onNavigate={(path) => navigate(path)}
+                        onRegistered={() => {
+                            setIsLoggedIn(true);
+                            setRegisteredJustNow(true);
+                        }}
+                    />
                 )}
             </div>
         </div>
@@ -483,51 +375,225 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     );
 }
 
-function NextValueBlock({ mainTypeInfo, onReset, onOpenModal }) {
-    const direction = mainTypeInfo?.direction || '同じような悩み';
+function ResultSection({ isLoggedIn, registeredJustNow, mainTypeInfo, subTypeInfo, books, matchedCases, sameTypeCount, selectedGenre, onReset, onNavigate, onRegistered }) {
+    const [copied, setCopied] = useState(false);
+
+    // あるある項目（descriptionから最初の行、または仮テキスト）
+    const painPoints = mainTypeInfo?.description
+        ? mainTypeInfo.description.split('。').filter(s => s.trim().length > 3).slice(0, 3)
+        : ['やるべきことは分かっているのに、なかなか動けない', '複数の施策に手を出しているが、どれも中途半端', '結果が出ない理由が自分でもわからない'];
+
+    const xShareText = mainTypeInfo
+        ? `📊 BookNudgeの診断結果\n\n${mainTypeInfo.emoji || ''} ${mainTypeInfo.label}\n\n「${mainTypeInfo.direction || ''}」\n\n#BookNudge #ビジネス書`
+        : '';
+
+    const handleCopyShare = () => {
+        navigator.clipboard.writeText(xShareText).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }).catch(() => {});
+    };
 
     return (
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-3xl p-6 mt-2">
-            {/* 価値の予告 */}
-            <div className="flex gap-3 mb-5">
-                {[
-                    { icon: '🏢', label: 'あなた向けの実例' },
-                    { icon: '📚', label: 'おすすめ本' },
-                    { icon: '✏️', label: 'ミニアウトプット' },
-                ].map(item => (
-                    <div key={item.label} className="flex-1 bg-white/70 rounded-2xl p-3 text-center border border-white">
-                        <div className="text-xl mb-1">{item.icon}</div>
-                        <div className="text-xs text-gray-600 font-medium leading-tight">{item.label}</div>
+        <div className="space-y-5">
+            {/* ──── セクション1: リビール演出（全表示） ──── */}
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-8 text-white">
+                <div className="text-5xl mb-3 text-center">{mainTypeInfo?.emoji || '🎯'}</div>
+                <p className="text-indigo-200 text-sm mb-1 text-center">あなたは今...</p>
+                <h2 className="text-2xl font-bold mb-3 text-center">{mainTypeInfo?.label || '診断完了'}</h2>
+                {mainTypeInfo?.direction && (
+                    <p className="text-indigo-100 text-sm text-center italic leading-relaxed">「{mainTypeInfo.direction}」</p>
+                )}
+            </div>
+
+            {/* ──── セクション2: あるある共感（1つ全表示 + 2つぼかし） ──── */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                <p className="text-xs text-gray-400 font-semibold mb-3 uppercase tracking-wide">こんな状況、心当たりありませんか？</p>
+                <div className="space-y-3">
+                    {/* 1つ目: 全表示 */}
+                    <div className="flex items-start gap-3">
+                        <span className="text-indigo-500 font-bold flex-shrink-0 mt-0.5">✓</span>
+                        <span className="text-sm text-gray-700">{painPoints[0]}</span>
                     </div>
-                ))}
+                    {/* 2・3つ目: ぼかし（未ログイン）/ フェードイン（登録後） */}
+                    {[1, 2].map(idx => (
+                        <div key={idx} className="flex items-start gap-3">
+                            <span className={`font-bold flex-shrink-0 mt-0.5 transition-colors duration-500 ${isLoggedIn ? 'text-indigo-500' : 'text-gray-300'}`}>✓</span>
+                            {isLoggedIn ? (
+                                <motion.span
+                                    initial={registeredJustNow ? { opacity: 0, y: 8 } : { opacity: 1, y: 0 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5, delay: idx * 0.2 }}
+                                    className="text-sm text-gray-700"
+                                >
+                                    {painPoints[idx] || painPoints[0]}
+                                </motion.span>
+                            ) : (
+                                <span className="text-sm text-transparent bg-gray-200 rounded select-none blur-sm">
+                                    {painPoints[idx] || 'この項目はぼかし表示されています'}
+                                </span>
+                            )}
+                        </div>
+                    ))}
+                    {!isLoggedIn && (
+                        <p className="text-xs text-gray-400 pl-6 mt-1">残り2つのうち1つは、ほとんどの人が"これだ！"と言う項目です</p>
+                    )}
+                </div>
             </div>
 
-            {/* 見出し・説明 */}
-            <h3 className="text-lg font-bold text-gray-900 mb-2">あなたの悩みに近い実例があります</h3>
-            <p className="text-sm text-gray-600 leading-relaxed mb-5 whitespace-pre-line">
-                {`同じように「${direction}」で立ち止まっていた人が、\n何を変えて改善したのか見てみましょう。`}
-            </p>
+            {/* ──── セクション3: ソーシャルプルーフ（全表示） ──── */}
+            {sameTypeCount > 3 && (
+                <div className="bg-indigo-50 rounded-2xl p-4 text-center">
+                    <p className="text-sm text-indigo-700">
+                        このタイプと診断された人: <span className="font-bold text-indigo-900">{sameTypeCount}人</span>
+                    </p>
+                </div>
+            )}
 
-            {/* メインCTA */}
-            <button
-                onClick={onOpenModal}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-0.5"
-            >
-                <span>結果をすべて見る</span>
-                <ArrowRight className="w-5 h-5" />
-            </button>
-            <p className="text-center text-xs text-gray-400 mt-2">メールアドレスだけ・10秒で完了</p>
+            {/* ──── 登録の壁（未ログインのみ） ──── */}
+            {!isLoggedIn && (
+                <InlineRegistrationWall
+                    mainTypeInfo={mainTypeInfo}
+                    sameTypeCount={sameTypeCount}
+                    onRegistered={onRegistered}
+                />
+            )}
 
-            {/* サブCTA */}
-            <div className="flex justify-center mt-4">
-                <button
-                    onClick={onReset}
-                    className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1.5 transition-colors"
+            {/* ──── 登録済みコンテンツ（アニメーション表示） ──── */}
+            <AnimatePresence>
+            {isLoggedIn && (
+                <motion.div
+                    initial={registeredJustNow ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="space-y-5"
                 >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    診断をやり直す
-                </button>
-            </div>
+                    {/* セクション5: 状態説明 */}
+                    {mainTypeInfo?.description && (
+                        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                            <p className="text-xs text-gray-400 font-semibold mb-2 uppercase tracking-wide">あなたの状態</p>
+                            <p className="text-sm text-gray-700 leading-relaxed">{mainTypeInfo.description}</p>
+                        </div>
+                    )}
+
+                    {/* セクション6: サブタイプ */}
+                    {subTypeInfo && (
+                        <div className="bg-white border border-purple-100 rounded-2xl p-4 flex items-center gap-3">
+                            <span className="text-2xl">{subTypeInfo.emoji || '📌'}</span>
+                            <div>
+                                <p className="text-xs text-gray-400">サブタイプ</p>
+                                <p className="font-semibold text-gray-800">{subTypeInfo.label}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* セクション7: 明日からの一歩 */}
+                    {mainTypeInfo?.direction && (
+                        <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
+                            <p className="text-xs text-green-600 font-semibold mb-2">💡 明日からできる具体的な一歩</p>
+                            <p className="text-sm text-green-800 font-medium leading-relaxed">{mainTypeInfo.direction}</p>
+                        </div>
+                    )}
+
+                    {/* セクション8: おすすめ本 */}
+                    {books.length > 0 && (
+                        <div>
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">📚 あなたに合う本3冊</h3>
+                            <div className="space-y-4">
+                                {books.filter(b => b.book_category !== 'novel_essay').map((book, idx) => (
+                                    <div key={book.id} className={`bg-white border rounded-2xl p-5 ${idx === 0 ? 'border-amber-200 bg-amber-50' : 'border-gray-100'}`}>
+                                        {idx === 0 && (
+                                            <div className="flex items-center gap-1.5 mb-3">
+                                                <span className="text-amber-500">⭐</span>
+                                                <span className="text-amber-700 text-xs font-bold">迷ったらまずこれ</span>
+                                            </div>
+                                        )}
+                                        <BookCard book={book} onNavigate={(id) => onNavigate(createPageUrl('Book') + `?id=${id}`)} />
+                                    </div>
+                                ))}
+                                {books.filter(b => b.book_category === 'novel_essay').map(book => (
+                                    <div key={book.id} className="bg-white border border-purple-100 rounded-2xl p-5">
+                                        <NovelBookCard book={book} onNavigate={(id) => onNavigate(createPageUrl('Book') + `?id=${id}`)} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* セクション9: 事例 + ストーリーゲーム導線 */}
+                    {matchedCases.length > 0 && (
+                        <div>
+                            <h3 className="text-lg font-bold text-gray-900 mb-1">🏢 あなたに刺さる実例</h3>
+                            <p className="text-xs text-gray-400 mb-4">同じ悩みを持つビジネスの事例です</p>
+                            <div className="space-y-3">
+                                {matchedCases.map(c => (
+                                    <button
+                                        key={c.id}
+                                        onClick={() => onNavigate(createPageUrl('CaseStudyDetail') + `?id=${c.id}`)}
+                                        className="w-full text-left bg-white border border-gray-100 rounded-2xl p-4 hover:border-indigo-300 hover:shadow-md transition-all flex gap-4"
+                                    >
+                                        {c.thumbnail_url ? (
+                                            <img src={c.thumbnail_url} alt={c.company_name} className="w-16 h-16 object-cover rounded-xl flex-shrink-0" />
+                                        ) : (
+                                            <div className="w-16 h-16 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl">🏢</div>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs text-indigo-600 font-semibold mb-0.5">{c.company_name}</p>
+                                            <p className="text-sm font-bold text-gray-900 leading-tight mb-1">{c.title}</p>
+                                            {c.short_description && <p className="text-xs text-gray-500 line-clamp-2">{c.short_description}</p>}
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* セクション10: シェア */}
+                    {xShareText && (
+                        <div className="bg-gray-50 rounded-2xl p-5">
+                            <p className="text-sm font-bold text-gray-700 mb-3">📣 結果をシェアする</p>
+                            <pre className="text-xs text-gray-600 bg-white rounded-xl p-3 mb-3 whitespace-pre-wrap border border-gray-100">{xShareText}</pre>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleCopyShare}
+                                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                                >
+                                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                                    {copied ? 'コピー済み' : 'コピー'}
+                                </button>
+                                <a
+                                    href={`https://x.com/intent/tweet?text=${encodeURIComponent(xShareText)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-colors"
+                                >
+                                    <Share2 className="w-4 h-4" />
+                                    Xでシェア
+                                </a>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* やり直しボタン */}
+                    <div className="flex justify-center pb-4">
+                        <button onClick={onReset} className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1.5 transition-colors">
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            診断をやり直す
+                        </button>
+                    </div>
+                </motion.div>
+            )}
+            </AnimatePresence>
+
+            {/* 未ログイン時のやり直し */}
+            {!isLoggedIn && (
+                <div className="flex justify-center pb-4">
+                    <button onClick={onReset} className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1.5 transition-colors">
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        診断をやり直す
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
