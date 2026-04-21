@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { ArrowRight, Loader2, RotateCcw, Mail } from 'lucide-react';
+import { trackAnonymousEvent, getAnonymousId } from '@/lib/analytics';
 
 const STEP = { EMAIL: 'email', OTP: 'otp', DONE: 'done' };
 
@@ -15,18 +16,12 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const trackEvent = (eventName, value = {}) => {
-        try {
-            base44.functions.invoke('trackEvent', { event_name: eventName, event_value: value, update_last_active: false }).catch(() => {});
-        } catch {}
-    };
-
     const handleSendCode = async (e) => {
         e.preventDefault();
         if (!email.trim()) return;
         setLoading(true);
         setError('');
-        trackEvent('email_input_start', { email_domain: email.split('@')[1] });
+        trackAnonymousEvent('email_input_start', { event_value: { email_domain: email.split('@')[1] } });
 
         const normalizedEmail = email.trim().toLowerCase();
 
@@ -35,14 +30,14 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
             await base44.auth.register({ email: normalizedEmail, password: pw });
             setStep(STEP.OTP);
             setLoading(false);
-            trackEvent('magic_link_sent', { is_new_user: true });
+            trackAnonymousEvent('magic_link_sent', { event_value: { is_new_user: true } });
             return;
         } catch {}
 
         try {
             await base44.auth.resendOtp(normalizedEmail);
             setStep(STEP.OTP);
-            trackEvent('magic_link_sent', { is_new_user: false });
+            trackAnonymousEvent('magic_link_sent', { event_value: { is_new_user: false } });
         } catch {
             setError('メールの送信に失敗しました。しばらくしてから再試行してください。');
         }
@@ -58,7 +53,7 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
         try {
             await base44.auth.verifyOtp({ email: email.trim().toLowerCase(), otpCode: otp.trim() });
             setStep(STEP.DONE);
-            trackEvent('registration_complete', {});
+            trackAnonymousEvent('registration_complete', { event_value: { anonymous_id: getAnonymousId() } });
             setTimeout(() => {
                 if (onRegistered) onRegistered();
             }, 1000);

@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import DiagnosisFlow from '@/components/diagnosis/DiagnosisFlow';
 import { ArrowRight, X } from 'lucide-react';
+import { trackLandingVisit } from '@/lib/analytics';
 
 export default function Landing() {
   const [isInAppBrowser, setIsInAppBrowser] = useState(false);
@@ -13,6 +14,9 @@ export default function Landing() {
   const [diagnosisKey, setDiagnosisKey] = useState(0); // DiagnosisFlowをリセットするキー
 
   useEffect(() => {
+    // 匿名訪問トラッキング（24時間重複防止）
+    trackLandingVisit();
+
     // 訪問記録（未ログインでも）
     base44.functions.invoke('trackPageView', {
       page: 'landing',

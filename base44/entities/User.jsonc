@@ -1,0 +1,85 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user"
+      ],
+      "default": "user",
+      "description": "\u30e6\u30fc\u30b6\u30fc\u30ed\u30fc\u30eb"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "\u8868\u793a\u540d"
+    },
+    "bio": {
+      "type": "string",
+      "description": "\u81ea\u5df1\u7d39\u4ecb"
+    },
+    "profile_json": {
+      "type": "object",
+      "description": "\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u8a73\u7d30\u30c7\u30fc\u30bf"
+    },
+    "profile_visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "private"
+      ],
+      "default": "public",
+      "description": "\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u516c\u958b\u8a2d\u5b9a"
+    },
+    "favorites_visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "private"
+      ],
+      "default": "public",
+      "description": "\u304a\u6c17\u306b\u5165\u308a\u516c\u958b\u8a2d\u5b9a"
+    },
+    "last_active_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u6700\u7d42\u30a2\u30af\u30c6\u30a3\u30d6\u65e5\u6642"
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "Stripe\u9867\u5ba2ID"
+    },
+    "subscription_status": {
+      "type": "string",
+      "enum": [
+        "free",
+        "active",
+        "past_due",
+        "canceled",
+        "incomplete"
+      ],
+      "default": "free",
+      "description": "\u30b5\u30d6\u30b9\u30af\u30ea\u30d7\u30b7\u30e7\u30f3\u72b6\u614b"
+    },
+    "subscription_current_period_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u30b5\u30d6\u30b9\u30af\u671f\u9593\u7d42\u4e86\u65e5"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "free",
+        "premium"
+      ],
+      "default": "free",
+      "description": "\u30d7\u30e9\u30f3\u540d"
+    },
+    "anonymous_id": {
+      "type": "string",
+      "description": "\u30ed\u30b0\u30a4\u30f3\u524d\u306e\u533f\u540dID\u3068\u306e\u7d10\u4ed8\u3051\u7528"
+    }
+  },
+  "required": []
+}

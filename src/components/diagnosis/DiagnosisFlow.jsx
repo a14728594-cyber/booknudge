@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Loader2, BookOpen, RotateCcw, Share2, Copy, Chec
 import MagicLinkModal from '@/components/auth/MagicLinkModal';
 import InlineRegistrationWall from '@/components/diagnosis/InlineRegistrationWall';
 import { motion, AnimatePresence } from 'framer-motion';
+import { trackAnonymousEvent } from '@/lib/analytics';
 
 const STEPS = { GENRE: 'genre', QUESTION: 'question', RESULT: 'result' };
 
@@ -59,6 +60,8 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
     const handleGenreSelect = async (genreName) => {
         setSelectedGenre(genreName);
         setLoading(true);
+        // 診断開始イベント
+        trackAnonymousEvent('diagnosis_start', { event_value: { genre: genreName } });
         const genreNodes = await base44.entities.DiagnosisNode.filter({ genre: genreName, is_active: true }, 'order', 200);
         const nodeIds = genreNodes.map(n => n.id);
         const map = {};
@@ -185,11 +188,11 @@ export default function DiagnosisFlow({ onClose, hideClose }) {
             }));
         } catch {}
 
-        // イベント記録
-        try {
-            base44.functions.invoke('trackEvent', { event_name: 'diagnosis_complete', event_value: { main_type: mainType, genre: selectedGenre }, update_last_active: false }).catch(() => {});
-            base44.functions.invoke('trackEvent', { event_name: 'registration_wall_view', event_value: { main_type: mainType }, update_last_active: false }).catch(() => {});
-        } catch {}
+        // イベント記録（匿名対応）
+        trackAnonymousEvent('diagnosis_complete', { event_value: { main_type: mainType, sub_type: subType, genre: selectedGenre } });
+        if (!isLoggedIn) {
+            trackAnonymousEvent('registration_wall_view', { event_value: { main_type: mainType } });
+        }
     };
 
     const fetchTypeInfo = async (typeKey) => {
