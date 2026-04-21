@@ -176,15 +176,25 @@ export default function DeepDiagnosis() {
                     <div>
                         {/* Progress */}
                         <div className="mb-10">
-                            <div className="flex justify-between text-xs text-gray-400 mb-2">
+                            <div className="flex justify-between items-center mb-3">
                                 <span className="font-semibold text-indigo-600 text-sm">{selectedGenre}</span>
-                                <span>{currentIndex + 1} / {totalQuestions}</span>
+                                <span className="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full font-medium">
+                                    {currentIndex + 1} / {totalQuestions}問
+                                </span>
                             </div>
-                            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                                <div
-                                    className="h-1.5 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all duration-700"
-                                    style={{ width: `${progress}%` }}
-                                />
+                            <div className="flex gap-1.5">
+                                {nodes.map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${
+                                            i < currentIndex
+                                                ? 'bg-indigo-500'
+                                                : i === currentIndex
+                                                ? 'bg-gradient-to-r from-indigo-500 to-violet-400'
+                                                : 'bg-gray-200'
+                                        }`}
+                                    />
+                                ))}
                             </div>
                         </div>
 
@@ -195,9 +205,9 @@ export default function DeepDiagnosis() {
                             </div>
                         ) : currentNode ? (
                             <div>
-                                {currentNode.weight > 1 && (
-                                    <div className="mb-4 inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 text-xs font-semibold px-3 py-1.5 rounded-full border border-amber-200">
-                                        ⭐ 重要な質問
+                                {(currentNode.question_style === 'scenario' || currentNode.question_style === 'projection') && (
+                                    <div className="mb-3 inline-flex items-center gap-1.5 bg-violet-50 text-violet-600 text-xs font-medium px-3 py-1.5 rounded-full border border-violet-200">
+                                        💭 想像してみてください
                                     </div>
                                 )}
                                 <h2 className="text-xl font-bold text-gray-900 mb-8 leading-relaxed">
