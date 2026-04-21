@@ -22,6 +22,7 @@ import GenreBooksPage from './pages/GenreBooks';
 import CaseStudyDetailPage from './pages/CaseStudyDetail';
 import AdminCaseStudiesPage from './pages/AdminCaseStudies';
 import AdminCaseStudyEditPage from './pages/AdminCaseStudyEdit';
+import AdminAnalyticsPage from './pages/AdminAnalytics';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -119,6 +120,7 @@ const AuthenticatedApp = () => {
         <Route path="/CaseStudyDetail" element={<LayoutWrapper currentPageName="CaseStudyDetail"><CaseStudyDetailPage /></LayoutWrapper>} />
         <Route path="/AdminCaseStudies" element={<LayoutWrapper currentPageName="AdminCaseStudies"><AdminCaseStudiesPage /></LayoutWrapper>} />
         <Route path="/AdminCaseStudyEdit" element={<LayoutWrapper currentPageName="AdminCaseStudyEdit"><AdminCaseStudyEditPage /></LayoutWrapper>} />
+        <Route path="/admin/analytics" element={<LayoutWrapper currentPageName="AdminAnalytics"><AdminAnalyticsPage /></LayoutWrapper>} />
         <Route path="/GenreBooks" element={<LayoutWrapper currentPageName="GenreBooks"><GenreBooksPage /></LayoutWrapper>} />
         <Route path="/game" element={<Navigate to="/home" replace />} />
         <Route path="/business-story" element={<BusinessStoryPage />} />
