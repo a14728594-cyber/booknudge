@@ -309,6 +309,28 @@ export default function Home() {
                         </div>
                     </Link>
 
+                    {/* Business Story CTA */}
+                    <Link to="/business-story">
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-800 via-indigo-900 to-purple-900 p-5 text-white hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+                            <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(circle at 40% 50%, white 1px, transparent 1px)', backgroundSize: '32px 32px'}} />
+                            <div className="relative flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-xl flex-shrink-0">
+                                        📖
+                                    </div>
+                                    <div>
+                                        <div className="text-xs font-semibold uppercase tracking-widest text-indigo-300 mb-0.5">ビジネスストーリー</div>
+                                        <h3 className="text-base font-bold leading-tight">あなたの診断タイプに合ったストーリーをプレイ</h3>
+                                        <p className="text-indigo-200 text-xs mt-0.5">5〜10分で遊べる正解のないビジネスゲーム</p>
+                                    </div>
+                                </div>
+                                <div className="flex-shrink-0 bg-white/20 hover:bg-white/30 rounded-xl p-2 transition-colors">
+                                    <ArrowRight className="w-5 h-5" />
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
+
                     {/* Game / Plan & Evaluate CTA */}
                     <Link to="/game">
                         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 p-5 text-white hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">

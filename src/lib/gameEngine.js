@@ -12,6 +12,13 @@ export const STAT_LABELS = {
   resource: 'リソース',
 };
 
+export const STAT_ICONS = {
+  revenue: '💰',
+  brand: '🎯',
+  trust: '🤝',
+  resource: '⏳',
+};
+
 export const STAT_COLORS = {
   revenue: 'text-emerald-600',
   brand: 'text-violet-600',
