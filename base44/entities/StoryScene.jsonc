@@ -1,0 +1,57 @@
+{
+  "name": "StoryScene",
+  "type": "object",
+  "properties": {
+    "episode_id": {
+      "type": "string",
+      "description": "\u6240\u5c5e\u3059\u308bStoryEpisode\u306eID"
+    },
+    "order": {
+      "type": "number",
+      "description": "\u30b7\u30fc\u30f3\u306e\u9806\u756a\uff081\u301c10\uff09"
+    },
+    "situation_text": {
+      "type": "string",
+      "description": "\u72b6\u6cc1\u8aac\u660e\u6587\uff08\u30e6\u30fc\u30b6\u30fc\u306b\u63d0\u793a\u3059\u308b\u5834\u9762\u63cf\u5199\uff09"
+    },
+    "character_name": {
+      "type": "string",
+      "description": "\u767a\u8a00\u30ad\u30e3\u30e9\u30af\u30bf\u30fc\u540d\uff08\u4f8b\uff1a\u300c\u5e38\u9023\u5ba2\u306e\u7530\u4e2d\u3055\u3093\u300d\uff09"
+    },
+    "character_emoji": {
+      "type": "string",
+      "description": "\u30ad\u30e3\u30e9\u30af\u30bf\u30fc\u3092\u8868\u3059\u7d75\u6587\u5b57"
+    },
+    "choice_a_text": {
+      "type": "string",
+      "description": "\u9078\u629e\u80a2A\u306e\u30c6\u30ad\u30b9\u30c8"
+    },
+    "choice_a_effect": {
+      "type": "object",
+      "description": "\u9078\u629e\u80a2A\u306e\u30b9\u30c6\u30fc\u30bf\u30b9\u5f71\u97ff\u3002\u4f8b\uff1a{\"sales\": 2, \"brand\": -1, \"trust\": 0, \"resource\": -1}"
+    },
+    "choice_a_result_text": {
+      "type": "string",
+      "description": "\u9078\u629e\u80a2A\u3092\u9078\u3093\u3060\u5f8c\u306e\u77ed\u3044\u7d50\u679c\u30c6\u30ad\u30b9\u30c8"
+    },
+    "choice_b_text": {
+      "type": "string",
+      "description": "\u9078\u629e\u80a2B\u306e\u30c6\u30ad\u30b9\u30c8"
+    },
+    "choice_b_effect": {
+      "type": "object",
+      "description": "\u9078\u629e\u80a2B\u306e\u30b9\u30c6\u30fc\u30bf\u30b9\u5f71\u97ff\u3002\u4f8b\uff1a{\"sales\": -1, \"brand\": 2, \"trust\": 1, \"resource\": 0}"
+    },
+    "choice_b_result_text": {
+      "type": "string",
+      "description": "\u9078\u629e\u80a2B\u3092\u9078\u3093\u3060\u5f8c\u306e\u77ed\u3044\u7d50\u679c\u30c6\u30ad\u30b9\u30c8"
+    }
+  },
+  "required": [
+    "episode_id",
+    "order",
+    "situation_text",
+    "choice_a_text",
+    "choice_b_text"
+  ]
+}

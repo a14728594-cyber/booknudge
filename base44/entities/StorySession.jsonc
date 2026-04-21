@@ -1,0 +1,52 @@
+{
+  "name": "StorySession",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "\u30e6\u30fc\u30b6\u30fcID\uff08\u672a\u30ed\u30b0\u30a4\u30f3\u6642\u306fnull\uff09"
+    },
+    "episode_id": {
+      "type": "string",
+      "description": "\u30d7\u30ec\u30a4\u3057\u305f\u30a8\u30d4\u30bd\u30fc\u30c9ID"
+    },
+    "choices": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "\u5404\u30b7\u30fc\u30f3\u3067\u306e\u9078\u629e\u8a18\u9332\u3002\u4f8b\uff1a[{scene_order: 1, choice: 'A', effect: {...}}]"
+    },
+    "final_stats": {
+      "type": "object",
+      "description": "\u6700\u7d42\u30b9\u30c6\u30fc\u30bf\u30b9\u3002\u4f8b\uff1a{sales: 3, brand: 5, trust: 2, resource: 1}"
+    },
+    "ending_key": {
+      "type": "string",
+      "enum": [
+        "great_success",
+        "success",
+        "neutral",
+        "failure",
+        "bankruptcy"
+      ],
+      "description": "\u5230\u9054\u3057\u305f\u7d50\u672b"
+    },
+    "ending_id": {
+      "type": "string",
+      "description": "\u5230\u9054\u3057\u305fStoryEnding\u306eID"
+    },
+    "total_score": {
+      "type": "number",
+      "description": "\u6700\u7d42\u30b9\u30b3\u30a2\u5408\u8a08"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u30d7\u30ec\u30a4\u5b8c\u4e86\u65e5\u6642"
+    }
+  },
+  "required": [
+    "episode_id"
+  ]
+}
