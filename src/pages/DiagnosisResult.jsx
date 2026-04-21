@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -242,7 +242,7 @@ function BookResultCard({ book }) {
     const recText = book._mapping?.recommendation_text;
 
     return (
-        <div>
+        <Link to={createPageUrl('BookDetail') + `?id=${book.id}`} className="block">
             <div className="flex gap-4">
                 {book.cover_url ? (
                     <img
@@ -274,11 +274,12 @@ function BookResultCard({ book }) {
                     href={book.amazon_url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
                     className="mt-3 w-full flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-500 text-gray-900 font-bold text-sm py-2.5 px-4 rounded-xl transition-colors"
                 >
                     Amazonで見る
                 </a>
             )}
-        </div>
+        </Link>
     );
 }
