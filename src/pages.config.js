@@ -62,7 +62,6 @@ import BillingCancel from './pages/BillingCancel';
 import BillingSuccess from './pages/BillingSuccess';
 import Book from './pages/Book';
 import BookDetail from './pages/BookDetail';
-import CaseQuizPage from './pages/CaseQuizPage';
 import CommonQuiz from './pages/CommonQuiz';
 import Connect from './pages/Connect';
 import DM from './pages/DM';
@@ -112,7 +111,6 @@ export const PAGES = {
     "BillingSuccess": BillingSuccess,
     "Book": Book,
     "BookDetail": BookDetail,
-    "CaseQuizPage": CaseQuizPage,
     "CommonQuiz": CommonQuiz,
     "Connect": Connect,
     "DM": DM,
