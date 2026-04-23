@@ -25,28 +25,16 @@ export default function MagicLinkModal({ onClose, onSuccess, redirectAfter }) {
 
         const normalizedEmail = email.trim().toLowerCase();
 
-        // ステップ1: 新規登録を試みる
+        // 新規・既存ユーザーどちらも register を呼ぶ
+        // 既存ユーザーにも新しい OTP が発行・送信される
         try {
             const pw = generateTempPassword();
             setTempPassword(pw);
             await base44.auth.register({ email: normalizedEmail, password: pw });
-            // 新規登録成功 → OTPがメールに送信される
-            setIsNewUser(true);
             setStep(STEP.OTP);
-            setLoading(false);
-            return;
         } catch (regErr) {
-            // "already exists" 系のエラー → 既存ユーザー
-        }
-
-        // ステップ2: 既存ユーザー → OTP再送
-        try {
-            await base44.auth.resendOtp(normalizedEmail);
-            setIsNewUser(false);
-            setStep(STEP.OTP);
-        } catch (otpErr) {
-            console.error('[Auth] resendOtp failed:', otpErr?.message, otpErr?.response?.data ?? otpErr);
-            setError(`メールを送れませんでした（${otpErr?.message || '不明なエラー'}）。しばらくしてから再試行してください。`);
+            console.error('[Auth] register failed:', regErr?.message);
+            setError('メールの送信に失敗しました。しばらくしてから再試行してください。');
         }
         setLoading(false);
     };

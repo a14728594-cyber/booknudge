@@ -25,31 +25,18 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
 
         const normalizedEmail = email.trim().toLowerCase();
 
-        // まず新規登録を試みる
+        // 新規・既存ユーザーどちらも register を呼ぶ
+        // 既存ユーザーにも新しい OTP が発行・送信される
         try {
             const pw = generateTempPassword();
             await base44.auth.register({ email: normalizedEmail, password: pw });
             setStep(STEP.OTP);
-            setLoading(false);
-            trackAnonymousEvent('magic_link_sent', { event_value: { is_new_user: true } });
-            return;
+            trackAnonymousEvent('magic_link_sent', { event_value: {} });
         } catch (regErr) {
-            console.log('[Auth] register failed (likely existing user):', regErr?.message);
+            console.error('[Auth] register failed:', regErr?.message);
+            setError('メールの送信に失敗しました。しばらく後に再試行してください。');
         }
-
-        // 既存ユーザー → まず新規登録と同じフローで resendOtp
-        // resendOtp はメールアドレスが存在すれば OTP を送信する
-        try {
-            await base44.auth.resendOtp(normalizedEmail);
-            setStep(STEP.OTP);
-            setLoading(false);
-            trackAnonymousEvent('magic_link_sent', { event_value: { is_new_user: false } });
-        } catch (otpErr) {
-            console.error('[Auth] resendOtp failed:', otpErr?.message, otpErr?.response?.data ?? otpErr);
-            // resendOtp も失敗する場合、再度 register を試みる（初回登録でOTPが来る）
-            setError(`メールを送れませんでした（${otpErr?.message || '不明なエラー'}）。別のメールアドレスをお試しいただくか、しばらく後に再試行してください。`);
-            setLoading(false);
-        }
+        setLoading(false);
     };
 
     const handleVerifyOtp = async (e) => {
