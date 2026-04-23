@@ -25,7 +25,7 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
 
         const normalizedEmail = email.trim().toLowerCase();
 
-        // まず新規登録を試みる
+        // まず新規登録を試みる（新規ユーザー）
         try {
             const pw = generateTempPassword();
             await base44.auth.register({ email: normalizedEmail, password: pw });
@@ -34,13 +34,16 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
             setLoading(false);
             return;
         } catch (regErr) {
-            // "already exists" → 既存ユーザー
+            // "already exists" → 既存ユーザー → resetPasswordRequest でOTPを送信
         }
 
-        // 既存ユーザー → プラットフォームのログインページへリダイレクト
-        // （診断結果ページに戻るよう next を設定）
-        trackAnonymousEvent('magic_link_sent', { event_value: { is_new_user: false } });
-        base44.auth.redirectToLogin(window.location.href);
+        try {
+            await base44.auth.resetPasswordRequest(normalizedEmail);
+            setStep(STEP.OTP);
+            trackAnonymousEvent('magic_link_sent', { event_value: { is_new_user: false } });
+        } catch (err) {
+            setError('メールの送信に失敗しました。しばらくしてから再試行してください。');
+        }
         setLoading(false);
     };
 
@@ -66,7 +69,11 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
     const handleResend = async () => {
         setLoading(true);
         try {
-            await base44.auth.resendOtp(email.trim().toLowerCase());
+            try {
+                await base44.auth.resendOtp(email.trim().toLowerCase());
+            } catch {
+                await base44.auth.resetPasswordRequest(email.trim().toLowerCase());
+            }
             setError('');
         } catch {
             setError('再送信に失敗しました。');

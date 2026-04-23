@@ -14,7 +14,6 @@ export default function MagicLinkModal({ onClose, onSuccess, redirectAfter }) {
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [isNewUser, setIsNewUser] = useState(false);
     const [tempPassword, setTempPassword] = useState('');
 
     const handleSendCode = async (e) => {
@@ -25,7 +24,7 @@ export default function MagicLinkModal({ onClose, onSuccess, redirectAfter }) {
 
         const normalizedEmail = email.trim().toLowerCase();
 
-        // まず新規登録を試みる
+        // まず新規登録を試みる（新規ユーザー）
         try {
             const pw = generateTempPassword();
             setTempPassword(pw);
@@ -34,11 +33,15 @@ export default function MagicLinkModal({ onClose, onSuccess, redirectAfter }) {
             setLoading(false);
             return;
         } catch (regErr) {
-            // "already exists" → 既存ユーザー
+            // "already exists" → 既存ユーザー → resetPasswordRequest でOTPを送信
         }
 
-        // 既存ユーザー → プラットフォームのログインページへリダイレクト
-        base44.auth.redirectToLogin(window.location.href);
+        try {
+            await base44.auth.resetPasswordRequest(normalizedEmail);
+            setStep(STEP.OTP);
+        } catch (err) {
+            setError('メールの送信に失敗しました。しばらくしてから再試行してください。');
+        }
         setLoading(false);
     };
 
@@ -66,8 +69,12 @@ export default function MagicLinkModal({ onClose, onSuccess, redirectAfter }) {
         setLoading(true);
         setError('');
         try {
-            await base44.auth.resendOtp(email.trim().toLowerCase());
-            setError(''); // clear
+            // まず新規OTP再送信を試みる、失敗したらresetPasswordRequestで再送
+            try {
+                await base44.auth.resendOtp(email.trim().toLowerCase());
+            } catch {
+                await base44.auth.resetPasswordRequest(email.trim().toLowerCase());
+            }
         } catch {
             setError('再送信に失敗しました。');
         }
