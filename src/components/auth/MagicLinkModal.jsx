@@ -40,7 +40,7 @@ export default function MagicLinkModal({ onClose, onSuccess, redirectAfter }) {
         setLoading(false);
         setError('すでに登録済みのメールアドレスです。ログインページへ移動します...');
         setTimeout(() => {
-            base44.auth.redirectToLogin(window.location.href);
+            base44.auth.redirectToLogin('/home');
         }, 2000);
     };
 
