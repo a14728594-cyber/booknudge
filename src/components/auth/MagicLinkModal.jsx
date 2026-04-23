@@ -25,17 +25,20 @@ export default function MagicLinkModal({ onClose, onSuccess, redirectAfter }) {
 
         const normalizedEmail = email.trim().toLowerCase();
 
-        // 新規・既存ユーザーどちらも register を呼ぶ
-        // 既存ユーザーにも新しい OTP が発行・送信される
+        // まず新規登録を試みる
         try {
             const pw = generateTempPassword();
             setTempPassword(pw);
             await base44.auth.register({ email: normalizedEmail, password: pw });
             setStep(STEP.OTP);
+            setLoading(false);
+            return;
         } catch (regErr) {
-            console.error('[Auth] register failed:', regErr?.message);
-            setError('メールの送信に失敗しました。しばらくしてから再試行してください。');
+            // "already exists" → 既存ユーザー
         }
+
+        // 既存ユーザー → プラットフォームのログインページへリダイレクト
+        base44.auth.redirectToLogin(window.location.href);
         setLoading(false);
     };
 

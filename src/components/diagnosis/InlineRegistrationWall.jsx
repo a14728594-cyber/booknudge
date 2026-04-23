@@ -25,17 +25,22 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
 
         const normalizedEmail = email.trim().toLowerCase();
 
-        // 新規・既存ユーザーどちらも register を呼ぶ
-        // 既存ユーザーにも新しい OTP が発行・送信される
+        // まず新規登録を試みる
         try {
             const pw = generateTempPassword();
             await base44.auth.register({ email: normalizedEmail, password: pw });
             setStep(STEP.OTP);
-            trackAnonymousEvent('magic_link_sent', { event_value: {} });
+            trackAnonymousEvent('magic_link_sent', { event_value: { is_new_user: true } });
+            setLoading(false);
+            return;
         } catch (regErr) {
-            console.error('[Auth] register failed:', regErr?.message);
-            setError('メールの送信に失敗しました。しばらく後に再試行してください。');
+            // "already exists" → 既存ユーザー
         }
+
+        // 既存ユーザー → プラットフォームのログインページへリダイレクト
+        // （診断結果ページに戻るよう next を設定）
+        trackAnonymousEvent('magic_link_sent', { event_value: { is_new_user: false } });
+        base44.auth.redirectToLogin(window.location.href);
         setLoading(false);
     };
 
