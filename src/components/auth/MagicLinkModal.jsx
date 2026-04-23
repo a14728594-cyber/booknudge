@@ -44,8 +44,9 @@ export default function MagicLinkModal({ onClose, onSuccess, redirectAfter }) {
             await base44.auth.resendOtp(normalizedEmail);
             setIsNewUser(false);
             setStep(STEP.OTP);
-        } catch {
-            setError('メールの送信に失敗しました。しばらくしてから再試行してください。');
+        } catch (otpErr) {
+            console.error('[Auth] resendOtp failed:', otpErr?.message, otpErr?.response?.data ?? otpErr);
+            setError(`メールを送れませんでした（${otpErr?.message || '不明なエラー'}）。しばらくしてから再試行してください。`);
         }
         setLoading(false);
     };
