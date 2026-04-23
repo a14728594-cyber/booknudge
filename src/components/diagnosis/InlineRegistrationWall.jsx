@@ -37,10 +37,13 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
             // "already exists" → 既存ユーザー
         }
 
-        // 既存ユーザー → ログインページへリダイレクト（ログイン後に元のページへ戻る）
+        // 既存ユーザー → メッセージ表示後にログインページへリダイレクト
         trackAnonymousEvent('magic_link_sent', { event_value: { is_new_user: false } });
         setLoading(false);
-        base44.auth.redirectToLogin(window.location.href);
+        setError('すでに登録済みのメールアドレスです。ログインページへ移動します...');
+        setTimeout(() => {
+            base44.auth.redirectToLogin(window.location.href);
+        }, 2000);
     };
 
     const handleVerifyOtp = async (e) => {
