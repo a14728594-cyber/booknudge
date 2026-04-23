@@ -34,17 +34,13 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
             setLoading(false);
             return;
         } catch (regErr) {
-            // "already exists" → 既存ユーザー → resetPasswordRequest でOTPを送信
+            // "already exists" → 既存ユーザー
         }
 
-        try {
-            await base44.auth.resetPasswordRequest(normalizedEmail);
-            setStep(STEP.OTP);
-            trackAnonymousEvent('magic_link_sent', { event_value: { is_new_user: false } });
-        } catch (err) {
-            setError('メールの送信に失敗しました。しばらくしてから再試行してください。');
-        }
+        // 既存ユーザー → ログインページへリダイレクト（ログイン後に元のページへ戻る）
+        trackAnonymousEvent('magic_link_sent', { event_value: { is_new_user: false } });
         setLoading(false);
+        base44.auth.redirectToLogin(window.location.href);
     };
 
     const handleVerifyOtp = async (e) => {
@@ -69,11 +65,7 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
     const handleResend = async () => {
         setLoading(true);
         try {
-            try {
-                await base44.auth.resendOtp(email.trim().toLowerCase());
-            } catch {
-                await base44.auth.resetPasswordRequest(email.trim().toLowerCase());
-            }
+            await base44.auth.resendOtp(email.trim().toLowerCase());
             setError('');
         } catch {
             setError('再送信に失敗しました。');
