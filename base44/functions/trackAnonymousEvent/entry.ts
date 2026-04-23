@@ -22,13 +22,14 @@ Deno.serve(async (req) => {
     // ログイン済みユーザーのIDを取得（未ログインでもOK）
     let user_id = undefined;
     try {
-      const user = await base44.auth.me();
-      if (user) {
-        user_id = user.id;
-
-        // ログイン時にanonymous_idを紐付け（まだ保存されていない場合）
-        if (anonymous_id && !user.anonymous_id) {
-          base44.auth.updateMe({ anonymous_id }).catch(() => {});
+      const isAuthed = await base44.auth.isAuthenticated();
+      if (isAuthed) {
+        const user = await base44.auth.me();
+        if (user) {
+          user_id = user.id;
+          if (anonymous_id && !user.anonymous_id) {
+            base44.auth.updateMe({ anonymous_id }).catch(() => {});
+          }
         }
       }
     } catch {

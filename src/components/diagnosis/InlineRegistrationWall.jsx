@@ -25,6 +25,7 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
 
         const normalizedEmail = email.trim().toLowerCase();
 
+        // まず新規登録を試みる
         try {
             const pw = generateTempPassword();
             await base44.auth.register({ email: normalizedEmail, password: pw });
@@ -32,16 +33,21 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
             setLoading(false);
             trackAnonymousEvent('magic_link_sent', { event_value: { is_new_user: true } });
             return;
-        } catch {}
+        } catch (regErr) {
+            console.log('[Auth] register failed (likely existing user):', regErr?.message);
+        }
 
+        // 既存ユーザー → OTP再送
         try {
             await base44.auth.resendOtp(normalizedEmail);
             setStep(STEP.OTP);
+            setLoading(false);
             trackAnonymousEvent('magic_link_sent', { event_value: { is_new_user: false } });
-        } catch {
-            setError('メールの送信に失敗しました。しばらくしてから再試行してください。');
+        } catch (otpErr) {
+            console.error('[Auth] resendOtp failed:', otpErr?.message, otpErr);
+            setError('メールの送信に失敗しました。メールアドレスをご確認のうえ、再度お試しください。');
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const handleVerifyOtp = async (e) => {
@@ -115,23 +121,17 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
                 </div>
             )}
 
-            {/* 損失回避ナッジ */}
-            <p className="text-center text-xs text-indigo-300 mb-4">
-                ⚠️ この診断結果はブラウザを閉じると消えることがあります
-            </p>
-
             {/* フォーム */}
             {step === STEP.EMAIL ? (
                 <form onSubmit={handleSendCode} className="space-y-3">
                     <input
                         type="email"
                         value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        placeholder="メールアドレスを入力"
+                        onChange={e => { setEmail(e.target.value); setError(''); }}
+                        placeholder="your@email.com"
                         autoComplete="email"
                         className="w-full bg-white text-gray-900 placeholder-gray-400 border-0 rounded-2xl px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-white/50"
                     />
-                    {error && <p className="text-red-300 text-sm text-center">{error}</p>}
                     <button
                         type="submit"
                         disabled={loading || !email.trim()}
@@ -142,6 +142,11 @@ export default function InlineRegistrationWall({ mainTypeInfo, sameTypeCount, on
                             <ArrowRight className="w-5 h-5" />
                         </>}
                     </button>
+                    {error && <p className="text-red-300 text-xs text-center">{error}</p>}
+                    {/* 損失回避ナッジ（ソフトに） */}
+                    <p className="text-center text-xs text-indigo-300/70">
+                        💡 診断結果はブラウザを閉じると消える場合があります
+                    </p>
                 </form>
             ) : (
                 <div>
