@@ -1,0 +1,32 @@
+{
+  "name": "BookSignal",
+  "type": "object",
+  "properties": {
+    "book_id": {
+      "type": "string",
+      "description": "\u672cID"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "google",
+        "tiktok",
+        "x",
+        "internal"
+      ],
+      "description": "\u30bd\u30fc\u30b9"
+    },
+    "url_count_7d": {
+      "type": "number",
+      "description": "7\u65e5\u9593\u306eURL\u6570"
+    },
+    "url_count_30d": {
+      "type": "number",
+      "description": "30\u65e5\u9593\u306eURL\u6570"
+    }
+  },
+  "required": [
+    "book_id",
+    "source"
+  ]
+}

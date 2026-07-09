@@ -1,0 +1,23 @@
+{
+  "name": "Genre",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "\u30b8\u30e3\u30f3\u30eb\u540d\uff08\u4f8b\uff1a\u30de\u30fc\u30b1\u30c6\u30a3\u30f3\u30b0\u3001\u55b6\u696d\uff09"
+    },
+    "order": {
+      "type": "number",
+      "description": "\u4e26\u3073\u9806",
+      "default": 0
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "\u8868\u793a/\u975e\u8868\u793a",
+      "default": true
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

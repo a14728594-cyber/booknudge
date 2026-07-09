@@ -1,0 +1,30 @@
+{
+  "name": "BookComment",
+  "type": "object",
+  "properties": {
+    "book_id": {
+      "type": "string",
+      "description": "\u672cID"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "\u30e6\u30fc\u30b6\u30fcID"
+    },
+    "content": {
+      "type": "string",
+      "description": "\u30b3\u30e1\u30f3\u30c8\u5185\u5bb9",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "deleted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u524a\u9664\u65e5\u6642\uff08\u8ad6\u7406\u524a\u9664\uff09"
+    }
+  },
+  "required": [
+    "book_id",
+    "user_id",
+    "content"
+  ]
+}

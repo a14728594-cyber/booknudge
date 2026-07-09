@@ -1,0 +1,18 @@
+{
+  "name": "Follow",
+  "type": "object",
+  "properties": {
+    "follower_user_id": {
+      "type": "string",
+      "description": "\u30d5\u30a9\u30ed\u30fc\u3059\u308b\u5074\u306e\u30e6\u30fc\u30b6\u30fcID"
+    },
+    "following_user_id": {
+      "type": "string",
+      "description": "\u30d5\u30a9\u30ed\u30fc\u3055\u308c\u308b\u5074\u306e\u30e6\u30fc\u30b6\u30fcID"
+    }
+  },
+  "required": [
+    "follower_user_id",
+    "following_user_id"
+  ]
+}

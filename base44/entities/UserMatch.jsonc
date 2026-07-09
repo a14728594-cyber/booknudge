@@ -1,0 +1,30 @@
+{
+  "name": "UserMatch",
+  "type": "object",
+  "properties": {
+    "viewer_user_id": {
+      "type": "string",
+      "description": "\u95b2\u89a7\u8005\u306e\u30e6\u30fc\u30b6\u30fcID"
+    },
+    "target_user_id": {
+      "type": "string",
+      "description": "\u30de\u30c3\u30c1\u30f3\u30b0\u5bfe\u8c61\u306e\u30e6\u30fc\u30b6\u30fcID"
+    },
+    "score": {
+      "type": "number",
+      "description": "\u30de\u30c3\u30c1\u30b9\u30b3\u30a2\uff080-100\uff09"
+    },
+    "reasons_json": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u30de\u30c3\u30c1\u7406\u7531\uff08\u6700\u59273\u3064\uff09"
+    }
+  },
+  "required": [
+    "viewer_user_id",
+    "target_user_id",
+    "score"
+  ]
+}

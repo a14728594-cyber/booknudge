@@ -1,0 +1,35 @@
+{
+  "name": "SharedLink",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "\u30e6\u30fc\u30b6\u30fcID"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "tiktok",
+        "x"
+      ],
+      "description": "\u30bd\u30fc\u30b9"
+    },
+    "url": {
+      "type": "string",
+      "description": "URL"
+    },
+    "extracted_title_guess": {
+      "type": "string",
+      "description": "\u63a8\u5b9a\u30bf\u30a4\u30c8\u30eb"
+    },
+    "matched_book_id": {
+      "type": "string",
+      "description": "\u30de\u30c3\u30c1\u3057\u305f\u672cID"
+    }
+  },
+  "required": [
+    "user_id",
+    "source",
+    "url"
+  ]
+}

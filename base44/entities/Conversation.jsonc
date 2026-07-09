@@ -1,0 +1,23 @@
+{
+  "name": "Conversation",
+  "type": "object",
+  "properties": {
+    "user1_id": {
+      "type": "string",
+      "description": "\u30e6\u30fc\u30b6\u30fc1\u306eID"
+    },
+    "user2_id": {
+      "type": "string",
+      "description": "\u30e6\u30fc\u30b6\u30fc2\u306eID"
+    },
+    "last_message_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u6700\u65b0\u30e1\u30c3\u30bb\u30fc\u30b8\u306e\u65e5\u6642"
+    }
+  },
+  "required": [
+    "user1_id",
+    "user2_id"
+  ]
+}

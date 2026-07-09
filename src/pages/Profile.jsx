@@ -5,7 +5,6 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Dialog,
     DialogContent,
@@ -14,7 +13,6 @@ import {
 } from '@/components/ui/dialog';
 import Card from '@/components/common/Card';
 import BookCard from '@/components/common/BookCard';
-import DomainBadge from '@/components/common/DomainBadge';
 import { User as UserIcon, Heart, Users, Edit2, Check, X, Loader2, Lock, Globe, Send } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -34,7 +32,6 @@ export default function Profile() {
     
     const [favorites, setFavorites] = useState([]);
     const [favoritesBooks, setFavoritesBooks] = useState([]);
-    const [sharedAnswers, setSharedAnswers] = useState([]);
     const [followersCount, setFollowersCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
     const [isFollowing, setIsFollowing] = useState(false);
@@ -81,10 +78,6 @@ export default function Profile() {
                 } catch (e) {}
             }
             setFavoritesBooks(booksData);
-
-            // 共有回答
-            const answers = await base44.entities.SharedAnswer.filter({ user_id: targetUserId }, '-created_date', 20);
-            setSharedAnswers(answers);
 
             // フォロー数
             const followers = await base44.entities.Follow.filter({ following_user_id: targetUserId });
@@ -372,68 +365,30 @@ export default function Profile() {
 
                 {/* Tabs */}
                 {!isPrivateProfile ? (
-                    <Tabs defaultValue="favorites" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2 mb-6 bg-white border border-gray-100 shadow-sm rounded-2xl p-1 h-auto">
-                            <TabsTrigger value="favorites" className="rounded-xl py-2.5 text-sm font-medium data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
-                                <Heart className="w-4 h-4 mr-1.5" />
+                    <div>
+                        <div className="mb-6">
+                            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <Heart className="w-5 h-5 text-pink-600" />
                                 お気に入りの本
-                            </TabsTrigger>
-                            <TabsTrigger value="answers" className="rounded-xl py-2.5 text-sm font-medium data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
-                                共有した回答
-                            </TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="favorites">
-                            {!isOwnProfile && profileUser?.favorites_visibility === 'private' ? (
-                                <div className="bg-white rounded-2xl border border-gray-100 text-center py-14 text-gray-400 text-sm">
-                                    このユーザーのお気に入りは非公開です
-                                </div>
-                            ) : favoritesBooks.length > 0 ? (
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                    {favoritesBooks.map(book => (
-                                        <BookCard key={book.id} book={book} />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="bg-white rounded-2xl border border-gray-100 text-center py-14">
-                                    <Heart className="w-8 h-8 text-gray-200 mx-auto mb-3" />
-                                    <p className="text-sm text-gray-400">お気に入りの本がまだありません</p>
-                                </div>
-                            )}
-                        </TabsContent>
-
-                        <TabsContent value="answers">
-                            {sharedAnswers.length > 0 ? (
-                                <div className="space-y-3">
-                                    {sharedAnswers.map(answer => (
-                                        <div key={answer.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                                            <div className="flex items-start gap-3">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <DomainBadge domain={answer.domain} />
-                                                        <span className="text-xs text-gray-400">
-                                                            {new Date(answer.created_date).toLocaleDateString('ja-JP')}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-sm text-gray-700 mb-3 leading-relaxed">
-                                                        {answer.question_text}
-                                                    </p>
-                                                    <div className="bg-indigo-50 rounded-xl px-4 py-3 flex items-center justify-between">
-                                                        <span className="text-xs font-medium text-gray-500">スライダー値</span>
-                                                        <span className="text-xl font-bold text-indigo-600">{answer.shared_slider_value}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="bg-white rounded-2xl border border-gray-100 text-center py-14">
-                                    <p className="text-sm text-gray-400">共有した回答がまだありません</p>
-                                </div>
-                            )}
-                        </TabsContent>
-                    </Tabs>
+                            </h2>
+                        </div>
+                        {!isOwnProfile && profileUser?.favorites_visibility === 'private' ? (
+                            <div className="bg-white rounded-2xl border border-gray-100 text-center py-14 text-gray-400 text-sm">
+                                このユーザーのお気に入りは非公開です
+                            </div>
+                        ) : favoritesBooks.length > 0 ? (
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {favoritesBooks.map(book => (
+                                    <BookCard key={book.id} book={book} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="bg-white rounded-2xl border border-gray-100 text-center py-14">
+                                <Heart className="w-8 h-8 text-gray-200 mx-auto mb-3" />
+                                <p className="text-sm text-gray-400">お気に入りの本がまだありません</p>
+                            </div>
+                        )}
+                    </div>
                 ) : (
                     <div className="bg-white rounded-2xl border border-gray-100 text-center py-16">
                         <Lock className="w-10 h-10 text-gray-200 mx-auto mb-3" />

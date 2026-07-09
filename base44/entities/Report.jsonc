@@ -1,0 +1,23 @@
+{
+  "name": "Report",
+  "type": "object",
+  "properties": {
+    "reporter_user_id": {
+      "type": "string",
+      "description": "\u901a\u5831\u8005\u306e\u30e6\u30fc\u30b6\u30fcID"
+    },
+    "target_user_id": {
+      "type": "string",
+      "description": "\u901a\u5831\u5bfe\u8c61\u306e\u30e6\u30fc\u30b6\u30fcID"
+    },
+    "reason": {
+      "type": "string",
+      "description": "\u901a\u5831\u7406\u7531"
+    }
+  },
+  "required": [
+    "reporter_user_id",
+    "target_user_id",
+    "reason"
+  ]
+}

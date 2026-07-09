@@ -9,8 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import Card from '@/components/common/Card';
 import BookCard from '@/components/common/BookCard';
-import { Loader2, Edit, Save, X, Lock, Globe, Heart, Users as UsersIcon, RefreshCw, CreditCard, Trash2, Gamepad2 } from 'lucide-react';
-import { ENDING_CONFIG } from '@/lib/gameEngine';
+import { Loader2, Edit, Save, X, Lock, Globe, Heart, Users as UsersIcon, RefreshCw, CreditCard, Trash2 } from 'lucide-react';
 
 export default function MyProfile() {
     const navigate = useNavigate();
@@ -25,8 +24,6 @@ export default function MyProfile() {
     const [favorites, setFavorites] = useState([]);
     const [followersCount, setFollowersCount] = useState(0);
     const [followingCount, setFollowingCount] = useState(0);
-    const [playSessions, setPlaySessions] = useState([]);
-    const [episodeMap, setEpisodeMap] = useState({});
 
     const [formData, setFormData] = useState({
         display_name: '',
@@ -76,22 +73,9 @@ export default function MyProfile() {
             setFollowersCount(followers.length);
             setFollowingCount(following.length);
 
-            // プレイ履歴を取得
-            const sessions = await base44.entities.GamePlaySession.filter(
-                { user_id: userData.id, is_completed: true }, '-created_date', 20
-            );
-            setPlaySessions(sessions);
-            if (sessions.length > 0) {
-                const epIds = [...new Set(sessions.map(s => s.episode_id))];
-                const eps = await Promise.all(epIds.map(id => base44.entities.GameEpisode.get(id).catch(() => null)));
-                const map = {};
-                eps.filter(Boolean).forEach(ep => { map[ep.id] = ep; });
-                setEpisodeMap(map);
-            }
-
         } catch (error) {
             console.error('Error loading profile:', error);
-            navigate(createPageUrl('landing'));
+            navigate(createPageUrl('home'));
         } finally {
             setLoading(false);
         }
@@ -394,7 +378,7 @@ export default function MyProfile() {
                                     disabled={deleteInput !== '削除する'}
                                     className="flex-1 bg-red-600 hover:bg-red-700 text-white disabled:opacity-40"
                                     onClick={async () => {
-                                        await base44.auth.logout(createPageUrl('landing'));
+                                        await base44.auth.logout(createPageUrl('home'));
                                     }}
                                 >
                                     アカウントを削除
@@ -403,50 +387,6 @@ export default function MyProfile() {
                         </div>
                     )}
                 </Card>
-
-                {/* プレイ履歴 */}
-                {playSessions.length > 0 && (
-                    <Card>
-                        <div className="flex items-center gap-2 mb-5">
-                            <Gamepad2 className="w-5 h-5 text-indigo-600" />
-                            <h2 className="text-xl font-bold text-gray-900">ビジネスストーリー プレイ履歴</h2>
-                        </div>
-                        <div className="space-y-3">
-                            {playSessions.map(session => {
-                                const ep = episodeMap[session.episode_id];
-                                const endingConf = session.ending_type ? ENDING_CONFIG[session.ending_type] : null;
-                                const date = session.completed_at ? new Date(session.completed_at).toLocaleDateString('ja-JP') : '';
-                                const stats = session.final_stats || {};
-                                return (
-                                    <div key={session.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                        <div className="flex items-start justify-between gap-2 mb-2">
-                                            <div>
-                                                <p className="font-semibold text-gray-900 text-sm">{ep?.title || 'エピソード'}</p>
-                                                <p className="text-xs text-gray-400 mt-0.5">{date}</p>
-                                            </div>
-                                            {endingConf && (
-                                                <span className={`text-xs font-bold px-2.5 py-1 rounded-full bg-gradient-to-r ${endingConf.color} text-white flex-shrink-0`}>
-                                                    {endingConf.emoji} {endingConf.label}
-                                                </span>
-                                            )}
-                                        </div>
-                                        {Object.keys(stats).length > 0 && (
-                                            <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-                                                {stats.revenue !== undefined && <span>💰{stats.revenue}</span>}
-                                                {stats.brand !== undefined && <span>🎯{stats.brand}</span>}
-                                                {stats.trust !== undefined && <span>🤝{stats.trust}</span>}
-                                                {stats.resource !== undefined && <span>⏳{stats.resource}</span>}
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        <Link to="/business-story" className="mt-4 block text-center text-sm text-indigo-600 hover:text-indigo-800 font-medium">
-                            → エピソード一覧へ
-                        </Link>
-                    </Card>
-                )}
 
                 {/* お気に入りの本 */}
                 <Card>

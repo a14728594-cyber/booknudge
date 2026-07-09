@@ -1,0 +1,18 @@
+{
+  "name": "Favorite",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "\u30e6\u30fc\u30b6\u30fcID"
+    },
+    "book_id": {
+      "type": "string",
+      "description": "\u672cID"
+    }
+  },
+  "required": [
+    "user_id",
+    "book_id"
+  ]
+}

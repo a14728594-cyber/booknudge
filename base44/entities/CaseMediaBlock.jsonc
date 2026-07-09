@@ -1,0 +1,58 @@
+{
+  "name": "CaseMediaBlock",
+  "type": "object",
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "description": "\u7d10\u3065\u304fCaseStudy\u306eID",
+      "index": true
+    },
+    "block_type": {
+      "type": "string",
+      "enum": [
+        "text",
+        "image",
+        "video"
+      ],
+      "description": "\u30d6\u30ed\u30c3\u30af\u7a2e\u5225\uff08\u30c6\u30ad\u30b9\u30c8 / \u753b\u50cf / \u52d5\u753b\uff09"
+    },
+    "title": {
+      "type": "string",
+      "description": "\u30d6\u30ed\u30c3\u30af\u30bf\u30a4\u30c8\u30eb\uff08\u4efb\u610f\uff09"
+    },
+    "body": {
+      "type": "string",
+      "description": "\u8aac\u660e\u6587\u30fb\u672c\u6587"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "\u753b\u50cfURL"
+    },
+    "video_url": {
+      "type": "string",
+      "description": "\u52d5\u753bURL\uff08YouTube\u57cb\u3081\u8fbc\u307fURL\u3084\u76f4\u30ea\u30f3\u30af\uff09"
+    },
+    "video_file_url": {
+      "type": "string",
+      "description": "\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u6e08\u307f\u52d5\u753b\u30d5\u30a1\u30a4\u30ebURL"
+    },
+    "caption": {
+      "type": "string",
+      "description": "\u30ad\u30e3\u30d7\u30b7\u30e7\u30f3\uff08\u753b\u50cf\u30fb\u52d5\u753b\u306e\u88dc\u8db3\uff09"
+    },
+    "order": {
+      "type": "number",
+      "default": 0,
+      "description": "\u8868\u793a\u9806"
+    },
+    "is_published": {
+      "type": "boolean",
+      "default": true,
+      "description": "\u516c\u958b/\u975e\u516c\u958b"
+    }
+  },
+  "required": [
+    "case_id",
+    "block_type"
+  ]
+}

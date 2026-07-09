@@ -1,443 +1,146 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import BookCard from '@/components/common/BookCard';
-import DomainBadge from '@/components/common/DomainBadge';
-import { Search, ArrowRight, ChevronRight, Building2 } from 'lucide-react';
-import PullToRefresh from '@/components/common/PullToRefresh';
-
-const domainConfig = {
-    'マーケティング': {
-        label: 'マーケティング',
-        tags: ['マーケティング', 'marketing', 'セールス', '集客', '広告', 'ブランディング']
-    },
-    '人間関係': {
-        label: '人間関係・コミュニケーション',
-        tags: ['人間関係', 'コミュニケーション', '伝える力', 'プレゼン', '言語化', '交渉', '対人スキル', '自己肯定感', '自己防衛', '感情コントロール', 'ストレス', '立ち回り']
-    },
-    'マインドセット': {
-        label: 'マインドセット',
-        tags: ['マインドセット', 'メンタルケア', 'メンタル', '行動力', '思考法']
-    },
-    '起業': {
-        label: '起業・ビジネス',
-        tags: ['起業', 'ビジネス', '副業', '職場術', '仕事術']
-    },
-    '習慣': {
-        label: '習慣・生活',
-        tags: ['習慣', '生活', 'ライフスタイル', '時間管理']
-    }
-};
+import { Search, BookOpen, Loader2 } from 'lucide-react';
 
 export default function Home() {
-    const navigate = useNavigate();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [mainDomain, setMainDomain] = useState('sales');
-    const [activeTagByDomain, setActiveTagByDomain] = useState({});
-    const [topBooks, setTopBooks] = useState({});
-    const [recommendedBooks, setRecommendedBooks] = useState([]);
-    const [caseStudies, setCaseStudies] = useState([]);
+    const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedGenre, setSelectedGenre] = useState('all');
 
     useEffect(() => {
-        loadData();
-        checkCheckoutSuccess();
-        base44.entities.CaseStudy.filter({ is_published: true }, 'order', 6)
-            .then(data => setCaseStudies(data))
-            .catch(() => {});
+        loadBooks();
     }, []);
 
-    const checkCheckoutSuccess = async () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const checkoutSuccess = urlParams.get('checkout');
-        const nextUrl = urlParams.get('next');
-
-        if (checkoutSuccess === 'success') {
-            await base44.functions.invoke('trackEvent', {
-                event_name: 'checkout_success',
-                event_value: { from: 'paywall' }
-            });
-
-            if (nextUrl) {
-                window.history.replaceState({}, '', window.location.pathname);
-                navigate(nextUrl);
-            }
-        }
-    };
-
-    const loadData = async () => {
+    const loadBooks = async () => {
         try {
-            const allBooks = await base44.entities.Book.list('-created_date', 200);
-
-            const booksByDomain = {};
-            for (const [domain, config] of Object.entries(domainConfig)) {
-                const domainBooks = allBooks.filter(book =>
-                    book.tags && book.tags.some(bookTag =>
-                        config.tags.some(domainTag =>
-                            bookTag.toLowerCase().includes(domainTag.toLowerCase()) ||
-                            domainTag.toLowerCase().includes(bookTag.toLowerCase())
-                        )
-                    )
-                ).slice(0, 15);
-                if (domainBooks.length > 0) {
-                    booksByDomain[domain] = domainBooks;
-                }
-            }
-
-            if (Object.keys(booksByDomain).length === 0 && allBooks.length > 0) {
-                booksByDomain['すべての本'] = allBooks.slice(0, 15);
-            }
-            setTopBooks(booksByDomain);
-            setMainDomain(Object.keys(booksByDomain)[0] || Object.keys(domainConfig)[0]);
-
-            try {
-                const user = await base44.auth.me();
-                base44.functions.invoke('trackEvent', {
-                    event_name: 'home_view',
-                    event_value: {},
-                    update_last_active: true
-                }).catch(() => {});
-
-                const latestSessions = await base44.entities.DiagnosisSession.filter(
-                    { user_id: user.id, is_latest: true },
-                    '-created_date',
-                    1
-                );
-                const latestSession = latestSessions[0] || null;
-
-                if ((user?.onboarding_completed && user?.profile_json) || latestSession) {
-                    const scoredBooks = allBooks.map(book => {
-                        let score = 0;
-                        const bookTagsStr = (book.tags || []).join(' ').toLowerCase();
-                        const painStr = (book.pain_points || []).join(' ').toLowerCase();
-                        const outcomeStr = (book.outcomes || []).join(' ').toLowerCase();
-
-                        if (user?.profile_json) {
-                            const profile = user.profile_json;
-                            const profileKeywords = [
-                                profile.future_goal,
-                                profile.challenges,
-                                profile.position,
-                                ...(profile.current_actions || [])
-                            ].filter(Boolean);
-                            profileKeywords.forEach(keyword => {
-                                const kw = keyword.toLowerCase();
-                                if (bookTagsStr.includes(kw)) score += 3;
-                                if (painStr.includes(kw)) score += 2;
-                                if (outcomeStr.includes(kw)) score += 1;
-                            });
-                        }
-
-                        if (latestSession?.result_tags) {
-                            latestSession.result_tags.forEach(({ tag, score: tagScore }) => {
-                                const t = tag.toLowerCase();
-                                if (bookTagsStr.includes(t)) score += (tagScore || 1) * 4;
-                                if (painStr.includes(t)) score += (tagScore || 1) * 2;
-                                if (outcomeStr.includes(t)) score += (tagScore || 1);
-                            });
-                            if (latestSession.genre && bookTagsStr.includes(latestSession.genre.toLowerCase())) score += 5;
-                            if (latestSession.problem && painStr.includes(latestSession.problem.toLowerCase())) score += 3;
-                        }
-
-                        return { book, score };
-                    });
-
-                    const topRec = scoredBooks
-                        .filter(s => s.score > 0)
-                        .sort((a, b) => b.score - a.score)
-                        .slice(0, 10)
-                        .map(s => s.book);
-                    setRecommendedBooks(topRec);
-                }
-            } catch (authError) {
-                // 未ログインは正常
-            }
+            const allBooks = await base44.entities.Book.list('-created_date', 500);
+            setBooks(allBooks);
         } catch (error) {
-            console.error('[Home] 本取得エラー:', error);
+            console.error('Failed to load books:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            window.location.href = createPageUrl('search') + `?q=${encodeURIComponent(searchQuery)}`;
-        }
-    };
+    const genres = useMemo(() => {
+        const set = new Set(books.map(b => b.book_category).filter(Boolean));
+        return ['all', ...Array.from(set)];
+    }, [books]);
 
-    const handleBookClick = async (bookId, domain) => {
-        base44.functions.invoke('trackEvent', {
-            event_name: 'book_view',
-            event_value: { book_id: bookId, domain }
-        }).catch(() => {});
+    const filteredBooks = useMemo(() => {
+        return books.filter(book => {
+            const q = searchQuery.trim().toLowerCase();
+            const matchesSearch = !q ||
+                (book.title || '').toLowerCase().includes(q) ||
+                (book.authors || []).some(a => a.toLowerCase().includes(q));
+            const matchesGenre = selectedGenre === 'all' || book.book_category === selectedGenre;
+            return matchesSearch && matchesGenre;
+        });
+    }, [books, searchQuery, selectedGenre]);
+
+    const genreLabel = (g) => {
+        if (g === 'all') return 'すべて';
+        if (g === 'business') return 'ビジネス';
+        if (g === 'novel_essay') return '小説・エッセイ';
+        return g;
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">読み込み中...</p>
-                </div>
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
             </div>
         );
     }
 
-    const dragScroll = (e) => {
-        const slider = e.currentTarget;
-        slider.style.cursor = 'grabbing';
-        let startX = e.pageX - slider.offsetLeft;
-        let scrollLeft = slider.scrollLeft;
-        const handleMouseMove = (ev) => {
-            const x = ev.pageX - slider.offsetLeft;
-            slider.scrollLeft = scrollLeft - (x - startX) * 2;
-        };
-        const handleMouseUp = () => {
-            slider.style.cursor = 'grab';
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
-        };
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-    };
-
-    const renderDomainSection = (domain, isMain) => {
-        const books = topBooks[domain];
-        if (!books || books.length === 0) return null;
-        const allTypes = [...new Set(books.flatMap(b => b.tags || []))].slice(0, 10);
-        const activeType = activeTagByDomain[domain];
-        const filtered = activeType ? books.filter(b => b.tags?.includes(activeType)) : books;
-        const activeCls = isMain
-            ? 'bg-indigo-600 text-white border-indigo-600'
-            : 'bg-purple-500 text-white border-purple-500';
-        const inactiveCls = 'bg-white text-gray-500 border-gray-200';
-        const accentBar = isMain ? 'bg-indigo-600' : 'bg-purple-400';
-
-        return (
-            <section key={domain} className="mb-14">
-                <div className="flex items-end justify-between mb-3">
-                    <div className="flex items-center gap-2.5">
-                        <div className={`w-1 h-6 ${accentBar} rounded-full`} />
-                        <h2 className="text-xl font-bold text-gray-900">
-                            {domainConfig[domain]?.label || domain}
-                        </h2>
-                    </div>
-                    <Link to={`/GenreBooks?domain=${encodeURIComponent(domain)}`} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                        もっと見る <ChevronRight className="w-4 h-4" />
-                    </Link>
-                </div>
-                {allTypes.length > 0 && (
-                    <div className="flex gap-2 overflow-x-auto pb-2 mb-3" style={{scrollbarWidth:'none'}}>
-                        <button
-                            onClick={() => setActiveTagByDomain(p => ({...p, [domain]: null}))}
-                            className={`flex-shrink-0 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
-                                !activeType ? activeCls : inactiveCls
-                            }`}
-                        >すべて</button>
-                        {allTypes.map(type => (
-                            <button key={type}
-                                onClick={() => setActiveTagByDomain(p => ({...p, [domain]: p[domain] === type ? null : type}))}
-                                className={`flex-shrink-0 text-xs px-3 py-1 rounded-full border font-medium transition-colors ${
-                                    activeType === type ? activeCls : inactiveCls
-                                }`}
-                            >{type}</button>
-                        ))}
-                    </div>
-                )}
-                <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} onMouseDown={dragScroll}>
-                    {filtered.map(book => (
-                        <div key={book.id} className="flex-shrink-0 w-52 snap-start" onClick={() => handleBookClick(book.id, domain)}>
-                            <BookCard book={book} />
-                        </div>
-                    ))}
-                </div>
-            </section>
-        );
-    };
-
     return (
-        <PullToRefresh onRefresh={loadData}>
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-
-                {/* Search + Diagnosis hero */}
-                <div className="mb-10 max-w-3xl mx-auto space-y-4">
-                    <form onSubmit={handleSearch}>
-                        <div className="relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-indigo-500 transition-colors" />
-                            <Input
-                                type="text"
-                                placeholder="タイトル、著者、キーワードで探す..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-12 pr-20 h-14 text-base rounded-2xl border-gray-200 bg-white shadow-sm focus-visible:ring-indigo-400 focus-visible:border-indigo-400"
-                            />
-                            {searchQuery && (
-                                <button
-                                    type="submit"
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-1.5 rounded-xl transition-colors"
-                                >
-                                    検索
-                                </button>
-                            )}
-                        </div>
-                    </form>
-
-                    {/* Diagnosis CTA */}
-                    <Link to={createPageUrl('DeepDiagnosis')}>
-                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-700 p-5 text-white hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
-                            <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '40px 40px'}} />
-                            <div className="relative flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-xl flex-shrink-0">
-                                        🎯
-                                    </div>
-                                    <div>
-                                        <div className="text-xs font-semibold uppercase tracking-widest text-indigo-200 mb-0.5">AI診断</div>
-                                        <h3 className="text-base font-bold leading-tight">深掘り診断で本を見つける</h3>
-                                        <p className="text-indigo-100 text-xs mt-0.5">悩みに合わせた本を厳選してご紹介します</p>
-                                    </div>
-                                </div>
-                                <div className="flex-shrink-0 bg-white/20 hover:bg-white/30 rounded-xl p-2 transition-colors">
-                                    <ArrowRight className="w-5 h-5" />
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-
-                    {/* Business Story CTA */}
-                    <Link to="/business-story">
-                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-800 via-indigo-900 to-purple-900 p-5 text-white hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
-                            <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(circle at 40% 50%, white 1px, transparent 1px)', backgroundSize: '32px 32px'}} />
-                            <div className="relative flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-xl flex-shrink-0">
-                                        📖
-                                    </div>
-                                    <div>
-                                        <div className="text-xs font-semibold uppercase tracking-widest text-indigo-300 mb-0.5">ビジネスストーリー</div>
-                                        <h3 className="text-base font-bold leading-tight">あなたの診断タイプに合ったストーリーをプレイ</h3>
-                                        <p className="text-indigo-200 text-xs mt-0.5">5〜10分で遊べる正解のないビジネスゲーム</p>
-                                    </div>
-                                </div>
-                                <div className="flex-shrink-0 bg-white/20 hover:bg-white/30 rounded-xl p-2 transition-colors">
-                                    <ArrowRight className="w-5 h-5" />
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-
-
+                {/* Header */}
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                        <BookOpen className="w-8 h-8 text-indigo-600" />
+                        要約マンガライブラリ
+                    </h1>
+                    <p className="text-gray-500 text-sm">本をタップして要約マンガを読む</p>
                 </div>
 
-                {/* 診断結果ベースのおすすめ（ビジネス書） */}
-                {recommendedBooks.filter(b => b.book_category !== 'novel_essay').length > 0 && (
-                    <section className="mb-14">
-                        <div className="flex items-end justify-between mb-5">
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-lg">✨</span>
-                                    <h2 className="text-xl font-bold text-gray-900">あなたへのおすすめ</h2>
-                                </div>
-                                <p className="text-xs text-gray-400 ml-7">診断結果から厳選｜ビジネス書</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} onMouseDown={dragScroll}>
-                            {recommendedBooks.filter(b => b.book_category !== 'novel_essay').map(book => (
-                                <div key={book.id} className="flex-shrink-0 w-52 snap-start" onClick={() => handleBookClick(book.id, 'recommend')}>
-                                    <BookCard book={book} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
+                {/* Search + Genre filter */}
+                <div className="mb-8 space-y-4">
+                    <div className="relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <Input
+                            type="text"
+                            placeholder="タイトル・著者で検索..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-12 h-14 text-base rounded-2xl border-gray-200 bg-white shadow-sm"
+                        />
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+                        {genres.map(g => (
+                            <button
+                                key={g}
+                                onClick={() => setSelectedGenre(g)}
+                                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                                    selectedGenre === g
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                                }`}
+                            >
+                                {genreLabel(g)}
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
-                {/* 診断結果ベースのおすすめ（小説・エッセイ） */}
-                {recommendedBooks.filter(b => b.book_category === 'novel_essay').length > 0 && (
-                    <section className="mb-14">
-                        <div className="flex items-end justify-between mb-5">
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-lg">📖</span>
-                                    <h2 className="text-xl font-bold text-gray-900">小説・エッセイのおすすめ</h2>
-                                </div>
-                                <p className="text-xs text-gray-400 ml-7">診断結果から厳選｜読み物・インスピレーション</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory cursor-grab active:cursor-grabbing" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} onMouseDown={dragScroll}>
-                            {recommendedBooks.filter(b => b.book_category === 'novel_essay').map(book => (
-                                <div key={book.id} className="flex-shrink-0 w-52 snap-start" onClick={() => handleBookClick(book.id, 'recommend')}>
-                                    <BookCard book={book} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                {/* Domain Carousels */}
-                {renderDomainSection(mainDomain, true)}
-                {Object.keys(topBooks).filter(d => d !== mainDomain).map(domain => renderDomainSection(domain, false))}
-
-                {/* 事例から学ぶ */}
-                {caseStudies.length > 0 && (
-                    <section className="mb-14">
-                        <div className="flex items-end justify-between mb-5">
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <Building2 className="w-5 h-5 text-emerald-600" />
-                                    <h2 className="text-xl font-bold text-gray-900">事例から学ぶ</h2>
-                                </div>
-                                <p className="text-xs text-gray-400">有名企業や人気サービスの"うまくいってる理由"を分解</p>
-                            </div>
-                            <Link to={createPageUrl('CaseStudies')} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                                もっと見る <ChevronRight className="w-4 h-4" />
-                            </Link>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {caseStudies.map(c => (
-                                <Link key={c.id} to={createPageUrl('CaseStudyDetail') + `?id=${c.id}`}
-                                    className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
-                                >
-                                    {c.thumbnail_url && (
-                                        <div className="h-32 overflow-hidden">
-                                            <img src={c.thumbnail_url} alt={c.company_name} className="w-full h-full object-cover" />
+                {/* Book grid */}
+                {filteredBooks.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {filteredBooks.map(book => (
+                            <Link
+                                key={book.id}
+                                to={createPageUrl('BookDetail') + `?id=${book.id}`}
+                                className="group"
+                            >
+                                <div className="aspect-[3/4] bg-gray-100 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
+                                    {book.cover_url ? (
+                                        <img
+                                            src={book.cover_url}
+                                            alt={book.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <BookOpen className="w-8 h-8 text-gray-300" />
                                         </div>
                                     )}
-                                    <div className="p-4">
-                                        <p className="text-xs text-emerald-600 font-semibold mb-1">{c.company_name}</p>
-                                        <h3 className="font-bold text-gray-900 text-sm leading-snug mb-2 line-clamp-2">{c.title}</h3>
-                                        {c.short_description && (
-                                            <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-2">{c.short_description}</p>
-                                        )}
-                                        <div className="flex flex-wrap gap-1">
-                                            {[...(c.industry_tags || []), ...(c.learning_tags || [])].slice(0, 3).map(tag => (
-                                                <span key={tag} className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full">{tag}</span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
-                {/* 本が0件のとき */}
-                {Object.keys(topBooks).length === 0 && !loading && (
+                                </div>
+                                <h3 className="mt-2 text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-indigo-600 transition-colors">
+                                    {book.title}
+                                </h3>
+                                <p className="text-xs text-gray-500 line-clamp-1">
+                                    {book.authors?.join(', ') || ''}
+                                </p>
+                            </Link>
+                        ))}
+                    </div>
+                ) : (
                     <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
                         <div className="text-4xl mb-4">📚</div>
-                        <p className="text-gray-600 font-medium mb-2">まだ本が登録されていません</p>
-                        <p className="text-gray-400 text-sm mb-6">管理者が本を追加するまでお待ちください</p>
-                        <Link to={createPageUrl('DeepDiagnosis')} className="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors text-sm font-medium">
-                            深掘り診断を試す
-                        </Link>
+                        <p className="text-gray-600 font-medium mb-1">
+                            {searchQuery || selectedGenre !== 'all' ? '該当する本が見つかりません' : 'まだ本が登録されていません'}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                            {searchQuery || selectedGenre !== 'all' ? '検索条件を変えてみてください' : '管理者が本を追加するまでお待ちください'}
+                        </p>
                     </div>
                 )}
             </div>
         </div>
-        </PullToRefresh>
     );
 }

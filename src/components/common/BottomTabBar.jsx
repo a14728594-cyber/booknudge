@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Home, Sparkles, User, Mail } from 'lucide-react';
+import { Home, BookOpen, User, Mail } from 'lucide-react';
 
 const TABS = [
   { label: 'ホーム', path: 'home', icon: Home },
-  { label: '診断', path: 'DeepDiagnosis', icon: Sparkles },
+  { label: 'ライブラリ', path: 'home', icon: BookOpen },
   { label: 'プロフィール', path: 'profile', icon: User },
   { label: 'サポート', path: 'support', icon: Mail },
 ];

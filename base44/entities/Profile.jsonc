@@ -1,0 +1,31 @@
+{
+  "name": "Profile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "\u30e6\u30fc\u30b6\u30fcID"
+    },
+    "goal_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u76ee\u6a19\u30bf\u30b0\uff08\u6700\u91cd\u8981\u30de\u30c3\u30c1\u30f3\u30b0\u8981\u7d20\uff09"
+    },
+    "interest_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u8208\u5473\u30bf\u30b0"
+    },
+    "persona_tag": {
+      "type": "string",
+      "description": "\u30da\u30eb\u30bd\u30ca\u30bf\u30b0\uff08\u4efb\u610f\uff09"
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

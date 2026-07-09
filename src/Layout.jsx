@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Menu, X, BookOpen, Home, Mail, BarChart3, UserCog, MessageSquare, LogOut, User, Sparkles } from 'lucide-react';
+import { Menu, X, BookOpen, Home, Mail, BarChart3, UserCog, MessageSquare, LogOut, User } from 'lucide-react';
 import BottomTabBar from '@/components/common/BottomTabBar';
 import MagicLinkModal from '@/components/auth/MagicLinkModal';
 
@@ -40,7 +40,7 @@ export default function Layout({ children, currentPageName }) {
   const handleLogout = async () => {
     await base44.auth.logout();
     setUser(null);
-    navigate(createPageUrl('landing'));
+    navigate(createPageUrl('home'));
   };
 
   const isAdminPage = currentPageName.startsWith('Admin');
@@ -55,7 +55,6 @@ export default function Layout({ children, currentPageName }) {
 
   const userNavItems = [
   { label: 'ホーム', path: 'home', icon: Home, requiresPremium: false },
-  { label: '深掘り診断', path: 'DeepDiagnosis', icon: Sparkles, requiresPremium: false },
   { label: 'プロフィール', path: 'profile', icon: User, requiresPremium: false },
   { label: 'お問い合わせ', path: 'support', icon: Mail, requiresPremium: false }];
 

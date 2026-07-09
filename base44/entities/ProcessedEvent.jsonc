@@ -1,0 +1,41 @@
+{
+  "name": "ProcessedEvent",
+  "type": "object",
+  "properties": {
+    "stripe_event_id": {
+      "type": "string",
+      "description": "Stripe event ID (\u552f\u4e00\u306e\u8b58\u5225\u5b50)",
+      "index": true
+    },
+    "event_type": {
+      "type": "string",
+      "description": "Stripe event type (e.g., checkout.session.completed)"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "\u30e6\u30fc\u30b6\u30fcID"
+    },
+    "processed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u51e6\u7406\u65e5\u6642"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failed"
+      ],
+      "default": "success",
+      "description": "\u51e6\u7406\u30b9\u30c6\u30fc\u30bf\u30b9"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "\u30a8\u30e9\u30fc\u30e1\u30c3\u30bb\u30fc\u30b8\uff08\u5931\u6557\u6642\u306e\u307f\uff09"
+    }
+  },
+  "required": [
+    "stripe_event_id",
+    "event_type"
+  ]
+}

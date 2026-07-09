@@ -1,0 +1,47 @@
+{
+  "name": "Inquiry",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "\u30e6\u30fc\u30b6\u30fcID\uff08\u30ed\u30b0\u30a4\u30f3\u6642\uff09"
+    },
+    "email": {
+      "type": "string",
+      "description": "\u30e1\u30fc\u30eb\u30a2\u30c9\u30ec\u30b9"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "bug",
+        "idea",
+        "payment",
+        "other"
+      ],
+      "description": "\u30ab\u30c6\u30b4\u30ea"
+    },
+    "message": {
+      "type": "string",
+      "description": "\u30e1\u30c3\u30bb\u30fc\u30b8"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "doing",
+        "done"
+      ],
+      "default": "open",
+      "description": "\u30b9\u30c6\u30fc\u30bf\u30b9"
+    },
+    "admin_note": {
+      "type": "string",
+      "description": "\u7ba1\u7406\u8005\u30e1\u30e2"
+    }
+  },
+  "required": [
+    "email",
+    "category",
+    "message"
+  ]
+}

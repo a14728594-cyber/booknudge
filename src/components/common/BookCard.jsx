@@ -5,7 +5,7 @@ import { Star } from 'lucide-react';
 
 export default function BookCard({ book, reason }) {
     return (
-        <Link to={createPageUrl('Book') + '?id=' + book.id}>
+        <Link to={createPageUrl('BookDetail') + '?id=' + book.id}>
             <div className="group bg-white rounded-2xl border border-gray-100 hover:border-indigo-200 hover:shadow-xl shadow-sm transition-all duration-300 h-full flex flex-col overflow-hidden">
                 {/* Cover area */}
                 <div className="relative bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center" style={{ height: '160px' }}>
