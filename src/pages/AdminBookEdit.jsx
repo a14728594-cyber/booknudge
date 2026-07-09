@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import Card from '@/components/common/Card';
-import { Save, ArrowLeft, Plus, X, Loader2, Sparkles, Trash2 } from 'lucide-react';
+import { Save, ArrowLeft, Plus, X, Loader2, Sparkles } from 'lucide-react';
+import MangaPagesUploader from '@/components/admin/MangaPagesUploader';
 
 const BUSINESS_SCORE_OPTIONS = [
     { value: 3, label: '3点', desc: 'その本の中心テーマとしてかなり強く効く' },
@@ -60,9 +61,6 @@ export default function AdminBookEdit() {
     const [saving, setSaving] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [uploading, setUploading] = useState(false);
-    const [resultTypes, setResultTypes] = useState([]);
-    const [mappings, setMappings] = useState([]);
-
     const [formData, setFormData] = useState({
         title: '',
         authors: [''],
@@ -87,6 +85,8 @@ export default function AdminBookEdit() {
         novel_outcomes: [''],
         effect_labels: [],
         connection_text: '',
+        manga_pages: [],
+        summary_status: 'not_started',
     });
 
     const category = formData.book_category;
@@ -102,14 +102,8 @@ export default function AdminBookEdit() {
             const user = await base44.auth.me();
             if (user.role !== 'admin') { navigate(createPageUrl('home')); return; }
 
-            const types = await base44.entities.DiagnosisResultType.list('order', 100);
-            setResultTypes(types);
-
             if (bookId && bookId !== 'new') {
-                const [book, existingMappings] = await Promise.all([
-                    base44.entities.Book.get(bookId),
-                    base44.entities.BookDiagnosisMapping.filter({ book_id: bookId }, '-relevance_score', 50),
-                ]);
+                const book = await base44.entities.Book.get(bookId);
                 setFormData({
                     title: book.title || '',
                     authors: book.authors?.length > 0 ? book.authors : [''],
@@ -132,8 +126,9 @@ export default function AdminBookEdit() {
                     novel_outcomes: book.novel_outcomes?.length > 0 ? book.novel_outcomes : [''],
                     effect_labels: Array.isArray(book.effect_labels) ? book.effect_labels : (book.effect_label ? [book.effect_label] : []),
                     connection_text: book.connection_text || '',
+                    manga_pages: Array.isArray(book.manga_pages) ? book.manga_pages : [],
+                    summary_status: book.summary_status || 'not_started',
                 });
-                setMappings(existingMappings);
             }
         } catch (error) {
             navigate(createPageUrl('AdminBooks'));
@@ -152,12 +147,6 @@ export default function AdminBookEdit() {
         const newArray = formData[field].filter((_, i) => i !== index);
         setFormData({ ...formData, [field]: newArray.length > 0 ? newArray : [''] });
     };
-
-    const addMapping = () => {
-        setMappings(prev => [...prev, { _isNew: true, book_id: bookId || 'new', diagnosis_type_key: '', relevance_score: 2, recommendation_text: '', score_mode: isNovel ? 'affinity' : 'direct' }]);
-    };
-    const updateMapping = (idx, field, value) => setMappings(prev => prev.map((m, i) => i === idx ? { ...m, [field]: value } : m));
-    const removeMapping = (idx) => setMappings(prev => prev.filter((_, i) => i !== idx));
 
     const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
@@ -303,31 +292,12 @@ JSON:
                 connection_text: undefined,
             };
 
-            const data = { ...base, ...categoryData };
+            const data = { ...base, ...categoryData, manga_pages: formData.manga_pages || [], summary_status: formData.summary_status || 'not_started' };
 
-            let savedBookId = bookId;
             if (bookId && bookId !== 'new') {
                 await base44.entities.Book.update(bookId, data);
             } else {
-                const created = await base44.entities.Book.create(data);
-                savedBookId = created.id;
-            }
-
-            if (savedBookId && savedBookId !== 'new') {
-                const existingMappings = await base44.entities.BookDiagnosisMapping.filter({ book_id: savedBookId }, '-relevance_score', 50);
-                await Promise.all(existingMappings.map(m => base44.entities.BookDiagnosisMapping.delete(m.id)));
-                await Promise.all(
-                    mappings
-                        .filter(m => m.diagnosis_type_key)
-                        .map(m => base44.entities.BookDiagnosisMapping.create({
-                            book_id: savedBookId,
-                            diagnosis_type_key: m.diagnosis_type_key,
-                            relevance_score: m.relevance_score || 2,
-                            score_mode: isNovel ? 'affinity' : 'direct',
-                            recommendation_text: m.recommendation_text || '',
-                            priority_order: m.relevance_score || 2,
-                        }))
-                );
+                await base44.entities.Book.create(data);
             }
 
             navigate(createPageUrl('AdminBooks'));
@@ -601,120 +571,29 @@ JSON:
                         </div>
                     )}
 
-                    {/* 診断タイプ紐付け */}
+                    {/* 要約マンガ */}
                     <div className="border-t pt-8">
-                        <div className="flex items-center justify-between mb-2">
-                            <h2 className="text-xl font-bold text-gray-900">🎯 診断タイプ紐付け</h2>
-                            <Button onClick={addMapping} variant="outline" className="gap-2 text-sm" disabled={mappings.length >= (isNovel ? 3 : 5)}>
-                                <Plus className="w-4 h-4" /> 紐付けを追加{isNovel ? `（最大3つ）` : `（最大5つ）`}
-                            </Button>
-                        </div>
-                        <p className="text-xs text-gray-400 mb-3">システム上のレコメンド分類です。自然文ではなくタイプで設定してください。</p>
-                        <div className={`text-sm mb-3 p-3 rounded-xl ${isNovel ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'}`}>
-                            {isNovel
-                                ? '🎭 小説・エッセイの上限は3つです。広く紐付けすぎるとレコメンド精度が落ちるため、特に刺さるタイプに絞って設定してください。'
-                                : '📊 ビジネス書のスコアは「直接解決の強さ」として扱います。その本の中心テーマがどれだけ診断タイプの悩みに効くかで判断してください。'}
-                        </div>
-                        <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-4 text-xs text-gray-600 space-y-1">
-                            <p className="font-semibold text-gray-700 mb-1">スコア基準</p>
-                            {isNovel ? (
-                                <>
-                                    <p>🔴 3点 = このタイプの人にかなり刺さりやすい / 優先表示したい</p>
-                                    <p>🟡 2点 = 相性がある / 補助的に表示したい</p>
-                                    <p>⚪ 1点 = 少し関連する / サブ候補として表示したい</p>
-                                </>
-                            ) : (
-                                <>
-                                    <p>🔴 3点 = その本の中心テーマとしてかなり強く効く</p>
-                                    <p>🟡 2点 = 明確に関連する</p>
-                                    <p>⚪ 1点 = 補助的に関連する</p>
-                                </>
-                            )}
-                        </div>
-
-                        {resultTypes.length === 0 && (
-                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700 mb-4">
-                                診断タイプがまだ登録されていません。AdminDiagnosis &gt; 診断タイプ管理 から先に作成してください。
+                        <h2 className="text-xl font-bold text-gray-900 mb-1">🎬 要約マンガ</h2>
+                        <p className="text-sm text-gray-500 mb-4">WebP・PNGをアップロード。ファイル名順（01.webp, 02.webp…）で自動ソートされます。</p>
+                        <div className="mb-4">
+                            <Label>制作状態</Label>
+                            <div className="flex gap-2 mt-1">
+                                {[
+                                    { value: 'not_started', label: '未着手' },
+                                    { value: 'in_progress', label: '制作中' },
+                                    { value: 'published', label: '公開' },
+                                ].map(opt => (
+                                    <button key={opt.value} type="button"
+                                        onClick={() => setFormData({ ...formData, summary_status: opt.value })}
+                                        className={`px-4 py-1.5 rounded-lg border text-sm transition-colors ${formData.summary_status === opt.value ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'}`}
+                                    >{opt.label}</button>
+                                ))}
                             </div>
-                        )}
-
-                        <div className="space-y-3">
-                            {[...mappings]
-                                .sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0))
-                                .map((mapping, idx) => {
-                                    const realIdx = mappings.indexOf(mapping);
-                                    return (
-                                        <div key={idx} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm font-medium text-gray-700">紐付け #{idx + 1}</span>
-                                                <button onClick={() => removeMapping(realIdx)} className="text-gray-400 hover:text-red-500">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label className="text-xs text-gray-500 mb-1 block">診断タイプ *</label>
-                                                    <select
-                                                        value={mapping.diagnosis_type_key}
-                                                        onChange={e => updateMapping(realIdx, 'diagnosis_type_key', e.target.value)}
-                                                        className="w-full border rounded-lg text-sm px-2 py-1.5 bg-white"
-                                                    >
-                                                        <option value="">選択してください</option>
-                                                        {resultTypes.map(t => (
-                                                            <option key={t.id} value={t.key}>{t.emoji || ''} {t.label}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label className="text-xs text-gray-500 mb-1 block">
-                                                        {isNovel ? '適合度スコア' : '関連度スコア'}
-                                                    </label>
-                                                    <div className="flex gap-2">
-                                                        {scoreOptions.map(s => (
-                                                            <button
-                                                                key={s.value}
-                                                                type="button"
-                                                                onClick={() => updateMapping(realIdx, 'relevance_score', s.value)}
-                                                                className={`flex-1 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
-                                                                    (mapping.relevance_score || 2) === s.value
-                                                                        ? (isNovel ? 'bg-purple-600 text-white border-purple-600' : 'bg-indigo-600 text-white border-indigo-600')
-                                                                        : 'bg-white text-gray-600 border-gray-300 hover:border-indigo-400'
-                                                                }`}
-                                                                title={s.desc}
-                                                            >
-                                                                {s.label}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                    <p className="text-xs text-gray-400 mt-1">
-                                                        {scoreOptions.find(s => s.value === (mapping.relevance_score || 2))?.desc}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="text-xs text-gray-500 mb-1 block">
-                                                    {isNovel ? '接続コメント（任意）' : '推薦文（任意）'}
-                                                </label>
-                                                <Textarea
-                                                    value={mapping.recommendation_text || ''}
-                                                    onChange={e => updateMapping(realIdx, 'recommendation_text', e.target.value)}
-                                                    placeholder={isNovel
-                                                        ? '例：立ち止まっている時に、前に進むきっかけをくれる一冊'
-                                                        : '例：集客手段を増やす前に、まず自分の強みを言語化することが重要です。'}
-                                                    rows={2}
-                                                    className="text-sm"
-                                                />
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            {mappings.length === 0 && (
-                                <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 text-sm">
-                                    <p>まだ診断タイプが紐付けられていません</p>
-                                    <p className="mt-1 text-xs">「紐付けを追加」ボタンから設定してください（最大{isNovel ? 3 : 5}つ）</p>
-                                </div>
-                            )}
                         </div>
+                        <MangaPagesUploader
+                            pages={formData.manga_pages}
+                            onChange={(pages) => setFormData({ ...formData, manga_pages: pages })}
+                        />
                     </div>
 
                     <div className="flex justify-end gap-3 pt-6 border-t">
