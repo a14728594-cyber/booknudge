@@ -1,0 +1,44 @@
+{
+  "name": "\u9031\u6b21\u30de\u30c3\u30c1\u30f3\u30b0\u751f\u6210\uff08\u5168\u30a2\u30af\u30c6\u30a3\u30d6\u30e6\u30fc\u30b6\u30fc\uff09",
+  "description": "\u6bce\u9031\u6708\u66dc\u65e5\u6df1\u591c2\u6642\u306b\u5168\u30a2\u30af\u30c6\u30a3\u30d6\u30e6\u30fc\u30b6\u30fc\u306e\u30de\u30c3\u30c1\u30f3\u30b0\u3092\u751f\u6210",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 17 * * 1",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "migrated_workflow",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "generateMatchesForAllUsers",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "generateMatchesForAllUsers"
+  }
+}
